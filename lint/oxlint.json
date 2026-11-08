@@ -1,6 +1,6 @@
 {
 	"plugins": ["unicorn", "typescript", "oxc", "react", "vitest"],
-	"jsPlugins": [{ "name": "house", "specifier": "./plugins/house/index.ts" }],
+	"jsPlugins": [{ "name": "house", "specifier": "./plugins/house/index.js" }],
 	"categories": { "correctness": "error" },
 	"env": { "builtin": true, "browser": true, "node": true, "es2024": true },
 	"settings": { "react": { "version": "19.3" } },

@@ -34,8 +34,12 @@ jobs:
           tarball="$(tail -1 "$RUNNER_TEMP/tarball")"
           case "$tarball" in /*) ;; *) tarball="$RUNNER_TEMP/$tarball" ;; esac # pnpm pack prints an absolute path
           project() { mkdir -p "$1"; cd "$1"; printf '{"name":"consumer","private":true}\n' > package.json; }
-          assert_module() { # $1 = node runner, reads the CSS through the resolver
-            $1 -e "const { generateThemeCss } = require('@radandevist/radan-ui'); if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');"
+          assert_module() { # $1 = node runner (node, yarn node, bun); the package is ESM-only, so assert via import()
+            cat > check.mjs <<'JS'
+          const { generateThemeCss } = await import('@radandevist/radan-ui');
+          if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');
+          JS
+            $1 check.mjs
             $1 -e "const fs = require('node:fs'); const css = fs.readFileSync(require.resolve('@radandevist/radan-ui/theme.css'), 'utf8'); if (!css.includes('--radan-ui-primary')) throw new Error('theme.css missing');"
           }
 
@@ -71,6 +75,5 @@ jobs:
           echo '--- bun'
           project "$RUNNER_TEMP/consumer-bun"
           bun add "$tarball"
-          bun -e "const { generateThemeCss } = require('@radandevist/radan-ui'); if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');"
-          node -e "const fs = require('node:fs'); const css = fs.readFileSync(require.resolve('@radandevist/radan-ui/theme.css'), 'utf8'); if (!css.includes('--radan-ui-primary')) throw new Error('theme.css missing');"
+          assert_module bun
           ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'

@@ -3,10 +3,10 @@ import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 
 /**
- * Consumer proof: a project whose whole OxLint config is
- * `{ "extends": ["@radandevist/radan-ui/oxlint.json"] }` gets the house
- * plugin, resolved relative to the shared file (proven here against the
- * repo-local path the package will ship).
+ * Shared-config proof inside the repo: a project extending `lint/oxlint.json`
+ * gets the house plugin, resolved relative to that file. The installed-package
+ * case (the snippet the README documents, loaded from `node_modules`) is
+ * covered by `tests/package.test.ts`.
  */
 const lint = (file: string) =>
 	spawnSync('pnpm', ['exec', 'oxlint', '-c', 'tests/fixtures/lint/.oxlintrc.json', `tests/fixtures/lint/${file}`], {

@@ -1,5 +1,6 @@
 node_modules
 dist
+lint/plugins/house/index.js
 catalog/dist
 .DS_Store
 test-results

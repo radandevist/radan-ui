@@ -104,16 +104,19 @@ An override is a named, documented exception, never a per-page variant — consi
 
 ### Lint
 
-`pnpm check` runs TypeScript (`tsc --noEmit`), OxLint, oxfmt and the Vitest suite; CI runs the same command on every
-pull request. The repo's own configuration lives in `.oxlintrc.json` and `.oxfmtrc.json` (tabs, 120 columns, single
-quotes), and `.oxlintrc.json` extends the shared one.
+`pnpm check` runs, in order, TypeScript (`tsc --noEmit`), OxLint, oxfmt, the Vitest suite, the build, `publint` +
+`attw` (`check:package`) and the size budget; CI runs the same command on every pull request. The repo's own
+configuration lives in `.oxlintrc.json` and `.oxfmtrc.json` (tabs, 120 columns, single quotes), and `.oxlintrc.json`
+extends the shared one.
 
-A consuming app gets the shared rules — including the generic `house` plugin — by extending the shipped config. OxLint
-resolves the plugin path relative to `lint/oxlint.json`, so the consumer does not list `jsPlugins` itself:
+A consuming app gets the shared rules — including the generic `house` plugin, shipped pre-bundled as plain JS — by
+extending the installed config. OxLint treats `extends` entries as filesystem paths (not package specifiers) and
+resolves the plugin path relative to the shared file, so point it at the installed file and do not list `jsPlugins`
+yourself:
 
 ```json
 {
-	"extends": ["@radandevist/radan-ui/oxlint.json"]
+	"extends": ["./node_modules/@radandevist/radan-ui/lint/oxlint.json"]
 }
 ```
 

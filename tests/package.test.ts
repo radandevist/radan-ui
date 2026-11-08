@@ -1,5 +1,5 @@
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -8,7 +8,8 @@ import { afterAll, beforeAll, expect, test } from 'vitest';
 /**
  * Installed-package proof: pack the built package, install the tarball into a
  * throwaway project with npm, and use it the way a consumer does. The
- * assertions are shared with the CI install matrix (Task 4, Step 2b).
+ * assertions are shared with the CI install matrix (Task 4, Step 2b), and the
+ * OxLint test runs the exact config snippet the README documents.
  */
 const dir = mkdtempSync(join(tmpdir(), 'radan-ui-consumer-'));
 const env = {
@@ -52,3 +53,22 @@ test('the installed CLI prints a custom prefix', { timeout: 120_000 }, () => {
 	expect(existsSync(bin)).toBe(true);
 	expect(run('node', [bin, 'theme', '--prefix', 't'])).toContain('--t-primary');
 });
+
+test(
+	'the OxLint config documented in the README loads the house plugin from node_modules',
+	{ timeout: 120_000 },
+	() => {
+		// The exact snippet a consumer pastes: no jsPlugins of their own.
+		const readme = readFileSync(join(process.cwd(), 'README.md'), 'utf8');
+		const snippet = readme.slice(readme.indexOf('### Lint')).match(/```json\n([\s\S]*?)```/)?.[1];
+		expect(snippet).toBeDefined();
+		writeFileSync(join(dir, '.oxlintrc.json'), snippet!);
+		mkdirSync(join(dir, 'src'), { recursive: true });
+		writeFileSync(join(dir, 'src/bad.ts'), 'export const x = (() => 1)();\n');
+		const oxlint = join(process.cwd(), 'node_modules/.bin/oxlint');
+		const result = spawnSync(oxlint, ['src/bad.ts'], { cwd: dir, encoding: 'utf8', env });
+		expect(result.stderr).not.toContain('Failed');
+		expect(result.status).toBe(1);
+		expect(result.stdout).toContain('house(no-iife)');
+	},
+);

@@ -47,12 +47,13 @@
 	],
 	"scripts": {
 		"typecheck": "tsc --noEmit",
-		"lint": "oxlint --quiet --ignore-pattern 'tests/fixtures/**' --ignore-pattern 'dist/**' --ignore-pattern 'catalog/dist/**' .",
+		"lint": "pnpm build:lint-plugin && oxlint --quiet --ignore-pattern 'tests/fixtures/**' --ignore-pattern 'dist/**' --ignore-pattern 'catalog/dist/**' .",
 		"format": "oxfmt --write .",
 		"format:check": "oxfmt --check .",
 		"test": "vitest run",
 		"build": "rm -rf dist && tsdown && pnpm build:theme",
 		"build:theme": "tsx scripts/build-theme.ts",
+		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
 		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css",
 		"size": "size-limit",
 		"check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm check:package && pnpm size"
