@@ -31,7 +31,8 @@ jobs:
       - name: Install and use the package with npm, pnpm, yarn (node-modules and pnp) and bun
         run: |
           set -euo pipefail
-          tarball="$RUNNER_TEMP/$(tail -1 "$RUNNER_TEMP/tarball")"
+          tarball="$(tail -1 "$RUNNER_TEMP/tarball")"
+          case "$tarball" in /*) ;; *) tarball="$RUNNER_TEMP/$tarball" ;; esac # pnpm pack prints an absolute path
           project() { mkdir -p "$1"; cd "$1"; printf '{"name":"consumer","private":true}\n' > package.json; }
           assert_module() { # $1 = node runner, reads the CSS through the resolver
             $1 -e "const { generateThemeCss } = require('@radandevist/radan-ui'); if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');"
