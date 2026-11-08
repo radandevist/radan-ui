@@ -19,10 +19,12 @@ colours, radii or copy of a component.
   carries a label).
 - **Destructive actions live in a dedicated section** of a detail view, never in its header; list row actions and
   bulk menus are exempt.
-- **Empty, error and loading states come from the shared primitives**, at one visual scale: flat (no card, ring,
-  shadow or icon disc), the cause in plain words, and the next action offered. Never a bare "something went
-  wrong", never fabricated data — a field the contract doesn't provide is omitted.
-- **Layout constants are shared too**: z-index tiers, container widths, spacing rhythm — route through the tokens/
-  utilities, never a local `z-50` or a third container width.
+- **Empty and error states come from the shared primitives**, at one visual scale: flat (no card, ring, shadow or
+  icon disc), the cause in plain words, and the next action offered. Never a bare "something went wrong", never
+  fabricated data — a field the contract doesn't provide is omitted. Loading states are **skeletons**: they mirror
+  their component's surface — see [skeletons.md](./skeletons.md).
+- **Layout constants are shared too**: the theme defines no z-index or container-width tokens — use Tailwind's
+  `z-*` / `max-w-*` scales consistently, never a local `z-50` or a third container width. Don't invent a shared tier
+  the theme doesn't provide.
 - **An override is a named exception** (comment + one line in the project's docs), scoped to a project, a component
   or a single surface — never a per-page variant class, never a fork.

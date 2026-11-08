@@ -25,14 +25,19 @@ the Tailwind utility mapped to it — never a raw `hex` / `rgb()` / ad-hoc value
 6. **An override is a named, documented exception** (see [§10](#10-overriding-a-token)) — never a per-page variant,
    never a copy of a component with a tweaked class.
 
+Scope: the `md`-breakpoint rules in this document and in `docs/rules/` describe the **web** implementation. Native
+(Expo) has no `md` contract: `Drawer` / `FormPanel` is always a bottom sheet and menus are action sheets
+(cross-platform native design, §5).
+
 ## 2. Tokens: three layers
 
-Every variable the library defines is prefixed; the default prefix is `radan-ui`, chosen when the theme is generated
-(`radan-ui theme --prefix <p>` writes a theme with another one, e.g. `--acme-primary`). The prefix must match
-`^[a-z][a-z0-9-]*$`.
+Every **token** variable the library defines is prefixed; the default prefix is `radan-ui`, chosen when the theme is
+generated (`radan-ui theme --prefix <p>` writes a theme with another one, e.g. `--acme-primary`). The prefix must match
+`^[a-z][a-z0-9-]*$`. The `@theme inline` bridge keeps Tailwind's own unprefixed `--color-*` / `--radius-*` /
+`--shadow-*` names — those are utility keys, not tokens.
 
-Components never spell the prefix: they use Tailwind utilities (`bg-card`, `rounded-card`, `shadow-raised-control`)
-whose `@theme inline` entries point at the prefixed variables — a new prefix needs no component change.
+Components use Tailwind utilities (`bg-card`, `rounded-card`, `shadow-raised-control`) whose `@theme inline` entries
+point at the prefixed variables — a new prefix needs no change for bridged names; rest read via arbitrary values (§6).
 
 ### Layer 1 — palette (the raw base)
 
@@ -99,12 +104,16 @@ Pointing at the semantic layer: override one and every instance of that componen
 | Token | Value |
 | --- | --- |
 | `--radan-ui-card-bg` | `var(--radan-ui-card)` |
-| `--radan-ui-card-foreground` | `var(--radan-ui-card-foreground)` |
 | `--radan-ui-card-radius` | `14px` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
 | `--radan-ui-toast-radius` | `12px` |
+
+`card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground` — it is not
+a component knob to override. The generated theme currently also emits a same-named component variable whose value
+`var(--radan-ui-card-foreground)` resolves to itself and is invalid; until that entry is removed from the theme data,
+prefer `text-foreground` on cards in light mode.
 
 ### The Tailwind bridge (`@theme inline`)
 
@@ -112,10 +121,14 @@ Components and screens use Tailwind names; the `@theme inline` block maps each t
 
 | Tailwind name | Reads |
 | --- | --- |
-| `bg-background`, `text-foreground`, `bg-card`, `bg-primary`, `text-muted-foreground`, `border-border`, `ring-ring`, … | the semantic colour of the same name |
+| `bg-background`, `text-foreground`, `bg-card`, `bg-primary`, `text-muted-foreground`, `border-border`, `ring-ring`, … | the semantic colour of the same name (only bridged names; see below) |
 | `rounded-sm` … `rounded-4xl` | `radius × 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6` |
 | `rounded-card`, `rounded-control`, `rounded-popover`, `rounded-toast` | the component radius tokens |
 | `shadow-raised-control`, `shadow-primary-raised`, `shadow-popover` | the `effect-*` tokens |
+
+Only the semantic names listed in `tailwindColors` (28, including `status-success` / `status-warning`) get colour
+utilities (`bg-*`, `text-*`, `border-*`, `ring-*`). The five domain status triplets are **not** in that list: there is
+no `bg-status-open-background` utility — read them through arbitrary values on the prefixed variable (§6).
 
 ## 3. Light and dark
 
@@ -147,7 +160,7 @@ Components and screens use Tailwind names; the `@theme inline` block maps each t
 | --- | --- | --- |
 | `rounded-sm` | `0.375rem` | small chips, tags |
 | `rounded-md` | `0.5rem` | compact controls |
-| `rounded-lg` | `0.625rem` | default (inputs, tabs) |
+| `rounded-lg` | `0.625rem` | default (tabs) |
 | `rounded-xl` / `2xl` / `3xl` / `4xl` | `×1.4 / ×1.8 / ×2.2 / ×2.6` | menus, sheets, big panels |
 | `rounded-card` | `14px` | cards |
 | `rounded-control` | `calc(radius × 1.4)` | buttons, inputs |
@@ -167,22 +180,37 @@ popups are re-based in dark by the token, never by a component.
 
 ## 6. Status tones
 
-Each status is a `background` / `foreground` / `border` triplet — a pill is
-`bg-status-<x>-background text-status-<x>-foreground border-status-<x>-border`, never a hand-tinted colour.
+Status tones are semantic tokens in two shapes:
 
-| Status | Light bg / fg / border | Meaning |
-| --- | --- | --- |
-| `status-success` | `#15803d` (text/icon, light) · `#86efac` (dark) | generic success |
-| `status-warning` | `#b45309` · `#fdd34d` (dark) | generic warning |
-| `status-open-*` | `#dff2fe` / `#00598a` / `#b8e6fe` | open / in progress |
-| `status-pending-*` | `#fef3c7` / `#92400e` / `#fde68a` | waiting / pending |
-| `status-resolved-*` | `#dcfce7` / `#166534` / `#bbf7d0` | done / resolved |
-| `status-closed-*` | `#f4f4f5` / `#52525b` / `#e4e4e7` | neutral / closed |
-| `status-breached-*` | `#fff1f2` / `#be123c` / `#fecdd3` | breach / overdue / SLA |
-| `destructive` (+ `destructive-surface`) | `#b91c1c` / `#fef2f2` | destructive actions and errors |
+- `status-success` and `status-warning` are **single foreground tones** (no `-background` / `-border`). Both are in
+  the `@theme inline` bridge, so `text-status-success`, `bg-status-success`, `border-status-success` (and the
+  `-warning` equivalents) are real utilities.
+- The five domain statuses (`open`, `pending`, `resolved`, `closed`, `breached`) are **`background` / `foreground` /
+  `border` triplets**. They are semantic tokens but are **not** in the bridge: there is no
+  `bg-status-open-background` utility. Read the variables through Tailwind arbitrary values instead, e.g.
 
-Dark values ship in the same three-token shape (e.g. `status-open-*` → `#082f49` / `#7dd3fc` / `#075985`). Map a
-domain status to one tone in **one place** (a `status → tone` map); a pill never invents its own colour.
+  ```tsx
+  <span className="bg-[var(--radan-ui-status-open-background)] text-[color:var(--radan-ui-status-open-foreground)] border-[color:var(--radan-ui-status-open-border)]">
+    Open
+  </span>
+  ```
+
+  With a custom prefix, replace `radan-ui` with it (§10).
+
+Triplet rows below list `background / foreground / border`; the single tones list their one value.
+
+| Status | Light | Dark | Meaning |
+| --- | --- | --- | --- |
+| `status-success` | `#15803d` (text/icon) | `#86efac` | generic success |
+| `status-warning` | `#b45309` (text/icon) | `#fdd34d` | generic warning |
+| `status-open-*` | `#dff2fe` / `#00598a` / `#b8e6fe` | `#082f49` / `#7dd3fc` / `#075985` | open / in progress |
+| `status-pending-*` | `#fef3c7` / `#92400e` / `#fde68a` | `#382b12` / `#fcd34d` / `#78551b` | waiting / pending |
+| `status-resolved-*` | `#dcfce7` / `#166534` / `#bbf7d0` | `#123524` / `#86efac` / `#226344` | done / resolved |
+| `status-closed-*` | `#f4f4f5` / `#52525b` / `#e4e4e7` | `#27272a` / `#d4d4d8` / `#52525b` | neutral / closed |
+| `status-breached-*` | `#fff1f2` / `#be123c` / `#fecdd3` | `#3f0d1a` / `#fda4af` / `#881337` | breach / overdue / SLA |
+| `destructive` (+ `destructive-surface`) | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` | destructive actions and errors |
+
+Map a domain status to one tone in **one place** (a `status → tone` map); a pill never invents its own colour.
 
 ## 7. Typography
 
@@ -211,13 +239,14 @@ domain status to one tone in **one place** (a `status → tone` map); a pill nev
 ## 9. Accessibility
 
 - **Contrast floors**: body text **4.5:1** against its surface; large text, focus indicators and UI graphics
-  **3:1**. Secondary text uses `muted-foreground`, real content uses `foreground-secondary` — never a "subtle" tint
-  for standalone body-size text.
+  **3:1**. Body-size secondary text uses `foreground-secondary`; `muted-foreground` falls below 4.5:1 on `card` and is
+  reserved for large text / non-essential labels — never a "subtle" tint for standalone body-size text.
 - **Focus**: every interactive element shows a `focus-visible` ring built from `ring` (≥3:1 against its surface);
   the ring is part of the component, callers never remove it. `aria-invalid` adds a tint without replacing it.
 - **Loading**: a loading region is `aria-busy` with a visually hidden status line; every skeleton bone is
   `aria-hidden` (the primitive does it — never pass text or roles to a bone).
-- **Touch**: below `md`, controls and rows clear a 44px target; sheets close by swipe, backdrop or Escape.
+- **Touch**: below `md` on web (and at every size on native), controls and rows clear a 44px target; sheets close
+  by swipe, backdrop or Escape.
 - Keyboard: menus, drawers and dialogs are operable and focus-trapped per their primitive; Escape closes, focus
   returns to the trigger.
 - Never encode meaning in colour alone: a status pill carries a label (and, where it exists, an icon).
@@ -249,10 +278,13 @@ forked component.
 }
 ```
 
-**Per surface** — one card, one button, one drawer: a scoped style, still a token, still named:
+**Per surface** — one card, one button, one drawer: a scoped style, still a token, still named (plain DOM element,
+web):
 
 ```tsx
-<div className="rounded-card" style={{ ['--radan-ui-card-radius']: '2px' } as React.CSSProperties}>
+import type { CSSProperties } from 'react';
+
+<div className="rounded-card" style={{ '--radan-ui-card-radius': '2px' } as CSSProperties} />;
 ```
 
 Dark mode: an override that must differ in dark is re-declared under `.dark`. An override never touches another

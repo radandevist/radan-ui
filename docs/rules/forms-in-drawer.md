@@ -3,6 +3,9 @@
 Every create/edit form opens in a right drawer from `md` and a bottom sheet below `md`, with its action footer stuck
 to the bottom — modals are only for confirmations.
 
+Web scope: this is the web implementation. On native there is no `md` breakpoint — `FormPanel` is always a bottom
+sheet (cross-platform native design, §5).
+
 - **The surface is the form panel** (`<FormPanel open onClose title busy footer>`): a right drawer from `md` (title,
   close, cancel + submit in the footer), a bottom sheet below `md` (no visible ✕, 44px fields, stacked actions).
 - **The fields scroll, the footer stays stuck** to the bottom; a submit button reaches the form through `form={id}`

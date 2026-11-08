@@ -3,6 +3,9 @@
 Below `md`, the UI must feel like a native app, not a website shrunk down — anything that reads as « a website » on a
 phone is rejected.
 
+Web scope: these `md` rules describe the web implementation. On native there is no `md` breakpoint — sheets and action
+sheets are always used (cross-platform native design, §5).
+
 - **Bottom sheets, not popovers**: no popover or anchored dropdown menu below `md`; every menu or list of choices
   opens as a bottom sheet (popovers and dropdowns from `md` up).
 - **No visible ✕** on sheets or the navigation menu: they close by swipe, backdrop or Escape.

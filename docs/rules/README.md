@@ -19,6 +19,10 @@ holds the rule in full.
 The visual language itself (tokens, light/dark, density, radius/shadow, status tones, type, motion, accessibility,
 overrides) is [`../DESIGN.md`](../DESIGN.md).
 
+Web scope: the `md` breakpoints in these rules describe the **web** implementation. Native (Expo) has no `md`
+contract — `Drawer` / `FormPanel` is always a bottom sheet and menus are action sheets (cross-platform native design,
+§5).
+
 ## Linking them from an app
 
 Link these files from your `AGENTS.md` instead of copying them — they ship inside the package:
