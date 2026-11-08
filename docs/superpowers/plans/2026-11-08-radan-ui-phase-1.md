@@ -31,6 +31,8 @@ OxLint 1.80+/oxfmt 0.73+, GitHub Actions, Renovate.
 - Package manager pnpm inside this repo only; the published package installs with npm, pnpm, yarn and bun alike
   (CI install matrix); npm only to publish (via Changesets) and for consumers.
 - Code style = ShopKartOS: tabs, width 120, single quotes, arrow functions, English code, files under 300 lines.
+- Linear history: squash merge only (merge commits and rebase merges disabled, `required_linear_history` on `main`),
+  squash title = PR title (Conventional Commits). Radan, 2026-11-08.
 - Semver strictly; every package-changing PR carries a changeset; CI must be green to merge into `main`.
 - npm publishing only from GitHub Actions with provenance; no long-lived npm token in the repo or CI after v0.1.0.
 
@@ -218,7 +220,7 @@ git add -A && git commit -m "chore: bootstrap repo, hygiene files and CI" && git
 ```bash
 gh api -X PUT repos/radandevist/radan-ui/branches/main/protection --input - <<'EOF'
 { "required_status_checks": { "strict": true, "contexts": ["check"] }, "enforce_admins": false,
-  "required_pull_request_reviews": null, "restrictions": null, "allow_force_pushes": false, "allow_deletions": false }
+  "required_pull_request_reviews": null, "restrictions": null, "required_linear_history": true, "allow_force_pushes": false, "allow_deletions": false }
 EOF
 gh api -X PUT repos/radandevist/radan-ui/private-vulnerability-reporting
 ```
