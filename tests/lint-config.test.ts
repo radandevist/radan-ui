@@ -21,6 +21,7 @@ test('extends resolves the house plugin path relative to the shared config', () 
 
 test('a clean file passes through the shared config', () => {
 	const result = lint('good.tsx');
-	expect(result.stdout).not.toContain('error');
+	// The summary line ("Found 0 warnings and 0 errors.") is printed by some oxlint builds only: no count above 0.
+	expect(result.stdout).not.toMatch(/\b[1-9]\d* (errors?|warnings?)\b/);
 	expect(result.status).toBe(0);
 });
