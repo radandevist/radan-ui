@@ -1,0 +1,44 @@
+{
+	"name": "@radandevist/radan-ui",
+	"version": "0.0.0",
+	"description": "Theme, React components and lint rules shared by Radan's apps",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/radandevist/radan-ui.git"
+	},
+	"homepage": "https://radandevist.github.io/radan-ui/",
+	"bugs": "https://github.com/radandevist/radan-ui/issues",
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "pnpm@10.13.1",
+	"files": [
+		"dist",
+		"lint",
+		"docs",
+		"README.md",
+		"LICENSE",
+		"CHANGELOG.md"
+	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "oxlint --quiet .",
+		"format": "oxfmt --write .",
+		"format:check": "oxfmt --check .",
+		"test": "vitest run",
+		"check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+	},
+	"devDependencies": {
+		"@types/node": "^24.19.2",
+		"oxfmt": "^0.73.0",
+		"oxlint": "^1.92.0",
+		"typescript": "^7.0.2",
+		"vitest": "^5.1.0"
+	}
+}
