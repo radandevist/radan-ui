@@ -16,3 +16,60 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm audit --audit-level high
+  install-matrix:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pack the tarball
+        run: pnpm pack --pack-destination "$RUNNER_TEMP" | tail -1 > "$RUNNER_TEMP/tarball"
+      - name: Install and use the package with npm, pnpm, yarn (node-modules and pnp) and bun
+        run: |
+          set -euo pipefail
+          tarball="$RUNNER_TEMP/$(tail -1 "$RUNNER_TEMP/tarball")"
+          project() { mkdir -p "$1"; cd "$1"; printf '{"name":"consumer","private":true}\n' > package.json; }
+          assert_module() { # $1 = node runner, reads the CSS through the resolver
+            $1 -e "const { generateThemeCss } = require('@radandevist/radan-ui'); if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');"
+            $1 -e "const fs = require('node:fs'); const css = fs.readFileSync(require.resolve('@radandevist/radan-ui/theme.css'), 'utf8'); if (!css.includes('--radan-ui-primary')) throw new Error('theme.css missing');"
+          }
+
+          echo '--- npm'
+          project "$RUNNER_TEMP/consumer-npm"
+          npm install --no-audit --no-fund "$tarball"
+          assert_module node
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- pnpm'
+          project "$RUNNER_TEMP/consumer-pnpm"
+          pnpm add "$tarball"
+          assert_module node
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          corepack enable
+          corepack prepare yarn@4 --activate
+
+          echo '--- yarn (node-modules)'
+          project "$RUNNER_TEMP/consumer-yarn-nm"
+          yarn config set nodeLinker node-modules
+          yarn add "$tarball"
+          assert_module 'yarn node'
+          yarn radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- yarn (pnp)'
+          project "$RUNNER_TEMP/consumer-yarn-pnp"
+          yarn config set nodeLinker pnp
+          yarn add "$tarball"
+          assert_module 'yarn node'
+          yarn radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- bun'
+          project "$RUNNER_TEMP/consumer-bun"
+          bun add "$tarball"
+          bun -e "const { generateThemeCss } = require('@radandevist/radan-ui'); if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');"
+          node -e "const fs = require('node:fs'); const css = fs.readFileSync(require.resolve('@radandevist/radan-ui/theme.css'), 'utf8'); if (!css.includes('--radan-ui-primary')) throw new Error('theme.css missing');"
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'

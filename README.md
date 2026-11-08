@@ -5,41 +5,48 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 [![CI](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@radandevist/radan-ui.svg)](https://www.npmjs.com/package/@radandevist/radan-ui)
 
-> **Status: bootstrap, not yet published (`0.0.0`).** This repo currently contains only the package skeleton. The
-> theme, CLI, shareable lint configs, design docs and tokens catalog are **coming soon**, before the first npm publish
-> (v0.1.0): see [Roadmap / coming soon](#roadmap--coming-soon) and the
-> [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md). Nothing in the roadmap is installable or
-> runnable today — it documents the target API.
+> **Status: pre-release (`0.0.0`, not yet on npm).** The theme, its generator and CLI, the shared OxLint/oxfmt configs
+> and the build/release machinery are in place; the design docs, the front-end rules and the tokens catalog land before
+> the first publish (v0.1.0). See the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
 
 ## What exists today
 
-Task 1 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md) is done: the repo skeleton only.
+Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md) are done.
 
-- `package.json` with the `check`, `typecheck`, `lint`, `format`, `format:check` and `test` scripts.
-- `src/index.ts` exporting `DEFAULT_PREFIX = 'radan-ui'`, plus `tests/smoke.test.ts`.
-- The TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs (`CONTRIBUTING.md`,
-  `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
+- `package.json` with the `check`, `typecheck`, `lint`, `format`, `format:check`, `test`, `build`, `check:package`
+  and `size` scripts.
+- `src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
+- `src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
+- `lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
+  the shared one.
+- `tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
+- `.changeset/` — Changesets config, the first changeset, the release workflow (npm Trusted Publishing) and the
+  changeset gate; the TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs
+  (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
 
-Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). The package has no `exports`/`main`,
-no `bin`, no `dist/`, no `lint/`, no `docs/DESIGN.md` and no `catalog/` yet, and it is not on npm.
+Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). There is no `docs/DESIGN.md` and no
+`catalog/` yet, and the package is not on npm.
 
 Licensed under Apache-2.0. See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` and `SECURITY.md` before opening a PR or a
 vulnerability report.
 
-## Roadmap / coming soon
+## Usage
 
-Everything in this section lands before v0.1.0 — see the
-[Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md). These are the target API and the target
-behaviour, **not commands or imports you can use today**.
+The package is not on npm yet: the commands below work once it is published (or against the packed tarball). The design
+docs, the front-end rules and the catalog land before v0.1.0 — see the
+[Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
 
 ### Install (once published)
 
 ```sh
 npm i @radandevist/radan-ui
+pnpm add @radandevist/radan-ui
+yarn add @radandevist/radan-ui
+bun add @radandevist/radan-ui
 ```
 
-The package is ESM, needs Node 22 or newer, and installs with npm, pnpm, yarn or bun alike. Only this repository uses
-pnpm as its package manager.
+The package is ESM, needs Node 22 or newer, and installs with npm, pnpm, yarn (node-modules and pnp) or bun alike —
+CI installs the packed tarball with all of them. Only this repository uses pnpm as its package manager.
 
 ### Theme
 
@@ -99,8 +106,22 @@ An override is a named, documented exception, never a per-page variant — consi
 
 `pnpm check` runs TypeScript (`tsc --noEmit`), OxLint, oxfmt and the Vitest suite; CI runs the same command on every
 pull request. The repo's own configuration lives in `.oxlintrc.json` and `.oxfmtrc.json` (tabs, 120 columns, single
-quotes). The library will also ship the shareable configs and the generic `house` rules under `lint/`, so a consuming
-app points its OxLint/oxfmt setup at those instead of keeping a second copy.
+quotes), and `.oxlintrc.json` extends the shared one.
+
+A consuming app gets the shared rules — including the generic `house` plugin — by extending the shipped config. OxLint
+resolves the plugin path relative to `lint/oxlint.json`, so the consumer does not list `jsPlugins` itself:
+
+```json
+{
+	"extends": ["@radandevist/radan-ui/oxlint.json"]
+}
+```
+
+Format with the shared oxfmt config:
+
+```sh
+oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
+```
 
 ### Docs and catalog
 
