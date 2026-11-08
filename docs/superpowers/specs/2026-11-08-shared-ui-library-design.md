@@ -2,6 +2,10 @@
 
 Status: APPROVED by Radan, 2026-11-08. Brainstormed with Radan in the ShopKartOS captain session.
 
+Amended 2026-11-08: the library also targets **React Native (Expo)** with the same component API — see
+[Cross-platform components (web + React Native)](2026-11-08-cross-platform-native-design.md), which changes decisions
+1, 3, 5 and 7 below (listed at the end of that file). Where the two disagree, the addendum wins.
+
 ## Why
 
 ShopKartOS and PublyApp have the same visual language; PublyApp's redesign copied ShopKartOS. Today every look, rule
