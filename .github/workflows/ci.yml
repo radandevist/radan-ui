@@ -28,6 +28,7 @@ jobs:
       - run: pnpm build
       - name: Pack the tarball
         run: pnpm pack --pack-destination "$RUNNER_TEMP" | tail -1 > "$RUNNER_TEMP/tarball"
+      - uses: oven-sh/setup-bun@v2
       - name: Install and use the package with npm, pnpm, yarn (node-modules and pnp) and bun
         run: |
           set -euo pipefail
