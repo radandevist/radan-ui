@@ -78,8 +78,8 @@ Generate the same theme under another prefix — lowercase letters, digits and d
 npx @radandevist/radan-ui theme --prefix acme > src/styles/ui-theme.css
 ```
 
-Inside this repo, `pnpm exec radan-ui theme --prefix acme` resolves the same bin; `npx` needs the scoped package name,
-otherwise it resolves the unrelated unscoped package. Import the generated file instead of `theme.css`; Tailwind utility
+Inside this repo, run the built bin directly: `pnpm build && node dist/cli.js theme --prefix acme`. `npx` needs the
+scoped package name, otherwise it resolves the unrelated unscoped package. Import the generated file instead of `theme.css`; Tailwind utility
 names stay the same.
 The same generator is available in JavaScript as `generateThemeCss({ prefix })`.
 
