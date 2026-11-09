@@ -14,6 +14,8 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      # Fresh-checkout guard: `pnpm check` builds the house plugin via `pnpm lint` first, which would mask a missing bundle.
+      - run: pnpm test
       - run: pnpm check
       - run: pnpm audit --audit-level high
   install-matrix:
