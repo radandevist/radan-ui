@@ -24,7 +24,7 @@ colours, radii or copy of a component.
   fabricated data — a field the contract doesn't provide is omitted. Loading states are **skeletons**: they mirror
   their component's surface — see [skeletons.md](./skeletons.md).
 - **Layout constants are shared too**: the theme defines no z-index or container-width tokens — use Tailwind's
-  `z-*` / `max-w-*` scales consistently, never a local `z-50` or a third container width. Don't invent a shared tier
-  the theme doesn't provide.
+  `z-*` / `max-w-*` scales consistently, never an arbitrary `z-[…]`; take the lowest scale step that works. Don't
+  invent a shared tier or a third container width the theme doesn't provide.
 - **An override is a named exception** (comment + one line in the project's docs), scoped to a project, a component
   or a single surface — never a per-page variant class, never a fork.

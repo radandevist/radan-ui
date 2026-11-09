@@ -37,7 +37,8 @@ generated (`radan-ui theme --prefix <p>` writes a theme with another one, e.g. `
 `--shadow-*` names — those are utility keys, not tokens.
 
 Components use Tailwind utilities (`bg-card`, `rounded-card`, `shadow-raised-control`) whose `@theme inline` entries
-point at the prefixed variables — a new prefix needs no change for bridged names; rest read via arbitrary values (§6).
+point at the prefixed variables — a new prefix needs no change for bridged names; rest read via arbitrary values
+(§2, §6).
 
 ### Layer 1 — palette (the raw base)
 
@@ -86,6 +87,10 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `input-border` | `#e4e4e7` | `#27272a` |
 | `destructive` / `destructive-surface` | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` |
 
+`input-border` has no colour utility (see the bridge below): read it as
+`border-[color:var(--radan-ui-input-border)]` (replace `radan-ui` with your prefix, §6). `border-input` is the
+`input` **text** colour, not the border.
+
 **Effects**
 
 | Token | Light | Dark |
@@ -129,6 +134,8 @@ Components and screens use Tailwind names; the `@theme inline` block maps each t
 Only the semantic names listed in `tailwindColors` (28, including `status-success` / `status-warning`) get colour
 utilities (`bg-*`, `text-*`, `border-*`, `ring-*`). The five domain status triplets are **not** in that list: there is
 no `bg-status-open-background` utility — read them through arbitrary values on the prefixed variable (§6).
+`input-border` is **not** bridged either: use `border-[color:var(--radan-ui-input-border)]`; `border-input` is the
+`input` text colour (`#414141`), not the border (`#e4e4e7`).
 
 ## 3. Light and dark
 
