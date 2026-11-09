@@ -39,5 +39,5 @@
 		"sortSideEffects": false
 	},
 	"sortPackageJson": false,
-	"ignorePatterns": ["node_modules", "dist", "catalog/dist", "**/*.md", "CHANGELOG.md"]
+	"ignorePatterns": ["node_modules", "dist", "catalog/dist", "**/*.md", "CHANGELOG.md", "lint/plugins/house/index.js"]
 }

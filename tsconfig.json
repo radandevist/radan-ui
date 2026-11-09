@@ -3,6 +3,7 @@
 		"target": "ES2024",
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
 		"jsx": "react-jsx",
 		"strict": true,
 		"noUncheckedIndexedAccess": true,
@@ -10,5 +11,6 @@
 		"skipLibCheck": true,
 		"types": ["node"]
 	},
-	"include": ["src", "tests", "scripts", "catalog", "lint/plugins", "*.config.ts"]
+	"include": ["src", "tests", "scripts", "catalog", "lint/plugins", "*.config.ts"],
+	"exclude": ["tests/fixtures"]
 }

@@ -14,5 +14,77 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      # Fresh-checkout guard: `pnpm check` builds the house plugin via `pnpm lint` first, which would mask a missing
+      # bundle; `pnpm test` also builds it (tests/package.test.ts runs `pnpm build`), so run the tests before any build.
+      - run: pnpm test
+      # Drift guard: the bundle is committed so npm/yarn/bun consumers never run a pnpm-only install script.
+      # `pnpm test` rebuilds it, so compare against HEAD (not the index); `ls-files` catches a missing commit.
+      - name: Committed house plugin bundle is current
+        run: |
+          git ls-files --error-unmatch lint/plugins/house/index.js
+          pnpm build:lint-plugin
+          git diff --exit-code HEAD -- lint/plugins/house/index.js
       - run: pnpm check
       - run: pnpm audit --audit-level high
+  install-matrix:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pack the tarball
+        run: pnpm pack --pack-destination "$RUNNER_TEMP" | tail -1 > "$RUNNER_TEMP/tarball"
+      - uses: oven-sh/setup-bun@v2
+      - name: Install and use the package with npm, pnpm, yarn (node-modules and pnp) and bun
+        run: |
+          set -euo pipefail
+          tarball="$(tail -1 "$RUNNER_TEMP/tarball")"
+          case "$tarball" in /*) ;; *) tarball="$RUNNER_TEMP/$tarball" ;; esac # pnpm pack prints an absolute path
+          project() { mkdir -p "$1"; cd "$1"; printf '{"name":"consumer","private":true}\n' > package.json; }
+          assert_module() { # $1 = node runner (node, yarn node, bun); the package is ESM-only, so assert via import()
+            cat > check.mjs <<'JS'
+          const { generateThemeCss } = await import('@radandevist/radan-ui');
+          if (typeof generateThemeCss !== 'function') throw new Error('generateThemeCss missing');
+          JS
+            $1 check.mjs
+            $1 -e "const fs = require('node:fs'); const css = fs.readFileSync(require.resolve('@radandevist/radan-ui/theme.css'), 'utf8'); if (!css.includes('--radan-ui-primary')) throw new Error('theme.css missing');"
+          }
+
+          echo '--- npm'
+          project "$RUNNER_TEMP/consumer-npm"
+          npm install --no-audit --no-fund "$tarball"
+          assert_module node
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- pnpm'
+          project "$RUNNER_TEMP/consumer-pnpm"
+          pnpm add "$tarball"
+          assert_module node
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          corepack enable
+          corepack prepare yarn@4 --activate
+
+          echo '--- yarn (node-modules)'
+          project "$RUNNER_TEMP/consumer-yarn-nm"
+          yarn config set nodeLinker node-modules
+          yarn add "$tarball"
+          assert_module 'yarn node'
+          yarn radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- yarn (pnp)'
+          project "$RUNNER_TEMP/consumer-yarn-pnp"
+          yarn config set nodeLinker pnp
+          yarn add "$tarball"
+          assert_module 'yarn node'
+          yarn radan-ui theme --prefix t | grep -q -- '--t-primary'
+
+          echo '--- bun'
+          project "$RUNNER_TEMP/consumer-bun"
+          bun add "$tarball"
+          assert_module bun
+          ./node_modules/.bin/radan-ui theme --prefix t | grep -q -- '--t-primary'
