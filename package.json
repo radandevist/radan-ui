@@ -54,7 +54,6 @@
 		"build": "rm -rf dist && tsdown && pnpm build:theme",
 		"build:theme": "tsx scripts/build-theme.ts",
 		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
-		"prepare": "pnpm build:lint-plugin",
 		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css",
 		"size": "size-limit",
 		"check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm check:package && pnpm size"

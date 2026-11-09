@@ -14,8 +14,16 @@ jobs:
       - uses: actions/setup-node@v5
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      # Fresh-checkout guard: `pnpm check` builds the house plugin via `pnpm lint` first, which would mask a missing bundle.
+      # Fresh-checkout guard: `pnpm check` builds the house plugin via `pnpm lint` first, which would mask a missing
+      # bundle; `pnpm test` also builds it (tests/package.test.ts runs `pnpm build`), so run the tests before any build.
       - run: pnpm test
+      # Drift guard: the bundle is committed so npm/yarn/bun consumers never run a pnpm-only install script.
+      # `pnpm test` rebuilds it, so compare against HEAD (not the index); `ls-files` catches a missing commit.
+      - name: Committed house plugin bundle is current
+        run: |
+          git ls-files --error-unmatch lint/plugins/house/index.js
+          pnpm build:lint-plugin
+          git diff --exit-code HEAD -- lint/plugins/house/index.js
       - run: pnpm check
       - run: pnpm audit --audit-level high
   install-matrix:
