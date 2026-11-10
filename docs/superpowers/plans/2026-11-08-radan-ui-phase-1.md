@@ -239,6 +239,10 @@ From here on, every change lands through a PR.
 - Produces: `generateThemeCss(options?: { prefix?: string }): string`; `tokens` (type `Tokens`); CLI
   `radan-ui theme [--prefix <p>]` printing the CSS on stdout; `dist/theme.css` (default prefix).
 
+> **Native-ready (addendum [cross-platform-native-design](../specs/2026-11-08-cross-platform-native-design.md),
+> decision 3):** keep `tokens.ts` pure data and `generate.ts` the only place that knows CSS syntax, so Phase 2 can add a
+> native output (`resolveTokens(mode)` and the NativeWind theme) from the same data. Nothing else changes in this task.
+
 - [ ] **Step 1: tokens.ts (the data, values from ShopKartOS `src/styles/app.css` 2026-11-08)**
 
 ```ts
@@ -604,6 +608,11 @@ pnpm check && git checkout -b feat/theme && git add -A && git commit -m "feat(th
 **Interfaces:**
 - Produces: `pnpm build` → `dist/index.js`, `dist/index.d.ts`, `dist/cli.js`, `dist/theme.css`; export map:
   `"."`, `"./theme.css"`, `"./oxlint.json"`, `"./oxfmt.json"`, `"./lint/*"`, `"./package.json"`.
+
+> **Native-ready (addendum [cross-platform-native-design](../specs/2026-11-08-cross-platform-native-design.md),
+> decision 1):** `"."` is the Node-side JS API only and must never re-export React components. Components arrive in
+> Phase 2 as per-component subpaths (`"./button"`) with `react-native` / `default` conditions; do not add a wildcard
+> export (such as `"./*"`) that would claim those names. Nothing else changes in this task.
 
 - [ ] **Step 1:** `tsdown.config.ts`:
 ```ts
