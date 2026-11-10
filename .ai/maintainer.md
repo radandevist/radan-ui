@@ -3,9 +3,10 @@
 Package `@radandevist/radan-ui` (public, Apache-2.0). Repo `radandevist/radan-ui`. Use pnpm inside this repo. Run
 `pnpm check` before every push (typecheck, lint, format, test, build, publint/attw, size).
 
-**Status (when written):** `src/` holds the theme, CLI and lint config only; `src/components/`, `catalog/`,
-`pnpm test:visual` and `pages.yml` do not exist yet (Phase 2 / Task 7). The "add a component" and "visual" steps below
-describe the intended layout; adjust to what is on `main` and fix this file when it lands.
+**Status (when written):** `src/` holds the theme, the CLI and the public entry `src/index.ts`; the shared OxLint /
+oxfmt config lives in `lint/`. The catalog (`catalog/`, `pnpm catalog:build`, `pnpm test:visual`, `pages.yml`) is
+phase 1 task 7; components (`src/components/`) are phase 2. The "add a component" steps describe the intended layout;
+adjust to what is on `main` and fix this file when it lands.
 
 ## Publishing facts
 
@@ -29,7 +30,8 @@ describe the intended layout; adjust to what is on `main` and fix this file when
 3. Export from `src/index.ts`. Add tokens (if any) to `src/theme/` and rebuild: `pnpm build:theme`.
 4. Tests beside it (`<name>.test.tsx`, Vitest): render, variants, a11y roles, skeleton matches the real component.
 5. Catalog page `catalog/<name>-page.tsx` (all states, light + dark), registered in `catalog/main.tsx`.
-6. `pnpm check`, then `pnpm catalog:build && pnpm test:visual` (once the catalog exists); attach captures to the PR.
+6. `pnpm check`, then (first time on a machine) `pnpm exec playwright install --with-deps chromium`, then
+   `pnpm catalog:build && pnpm test:visual`; attach captures to the PR.
 7. Changeset **minor** (see below). PR title `feat(<name>): ...`.
 
 ## Write a changeset
@@ -58,7 +60,8 @@ Breaking: rename the `tone` prop of `Badge` to `variant`.
 ````
 
 The `Changeset` check fails PRs touching `src/`, `lint/`, `scripts/` or `package.json` without a **new**
-`.changeset/*.md`. Docs/catalog/`.ai/` only: add the `no-changeset` label. The changeset must have a real bump line.
+`.changeset/*.md`. Docs/catalog/`.ai/` only: add the `no-changeset` label. The gate only checks that a changeset file
+exists: an **empty** changeset (no bump line) passes it but blocks the release later — always write the bump line.
 
 ## Review a "Version packages" PR
 
@@ -84,7 +87,8 @@ Branch `changeset-release/main`, title `chore: version packages`.
 
 Keep the old prop/component/token working for **at least one minor**: a dev-only `console.warn` (guard with
 `process.env.NODE_ENV !== 'production'`) naming the replacement, a JSDoc `@deprecated`, a catalog note, and a changeset
-(minor) under Deprecations. Removal only in the next major.
+(minor) whose text starts with `Deprecated:` (the changelog groups by Major / Minor / Patch, not by deprecation).
+Removal only in the next major.
 
 ## Hotfix a published version
 
