@@ -19,12 +19,11 @@ jobs:
       - run: npm i -g npm@11
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-      - uses: changesets/action@v1
+      # v2 reads the structured output of changesets CLI v3; v1 parsed its old "New tag:" lines and so never
+      # pushed the tag nor created the GitHub release (0.1.1 had to be released by hand).
+      - uses: changesets/action@v2
         with:
-          publish: pnpm changeset publish
-          version: pnpm changeset version
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
-          createGithubReleases: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          publish-script: pnpm changeset publish
+          version-script: pnpm changeset version
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
