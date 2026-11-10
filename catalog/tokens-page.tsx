@@ -10,6 +10,9 @@ const parse = (block: string) =>
 const css = generateThemeCss();
 const darkAt = css.indexOf('.dark {');
 const themeEnd = css.indexOf('@theme inline');
+if (darkAt < 0 || themeEnd < 0) {
+	throw new Error('theme.css layout changed: no `.dark {` or `@theme inline` block');
+}
 const rootValues = parse(css.slice(0, darkAt));
 const darkValues = parse(css.slice(darkAt, themeEnd));
 const isDark = () => document.documentElement.classList.contains('dark');
