@@ -24,8 +24,8 @@ Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-pha
   changeset gate; the TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs
   (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
 
-Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). There is no `docs/DESIGN.md` and no
-`catalog/` yet, and the package is not on npm.
+Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). There is no `catalog/` yet. The
+package is on npm as `@radandevist/radan-ui`.
 
 Licensed under Apache-2.0. See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` and `SECURITY.md` before opening a PR or a
 vulnerability report.
@@ -36,7 +36,7 @@ The package is not on npm yet: the commands below work once it is published (or 
 docs, the front-end rules and the catalog land before v0.1.0 — see the
 [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
 
-### Install (once published)
+### Install
 
 ```sh
 npm i @radandevist/radan-ui
