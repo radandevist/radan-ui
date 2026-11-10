@@ -4,11 +4,14 @@ import { component, DEFAULT_PREFIX, generateThemeCss, palette, semantic } from '
 
 const P = DEFAULT_PREFIX;
 const v = (name: string) => `var(--${P}-${name})`;
-// The value as the generator emits it into theme.css (real prefix, `{p}` resolved), not the token source.
-const emitted = Object.fromEntries(
-	[...generateThemeCss().matchAll(/^\t--([\w-]+): (.+);$/gm)].map((m) => [m[1], m[2]]),
-);
-const show = (name: string) => emitted[`${P}-${name}`] ?? '';
+// Values as the generator emits them into theme.css (real prefix, `{p}` resolved), per theme: `:root` and `.dark`.
+const parse = (block: string) =>
+	Object.fromEntries([...block.matchAll(/^\t--([\w-]+): (.+);$/gm)].map((m) => [m[1], m[2]]));
+const css = generateThemeCss();
+const darkAt = css.indexOf('.dark {');
+const themeEnd = css.indexOf('@theme inline');
+const rootValues = parse(css.slice(0, darkAt));
+const darkValues = parse(css.slice(darkAt, themeEnd));
 const isDark = () => document.documentElement.classList.contains('dark');
 
 // Read ?theme=dark once, before first paint, so tests can open the page in dark directly.
@@ -27,10 +30,11 @@ const Grid = ({ children }: { children: React.ReactNode }) => (
 	<div className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-3">{children}</div>
 );
 
-const Swatch = ({ name }: { name: string }) => (
+const Swatch = ({ name, value }: { name: string; value: string }) => (
 	<div className="rounded-card bg-card p-2 shadow-raised-control">
 		<div className="h-12 rounded-control border border-border" style={{ background: v(name) }} />
-		<div className="mt-2 text-xs font-medium break-all">{name}</div>
+		<div className="mt-2 text-xs font-medium break-words">{name}</div>
+		<div className="mt-1 text-xs text-muted-foreground break-words">{value}</div>
 	</div>
 );
 
@@ -54,6 +58,7 @@ const tones = ['open', 'pending', 'resolved', 'closed', 'breached'] as const;
 
 export const TokensPage = () => {
 	const [dark, setDark] = useState(isDark);
+	const show = (name: string) => (dark ? darkValues[`${P}-${name}`] : undefined) ?? rootValues[`${P}-${name}`] ?? '';
 	const toggle = () => {
 		document.documentElement.classList.toggle('dark');
 		setDark(isDark());
@@ -73,14 +78,14 @@ export const TokensPage = () => {
 			<Section title="Palette">
 				<Grid>
 					{Object.keys(palette).map((n) => (
-						<Swatch key={n} name={n} />
+						<Swatch key={n} name={n} value={show(n)} />
 					))}
 				</Grid>
 			</Section>
 			<Section title="Semantic">
 				<Grid>
 					{colorNames.map((n) => (
-						<Swatch key={n} name={n} />
+						<Swatch key={n} name={n} value={show(n)} />
 					))}
 				</Grid>
 			</Section>
@@ -88,8 +93,8 @@ export const TokensPage = () => {
 				<Grid>
 					{Object.keys(component).map((n) => (
 						<div key={n} className="rounded-card bg-card p-2 shadow-raised-control">
-							<div className="text-xs font-medium break-all">{n}</div>
-							<div className="mt-1 text-xs text-muted-foreground break-all">{show(n)}</div>
+							<div className="text-xs font-medium break-words">{n}</div>
+							<div className="mt-1 text-xs text-muted-foreground break-words">{show(n)}</div>
 						</div>
 					))}
 				</Grid>
@@ -109,7 +114,7 @@ export const TokensPage = () => {
 					{effectNames.map((n) => (
 						<div key={n} className="text-xs">
 							<div className="h-16 rounded-card bg-popover-surface" style={{ boxShadow: v(n) }} />
-							<div className="mt-2 break-all">{n}</div>
+							<div className="mt-2 break-words">{n}</div>
 						</div>
 					))}
 				</Grid>
