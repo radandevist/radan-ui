@@ -363,7 +363,7 @@ export const semantic: { light: Record<string, TokenValue>; dark: Record<string,
 /** One knob per component (spec §2): override `--{p}-card-radius` and every card follows. */
 export const component: Record<string, TokenValue> = {
 	'card-bg': { semantic: 'card' },
-	'card-fg': { semantic: 'card-foreground' }, // 0.1.2: was 'card-foreground', which pointed at itself
+	'card-foreground': { semantic: 'card-foreground' },
 	'card-radius': '14px',
 	'card-shadow': { semantic: 'effect-raised-control' },
 	'control-radius': 'calc(var(--{p}-radius) * 1.4)',

@@ -30,9 +30,11 @@ const AA = 4.5; // WCAG 1.4.3, normal text
 const UI = 3; // WCAG 1.4.11, non-text (focus indicator)
 
 // [text/graphic token, surface tokens it is drawn on, minimum ratio] — real pairs only, both themes.
-// Not tested: `border` / `input-border` (decorative dividers and field outlines, the control is identified by its
-// label/fill, so 1.4.11 does not apply) and `sidebar-ring` (oklch, not a hex).
+// Not tested: `border` (decorative dividers). `input-border` (the field outline, 1.18:1) is a known open point: WCAG
+// 1.4.11 asks 3:1 when the outline is the field's only boundary; raising it changes every field's look, so it waits for
+// a design decision.
 const PAIRS: [string, string[], number][] = [
+	['sidebar-ring', ['sidebar'], UI],
 	['foreground', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
 	['foreground-secondary', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
 	['muted-foreground', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
