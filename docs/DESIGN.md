@@ -71,7 +71,7 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `muted` / `muted-foreground` | `#f7f7f7` / `#6b6b73` | `#1f1f23` / `#898989` |
 | `sidebar` / `sidebar-foreground` | `#f6f6f6` / `#6b6b73` | `ink` / `#898989` |
 | `sidebar-accent` / `-foreground` | `#fff` / `ink` | `#27272a` / `#fff` |
-| `sidebar-ring` | `oklch(0.705 0.015 286.067)` | `oklch(0.552 0.016 285.938)` |
+| `sidebar-ring` | `#71717a` | `#71717a` |
 
 **Brand and interaction**
 
