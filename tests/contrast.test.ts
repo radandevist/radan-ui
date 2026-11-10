@@ -3,9 +3,13 @@ import { expect, test } from 'vitest';
 import { palette, semantic, type TokenValue } from '../src/theme/tokens';
 
 /** A semantic value as a hex colour: a palette reference resolved, `#fff` expanded. */
-const hex = (v: TokenValue | undefined): string => {
-	const raw = typeof v === 'object' && 'palette' in v ? palette[v.palette] : String(v);
-	const h = raw.replace('#', '');
+const hex = (v: TokenValue | undefined, token: string): string => {
+	const raw = typeof v === 'object' && 'palette' in v ? palette[v.palette] : v;
+	const m = typeof raw === 'string' ? /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw) : null;
+	if (!m?.[1]) {
+		throw new Error(`contrast test: token "${token}" is not a resolvable hex colour (got ${JSON.stringify(v)})`);
+	}
+	const h = m[1];
 	return h.length === 3 ? [...h].map((c) => c + c).join('') : h;
 };
 
@@ -22,21 +26,45 @@ const contrast = (a: string, b: string) => {
 	return (hi + 0.05) / (lo + 0.05);
 };
 
-// WCAG AA for normal text (4.5:1): every text colour on every surface it is drawn on, in both themes.
-const TEXT = ['foreground', 'foreground-secondary', 'card-foreground', 'muted-foreground', 'secondary-foreground'];
-const SURFACES = ['background', 'card', 'popover', 'muted', 'secondary'];
+const AA = 4.5; // WCAG 1.4.3, normal text
+const UI = 3; // WCAG 1.4.11, non-text (focus indicator)
+
+// [text/graphic token, surface tokens it is drawn on, minimum ratio] — real pairs only, both themes.
+// Not tested: `border` / `input-border` (decorative dividers and field outlines, the control is identified by its
+// label/fill, so 1.4.11 does not apply) and `sidebar-ring` (oklch, not a hex).
+const PAIRS: [string, string[], number][] = [
+	['foreground', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
+	['foreground-secondary', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
+	['muted-foreground', ['background', 'card', 'popover', 'muted', 'secondary'], AA],
+	['card-foreground', ['card'], AA],
+	['popover-foreground', ['popover', 'popover-surface'], AA],
+	['secondary-foreground', ['secondary'], AA],
+	['primary-foreground', ['primary'], AA],
+	['accent-foreground', ['accent'], AA],
+	['destructive', ['destructive-surface', 'background', 'card'], AA],
+	['status-open-foreground', ['status-open-background'], AA],
+	['status-pending-foreground', ['status-pending-background'], AA],
+	['status-resolved-foreground', ['status-resolved-background'], AA],
+	['status-closed-foreground', ['status-closed-background'], AA],
+	['status-breached-foreground', ['status-breached-background'], AA],
+	['status-success', ['background', 'card', 'popover'], AA],
+	['status-warning', ['background', 'card', 'popover'], AA],
+	['sidebar-foreground', ['sidebar'], AA],
+	['sidebar-accent-foreground', ['sidebar-accent'], AA],
+	// `input` is the field's text colour (DESIGN.md §2), drawn on the page and the surfaces a field sits in.
+	['input', ['background', 'card', 'popover'], AA],
+	['ring', ['background', 'card', 'popover'], UI],
+];
 
 for (const theme of ['light', 'dark'] as const) {
-	for (const text of TEXT) {
-		for (const surface of SURFACES) {
-			test(`${theme}: ${text} on ${surface} meets WCAG AA (4.5:1)`, () => {
+	for (const [fg, surfaces, min] of PAIRS) {
+		for (const surface of surfaces) {
+			test(`${theme}: ${fg} on ${surface} >= ${min}:1`, () => {
 				const tokens = semantic[theme];
-				expect(contrast(hex(tokens[text]), hex(tokens[surface]))).toBeGreaterThanOrEqual(4.5);
+				// primary / accent are inherited by dark: fall back to light.
+				const get = (k: string) => hex(tokens[k] ?? semantic.light[k], k);
+				expect(contrast(get(fg), get(surface))).toBeGreaterThanOrEqual(min);
 			});
 		}
 	}
-	test(`${theme}: sidebar-foreground on sidebar meets WCAG AA (4.5:1)`, () => {
-		const tokens = semantic[theme];
-		expect(contrast(hex(tokens['sidebar-foreground']), hex(tokens.sidebar))).toBeGreaterThanOrEqual(4.5);
-	});
 }

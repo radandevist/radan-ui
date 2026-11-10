@@ -80,10 +80,10 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `primary` | `var(--radan-ui-yellow)` | *(inherited — yellow stays)* |
 | `primary-foreground` | `var(--radan-ui-yellow-ink)` | *(inherited)* |
 | `accent` | `var(--radan-ui-cyan)` | *(inherited)* |
-| `accent-foreground` | `ink` | `paper` |
+| `accent-foreground` | `ink` | `ink` |
 | `ring` | `var(--radan-ui-ink)` | `#d4d4d8` |
 | `border` | `#e3e3e3` | `#323234` |
-| `input` (text) | `#414141` | `#646a7a` |
+| `input` (text) | `#414141` | `#808697` |
 | `input-border` | `#e4e4e7` | `#27272a` |
 | `destructive` / `destructive-surface` | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` |
 
@@ -208,8 +208,8 @@ Triplet rows below list `background / foreground / border`; the single tones lis
 
 | Status | Light | Dark | Meaning |
 | --- | --- | --- | --- |
-| `status-success` | `#15803d` (text/icon) | `#86efac` | generic success |
-| `status-warning` | `#b45309` (text/icon) | `#fdd34d` | generic warning |
+| `status-success` | `#157f3d` (text/icon) | `#86efac` | generic success |
+| `status-warning` | `#b35309` (text/icon) | `#fdd34d` | generic warning |
 | `status-open-*` | `#dff2fe` / `#00598a` / `#b8e6fe` | `#082f49` / `#7dd3fc` / `#075985` | open / in progress |
 | `status-pending-*` | `#fef3c7` / `#92400e` / `#fde68a` | `#382b12` / `#fcd34d` / `#78551b` | waiting / pending |
 | `status-resolved-*` | `#dcfce7` / `#166534` / `#bbf7d0` | `#123524` / `#86efac` / `#226344` | done / resolved |
@@ -246,8 +246,9 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 ## 9. Accessibility
 
 - **Contrast floors**: body text **4.5:1** against its surface; large text, focus indicators and UI graphics
-  **3:1**. Body-size secondary text uses `foreground-secondary`; `muted-foreground` falls below 4.5:1 on `card` and is
-  reserved for large text / non-essential labels — never a "subtle" tint for standalone body-size text.
+  **3:1**. Every text token meets 4.5:1 on each surface it is drawn on, in both themes, `muted-foreground` and
+  `sidebar-foreground` included (pinned by `tests/contrast.test.ts`); `foreground-secondary` stays the stronger
+  choice for body-size secondary text, `muted-foreground` is for de-emphasised but still readable text.
 - **Focus**: every interactive element shows a `focus-visible` ring built from `ring` (≥3:1 against its surface);
   the ring is part of the component, callers never remove it. `aria-invalid` adds a tint without replacing it.
 - **Loading**: a loading region is `aria-busy` with a visually hidden status line; every skeleton bone is
