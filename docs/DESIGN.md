@@ -109,16 +109,16 @@ Pointing at the semantic layer: override one and every instance of that componen
 | Token | Value |
 | --- | --- |
 | `--radan-ui-card-bg` | `var(--radan-ui-card)` |
+| `--radan-ui-card-fg` | `var(--radan-ui-card-foreground)` |
 | `--radan-ui-card-radius` | `14px` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
 | `--radan-ui-toast-radius` | `12px` |
 
-`card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground` — it is not
-a component knob to override. The generated theme currently also emits a same-named component variable whose value
-`var(--radan-ui-card-foreground)` resolves to itself and is invalid; until that entry is removed from the theme data,
-prefer `text-foreground` on cards in light mode.
+`card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground`. The card's
+component knob is `--radan-ui-card-fg` (it reads `card-foreground`), next to `--radan-ui-card-bg`. A component knob never
+shares a semantic token's name: 0.1.1 did, and its `--radan-ui-card-foreground` pointed at itself (invalid in light mode).
 
 ### The Tailwind bridge (`@theme inline`)
 

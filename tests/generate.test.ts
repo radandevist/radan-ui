@@ -52,3 +52,17 @@ test('every palette reference exists', () => {
 		expect(Object.keys(palette)).toContain(ref.palette);
 	}
 });
+
+test('no variable is declared twice in a block nor points at itself (0.1.1 card-foreground cycle)', () => {
+	const css = generateThemeCss();
+	for (const block of [
+		css.slice(css.indexOf(':root {'), css.indexOf('.dark {')),
+		css.slice(css.indexOf('.dark {'), css.indexOf('@theme inline')),
+	]) {
+		const names = [...block.matchAll(/^\s*--([\w-]+):\s*(.+);$/gm)].map(([, name = '', value = '']) => {
+			expect(value).not.toContain(`var(--${name})`);
+			return name;
+		});
+		expect(new Set(names).size).toBe(names.length);
+	}
+});
