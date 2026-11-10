@@ -5,3 +5,4 @@ catalog/dist
 test-results
 playwright-report
 .reports
+.worktrees

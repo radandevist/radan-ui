@@ -1,0 +1,41 @@
+{
+	"useTabs": true,
+	"tabWidth": 2,
+	"printWidth": 120,
+	"singleQuote": true,
+	"jsxSingleQuote": false,
+	"quoteProps": "as-needed",
+	"trailingComma": "all",
+	"semi": true,
+	"arrowParens": "always",
+	"bracketSameLine": false,
+	"bracketSpacing": true,
+	"sortImports": {
+		"groups": [
+			"builtin",
+			{
+				"newlinesBetween": true
+			},
+			"external",
+			{
+				"newlinesBetween": true
+			},
+			"internal",
+			{
+				"newlinesBetween": true
+			},
+			"subpath",
+			{
+				"newlinesBetween": true
+			},
+			["parent", "sibling", "index", "style", "side_effect_style"]
+		],
+		"internalPattern": [],
+		"newlinesBetween": true,
+		"order": "asc",
+		"partitionByComment": false,
+		"partitionByNewline": false,
+		"sortSideEffects": false
+	},
+	"sortPackageJson": false
+}

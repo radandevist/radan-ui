@@ -1,7 +1,11 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["unicorn", "typescript", "oxc", "react", "vitest"],
-	"categories": { "correctness": "error" },
-	"env": { "builtin": true, "browser": true, "node": true, "es2024": true },
-	"ignorePatterns": ["node_modules/**", "dist/**", "catalog/dist/**"]
+	"extends": ["./lint/oxlint.json"],
+	"ignorePatterns": [
+		"node_modules/**",
+		"dist/**",
+		"catalog/dist/**",
+		"tests/fixtures/**",
+		"lint/plugins/house/index.js"
+	]
 }
