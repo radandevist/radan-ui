@@ -1,16 +1,14 @@
 import { useState } from 'react';
 
-import { component, DEFAULT_PREFIX, palette, semantic } from '../src/index';
-import type { TokenValue } from '../src/theme/tokens';
+import { component, DEFAULT_PREFIX, generateThemeCss, palette, semantic } from '../src/index';
 
 const P = DEFAULT_PREFIX;
 const v = (name: string) => `var(--${P}-${name})`;
-const show = (t: TokenValue = '') => {
-	if (typeof t === 'string') {
-		return t;
-	}
-	return 'palette' in t ? `palette: ${t.palette}` : `semantic: ${t.semantic}`;
-};
+// The value as the generator emits it into theme.css (real prefix, `{p}` resolved), not the token source.
+const emitted = Object.fromEntries(
+	[...generateThemeCss().matchAll(/^\t--([\w-]+): (.+);$/gm)].map((m) => [m[1], m[2]]),
+);
+const show = (name: string) => emitted[`${P}-${name}`] ?? '';
 const isDark = () => document.documentElement.classList.contains('dark');
 
 // Read ?theme=dark once, before first paint, so tests can open the page in dark directly.
@@ -91,7 +89,7 @@ export const TokensPage = () => {
 					{Object.keys(component).map((n) => (
 						<div key={n} className="rounded-card bg-card p-2 shadow-raised-control">
 							<div className="text-xs font-medium break-all">{n}</div>
-							<div className="mt-1 text-xs text-muted-foreground break-all">{show(component[n])}</div>
+							<div className="mt-1 text-xs text-muted-foreground break-all">{show(n)}</div>
 						</div>
 					))}
 				</Grid>
