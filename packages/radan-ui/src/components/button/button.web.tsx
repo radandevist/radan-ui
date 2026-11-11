@@ -11,7 +11,7 @@ const hover: Record<ButtonVariant, string> = {
 	secondary: 'hover:bg-secondary/80',
 	ghost: 'hover:bg-muted',
 	destructive: 'hover:bg-destructive/20',
-	link: 'hover:underline underline-offset-4',
+	link: 'underline-offset-4 hover:underline',
 };
 
 const Spinner = () => (

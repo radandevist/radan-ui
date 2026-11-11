@@ -32,7 +32,7 @@ export const buttonTextVariants = cva('font-medium', {
 			secondary: 'text-secondary-foreground',
 			ghost: 'text-foreground',
 			destructive: 'text-destructive',
-			link: 'text-primary',
+			link: 'text-foreground',
 		},
 		size: { default: 'text-sm', xs: 'text-xs', sm: 'text-sm', lg: 'text-sm', icon: 'text-sm' },
 	},
