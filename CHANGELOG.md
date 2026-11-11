@@ -1,5 +1,17 @@
 # @radandevist/radan-ui
 
+## 0.2.0
+
+### Minor Changes
+
+- [#19](https://github.com/radandevist/radan-ui/pull/19) [`5ab2424`](https://github.com/radandevist/radan-ui/commit/5ab2424cba7f77eda75c5e2503dfd2cd58bf2efc) Thanks [@radandevist](https://github.com/radandevist)! - **Breaking**: the `input` semantic token now has the common shadcn/Tailwind meaning, the field outline/fill (`#e4e4e7` light, `#27272a` dark), so `border-input` and `bg-input/50` behave like shadcn. The pale outline is the deliberate default (no 3:1 raise). The old field text colour (`[#414141](https://github.com/radandevist/radan-ui/issues/414141)` light, `[#808697](https://github.com/radandevist/radan-ui/issues/808697)` dark) moves to the new bridged token `input-foreground`. `--radan-ui-input-border` still works: it is now a component token pointing at `input`. Owner decision, issue [#17](https://github.com/radandevist/radan-ui/issues/17).
+  
+  Migration:
+  
+  - `text-input` -> `text-input-foreground`
+  - `border-input` used as the dark outline -> `border-input-foreground`
+  - `border-[color:var(--radan-ui-input-border)]` -> `border-input` (the old variable still works; keep the arbitrary value if you override `--radan-ui-input-border`)
+
 ## 0.1.2
 
 ### Patch Changes

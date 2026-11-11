@@ -1,6 +1,6 @@
 {
 	"name": "@radandevist/radan-ui",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "Theme, React components and lint rules shared by Radan's apps",
 	"license": "Apache-2.0",
 	"repository": {
