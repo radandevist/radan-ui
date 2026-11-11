@@ -30,7 +30,7 @@ const AA = 4.5; // WCAG 1.4.3, normal text
 const UI = 3; // WCAG 1.4.11, non-text (focus indicator)
 
 // [text/graphic token, surface tokens it is drawn on, minimum ratio] — real pairs only, both themes.
-// Not tested: `border` (decorative dividers). `input-border` (the field outline, 1.18:1): WCAG 1.4.11 would ask 3:1
+// Not tested: `border` (decorative dividers). `input` (the field outline, 1.18:1): WCAG 1.4.11 would ask 3:1
 // when the outline is the field's only boundary, but the owner kept the pale outline as the library default (decision
 // 2026-11-11, issue #17).
 const PAIRS: [string, string[], number][] = [
@@ -53,8 +53,8 @@ const PAIRS: [string, string[], number][] = [
 	['status-warning', ['background', 'card', 'popover'], AA],
 	['sidebar-foreground', ['sidebar'], AA],
 	['sidebar-accent-foreground', ['sidebar-accent'], AA],
-	// `input` is the field's text colour (DESIGN.md §2), drawn on the page and the surfaces a field sits in.
-	['input', ['background', 'card', 'popover'], AA],
+	// `input-foreground` is the field's text colour (DESIGN.md §2), drawn on the page and the surfaces a field sits in.
+	['input-foreground', ['background', 'card', 'popover'], AA],
 	['ring', ['background', 'card', 'popover'], UI],
 ];
 
