@@ -131,5 +131,5 @@ oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
 - `docs/DESIGN.md` — the visual language: tokens, light/dark, density, radius, shadows, status tones, motion,
   accessibility.
 - `docs/rules/` — the binding front-end rules, linked from a consuming app's `AGENTS.md`.
-- The tokens catalog will be deployed to <https://radandevist.github.io/radan-ui/> on each release; `catalog/` will
-  hold its source and the visual regression baselines.
+- The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `catalog/` holds
+  its source and the visual regression baselines.

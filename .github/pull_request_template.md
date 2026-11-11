@@ -1,6 +1,8 @@
 ## What
 
-Describe the change in one or two sentences and link the issue it closes.
+Closes #
+
+Describe the change in one or two sentences. Every PR closes an issue: open one first.
 
 ## Why
 
@@ -13,9 +15,5 @@ Explain the problem this solves for consumers of the library, not just for this 
 - [ ] `README.md` and `docs/` are updated when behaviour, tokens or the public API change.
 - [ ] The diff contains no private data, secrets, tokens, logs or client names.
 - [ ] The PR title is a Conventional Commit (`feat(theme): …`, `fix: …`, `docs: …`); `main` squashes with that title.
-
-## Coming later
-
-The catalog and the visual regression tests land with Task 7 — see the
-[Phase 1 plan](../docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md). Until then, visual changes need no catalog
-captures and no `pnpm test:visual` run.
+- [ ] Visual change: `catalog/` shows the new state, `pnpm test:visual` is green with reviewed baselines, and the
+      before/after captures are attached (see CONTRIBUTING, Visual changes).

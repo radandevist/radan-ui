@@ -1,0 +1,10 @@
+@import 'tailwindcss' source('../');
+@import '../dist/theme.css';
+
+@custom-variant dark (&:is(.dark *));
+
+body {
+	background: var(--color-background);
+	color: var(--color-foreground);
+	font-family: ui-sans-serif, system-ui, sans-serif;
+}

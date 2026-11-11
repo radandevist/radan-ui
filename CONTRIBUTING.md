@@ -3,8 +3,8 @@
 Thanks for contributing. This is a public, Apache-2.0 library: everything in the repo is read by other agents and by
 other apps, so nothing private (app data, secrets, client names) belongs here.
 
-> **Status.** The theme, the shared OxLint/oxfmt configs, the build and the Changesets release pipeline are live; the
-> catalog and the visual regression tests are still coming soon (see [Roadmap](#roadmap--coming-soon)).
+> **Status.** The theme, the shared OxLint/oxfmt configs, the build, the Changesets release pipeline, the tokens catalog
+> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests are live.
 
 ## Setup
 
@@ -71,15 +71,11 @@ Copied from the approved design spec, §7 (Radan, 2026-11-08):
 - Release notes are grouped (Breaking / Features / Fixes / Deprecations), each line links its PR, every breaking change
   carries a migration snippet, and visual changes carry before/after captures from the catalog.
 
-## Roadmap / coming soon
-
-The catalog and the visual regression tests land before the first npm publish (v0.1.0) — see the
-[Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md). These commands do not run yet; skip them until
-the catalog exists, then follow them as written.
-
-### Visual changes (Task 7)
+## Visual changes
 
 A change to a token, a component or any CSS is a visual change. Update `catalog/` so the new state is visible in light
 and dark, at 390×844 and 1440×900, and attach the Playwright captures to the PR. `pnpm test:visual` compares against
 the committed baselines; a deliberate change needs updated baselines reviewed alongside the diff, never a weakened
-assertion.
+assertion. The baselines are rendered by the CI runner (local fonts differ): run the `Visual baselines` workflow
+(Actions, manual dispatch) or take the `*-actual.png` files from a failed CI run's `visual-report` artifact, and commit
+them under `catalog/tests/__screenshots__/`.
