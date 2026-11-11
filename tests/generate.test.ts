@@ -66,3 +66,9 @@ test('no variable is declared twice in a block nor points at itself (0.1.1 card-
 		expect(new Set(names).size).toBe(names.length);
 	}
 });
+
+test('input is the shadcn outline; input-border is a component alias; input-foreground is bridged (issue #17)', () => {
+	const css = generateThemeCss();
+	expect(css).toContain('--radan-ui-input-border: var(--radan-ui-input);');
+	expect(css).toContain('--color-input-foreground: var(--radan-ui-input-foreground);');
+});

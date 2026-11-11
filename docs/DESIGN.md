@@ -83,13 +83,12 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `accent-foreground` | `ink` | `ink` |
 | `ring` | `var(--radan-ui-ink)` | `#d4d4d8` |
 | `border` | `#e3e3e3` | `#323234` |
-| `input` (text) | `#414141` | `#808697` |
-| `input-border` | `#e4e4e7` | `#27272a` |
+| `input` (field outline / fill, shadcn meaning) | `#e4e4e7` | `#27272a` |
+| `input-foreground` (field text) | `#414141` | `#808697` |
 | `destructive` / `destructive-surface` | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` |
 
-`input-border` has no colour utility (see the bridge below): read it as
-`border-[color:var(--radan-ui-input-border)]` (replace `radan-ui` with your prefix, §6). `border-input` is the
-`input` **text** colour, not the border.
+`input` is the field outline (`border-input`, `bg-input/50`), as in shadcn; the pale outline is the deliberate default. The field text colour is
+`input-foreground` (`text-input-foreground`). `--radan-ui-input-border` is kept as a component token that points at `input`.
 
 **Effects**
 
@@ -131,11 +130,10 @@ Components and screens use Tailwind names; the `@theme inline` block maps each t
 | `rounded-card`, `rounded-control`, `rounded-popover`, `rounded-toast` | the component radius tokens |
 | `shadow-raised-control`, `shadow-primary-raised`, `shadow-popover` | the `effect-*` tokens |
 
-Only the semantic names listed in `tailwindColors` (28, including `status-success` / `status-warning`) get colour
+Only the semantic names listed in `tailwindColors` (29, including `status-success` / `status-warning`) get colour
 utilities (`bg-*`, `text-*`, `border-*`, `ring-*`). The five domain status triplets are **not** in that list: there is
 no `bg-status-open-background` utility — read them through arbitrary values on the prefixed variable (§6).
-`input-border` is **not** bridged either: use `border-[color:var(--radan-ui-input-border)]`; `border-input` is the
-`input` text colour (`#414141`), not the border (`#e4e4e7`).
+`input` and `input-foreground` are bridged: `border-input` is the pale outline (`#e4e4e7`), `text-input-foreground` the field text (`#414141`).
 
 ## 3. Light and dark
 
