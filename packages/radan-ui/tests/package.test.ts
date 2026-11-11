@@ -56,6 +56,14 @@ test('the installed theme.css carries the prefixed variables', { timeout: 120_00
 	expect(css).toContain('--radan-ui-primary');
 });
 
+test('the installed package ships theme.native.css and the metro helper', { timeout: 120_000 }, () => {
+	const resolve = (spec: string) =>
+		run('node', ['--input-type=module', '-e', `process.stdout.write(import.meta.resolve(${JSON.stringify(spec)}))`]);
+	const css = resolve('@radandevist/radan-ui/theme.native.css').replace('file://', '');
+	expect(readFileSync(css, 'utf8')).toContain('@media (prefers-color-scheme: dark)');
+	expect(resolve('@radandevist/radan-ui/metro')).toMatch(/metro\.cjs$/);
+});
+
 test('the installed CLI prints a custom prefix', { timeout: 120_000 }, () => {
 	const bin = join(dir, 'node_modules/.bin/radan-ui');
 	expect(existsSync(bin)).toBe(true);

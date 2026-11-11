@@ -4,3 +4,4 @@ import { generateThemeCss } from '../src/theme/generate';
 
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/theme.css', generateThemeCss());
+writeFileSync('dist/theme.native.css', generateThemeCss({ native: true }));

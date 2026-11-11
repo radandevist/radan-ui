@@ -2,7 +2,7 @@
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css';
 @import 'nativewind/theme';
-@import '@radandevist/radan-ui/theme.css';
+@import '@radandevist/radan-ui/theme.native.css';
 
 /* Tailwind skips node_modules: the library's classes are only generated if its dist is scanned. */
 @source './node_modules/@radandevist/radan-ui/dist/native';

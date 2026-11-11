@@ -78,3 +78,27 @@ test('input is the shadcn outline; input-border is a component alias; input-fore
 	expect(dark).toContain('--radan-ui-input: #27272a;');
 	expect(dark).toContain('--radan-ui-input-foreground: #808697;');
 });
+
+test('web output keeps .dark and never follows the OS theme', () => {
+	const css = generateThemeCss();
+	expect(css).toContain('.dark {');
+	expect(css).not.toContain('prefers-color-scheme');
+});
+
+test('native output adds the system dark media block with the same dark values, on top of .dark', () => {
+	const web = generateThemeCss();
+	const css = generateThemeCss({ native: true });
+	expect(css).toContain('.dark {');
+	const media = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'), css.indexOf('@theme inline'));
+	expect(media).toContain(':root {');
+	expect(media).toContain('--radan-ui-background: var(--radan-ui-ink);');
+	expect(media).not.toContain('color-scheme: dark;');
+	// Same output otherwise: stripping the media block gives the web file back.
+	expect(css.replace(media, '')).toBe(web);
+});
+
+test('no output ever contains :root.dark (a hard compile error on native)', () => {
+	for (const native of [false, true]) {
+		expect(generateThemeCss({ native })).not.toMatch(/:root\s*\.dark|\.dark\s*:root/);
+	}
+});

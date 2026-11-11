@@ -77,4 +77,24 @@ assert(
 run('npx', ['tsc', '-p', 'tsconfig.src.json']); // the library's native source typechecks against React Native's types
 console.log('ok tsc');
 
+// 4. System dark: react-native-css compiles theme.native.css with the dark media condition on the dark values.
+const { default: tailwind } = await import('@tailwindcss/postcss');
+const { default: postcss } = await import('postcss');
+const { compile } = await import('react-native-css/compiler');
+const sheetOf = async (file) => {
+	const from = resolve(root, 'node_modules/@radandevist/radan-ui/dist', file);
+	const { css } = await postcss([tailwind()]).process(readFileSync(from, 'utf8'), { from });
+	return JSON.stringify(
+		compile(css, { filename: file, projectRoot: root, inlineVariables: false, inlineRem: 16 }).stylesheet(),
+	);
+};
+const dark = '[["=","prefers-color-scheme","dark"]]';
+const nativeSheet = await sheetOf('theme.native.css');
+assert(
+	nativeSheet.includes(`["radan-ui-background",[[[{},"var","radan-ui-ink",1],${dark}]`),
+	'theme.native.css: no dark media',
+);
+assert(!(await sheetOf('theme.css')).includes('prefers-color-scheme'), 'theme.css must not follow the OS theme');
+console.log('ok system dark');
+
 rmSync(out, { recursive: true, force: true });

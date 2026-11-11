@@ -81,7 +81,7 @@ npx @radandevist/radan-ui theme --prefix acme > src/styles/ui-theme.css
 Inside this repo, run the built bin directly: `pnpm build && node packages/radan-ui/dist/cli.js theme --prefix acme`. `npx` needs the
 scoped package name, otherwise it resolves the unrelated unscoped package. Import the generated file instead of `theme.css`; Tailwind utility
 names stay the same.
-The same generator is available in JavaScript as `generateThemeCss({ prefix })`.
+The same generator is available in JavaScript as `generateThemeCss({ prefix })`. For React Native / Expo, `radan-ui theme --native` (or `generateThemeCss({ native: true })`) adds the system dark `@media (prefers-color-scheme: dark)` block.
 
 ### Overrides
 
@@ -101,6 +101,30 @@ Redefine any variable after the import: a whole layer for a project, or one knob
 ```
 
 An override is a named, documented exception, never a per-page variant — consistency is the point of the library.
+
+### React Native / Expo
+
+Same tokens, NativeWind v5. Import the **native** theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme (`theme.css` stays dark-only-with-`.dark`, for the web). Tailwind skips `node_modules`, so point `@source` at the native build:
+
+```css
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+@import 'nativewind/theme';
+@import '@radandevist/radan-ui/theme.native.css';
+
+@source './node_modules/@radandevist/radan-ui/dist/native';
+```
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config');
+const { withRadanUi } = require('@radandevist/radan-ui/metro');
+
+module.exports = withRadanUi(getDefaultConfig(__dirname));
+```
+
+`withRadanUi(config, options?)` is `withNativewind(config, { inlineVariables: false, inlineRem: 16, ...options })`: the first keeps every `--radan-ui-*` variable overridable at runtime, the second makes `rem` 16px like the web.
 
 ### Lint
 
