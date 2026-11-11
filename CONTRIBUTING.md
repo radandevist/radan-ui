@@ -5,14 +5,14 @@ other apps, so nothing private (app data, secrets, client names) belongs here.
 
 > **Status.** Published on npm (`0.x`). Live: the theme (web and React Native), `Button`, the Expo `withRadanUi`
 > helper, the shared OxLint/oxfmt configs, the Changesets release pipeline, the tokens catalog
-> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests. Phase 2 continues the component set.
+> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests. The component foundation (generated exports, guards, catalog pages) is in; Phase 2 continues the component set.
 
 ## Layout
 
 A pnpm + Turborepo monorepo:
 
 - `packages/radan-ui/` — the published package `@radandevist/radan-ui` (`src/theme`, `src/components`, `lint/`, `metro.cjs`, tsdown configs, its tests).
-- `apps/catalog/` — the tokens catalog (Vite), its Playwright visual tests and baselines.
+- `apps/catalog/` — the catalog (Vite; one page per component in `pages/`), its Playwright visual tests and baselines.
 - `apps/expo-consumer/` — the npm-based Expo fixture (outside the pnpm workspace; run `scripts/spike-native.sh`).
 - `docs/`, `README.md`, `LICENSE` at the root; `prepack` copies them into the package so the tarball still ships them.
 
@@ -35,6 +35,59 @@ Commit titles follow [Conventional Commits](https://www.conventionalcommits.org/
 the commit title that lands. CI must be green before a merge. Every PR that changes the package —
 any file under `packages/radan-ui/` `src/**`, `lint/**` or `scripts/**`, or its `package.json`, `*.config.ts` or `tsconfig*.json` — carries a changeset; a change to a shipped root doc (`docs/`, `README.md`, `LICENSE`) users should see carries a patch changeset too; only catalog-only PRs skip it with the `no-changeset` label.
 The [PR template](.github/pull_request_template.md) lists the gates.
+
+## Adding a component
+
+Everything a component needs lives in its own folder plus three satellite files, so parallel agents never edit the
+same file. Nothing is registered anywhere: the export map (one `./*` pattern in `package.json`), the tsdown entries,
+the guards, the catalog and the visual tests all discover `src/components/<name>/` by themselves. Copy `button` (the
+model: every file below exists there).
+
+1. **Branch** `feat/<name>` from `origin/main`.
+2. **Create `packages/radan-ui/src/components/<name>/`** (lower-case folder, it becomes `@radandevist/radan-ui/<name>`):
+   - `<name>.contract.ts` — the props types (and the compound parts), no runtime code, no Base UI / React Native types.
+   - `<name>.variants.ts` — the shared `cva`; classes valid on both platforms. **No** `hover:`, `focus-visible:`,
+     `group-hover:` or `color-mix(`: those go in the platform file.
+   - `<name>.web.tsx` — Base UI (or a plain element when Base UI adds nothing); the entry of `dist/web/<name>.js`.
+     Re-export the types and the skeleton from it.
+   - `<name>.native.tsx` — React Native / `@rn-primitives/*`; the entry of `dist/native/<name>.js`. Same re-exports.
+   - `<name>.skeleton.web.tsx` and `<name>.skeleton.native.tsx` — the skeleton beside it ([skeletons rule](docs/rules/skeletons.md)).
+   - `<name>.web.test.tsx` — Vitest, `// @vitest-environment jsdom` on the first line, Testing Library: every variant,
+     the states, a11y roles, `onPress`, the skeleton.
+   - Web only for now? Skip the two native files and add `"<name>": { "reason": "…", "issue": "https://github.com/radandevist/radan-ui/issues/N" }`
+     to `src/components/web-only.json` (the one JSON file shared with sibling agents: one entry, own line).
+   - Imports: web files never import `react-native`, `nativewind`, `react-native-*` or `@rn-primitives/*`; native files
+     never import `@base-ui/*`; shared files import neither. Class merging always goes through `cn` from `../../lib/cn`.
+3. **Native test**: `apps/expo-consumer/__tests__/<name>.test.tsx` (jest-expo + Testing Library; copy `button.test.tsx`
+   for the CSS set-up). It runs against the installed tarball: `bash scripts/spike-native.sh` (first run installs ~900 MB).
+4. **Catalog page**: `apps/catalog/pages/<name>.page.tsx`, default export = the page (copy `button.page.tsx`): every
+   variant, size and state, no randomness or clocks. It is auto-listed at `/?page=<name>` and gets four visual tests
+   (light/dark × phone 390×844 / desktop 1440×900) from `apps/catalog/tests/pages.spec.ts`.
+5. **Changeset**: `.changeset/<name>-component.md`, bump `minor`, one file per component (never edit another's).
+6. **Gates**: `pnpm check`; `pnpm catalog:build`; `pnpm test:visual --update-snapshots=none --grep "<name> page"`
+   (pixel diffs on other pages and a missing baseline for yours are expected locally, the fonts differ); the native
+   test above. `pnpm check` fails if a file of step 2 or the catalog page is missing, if a platform import crosses over,
+   or if the shared variants carry a web-only state.
+7. **Baselines come from CI, never from your machine**: do not commit locally rendered PNGs. Push, open the PR (it is
+   red on the `visual` job until the baselines exist), then
+   `gh workflow run visual-baselines.yml --ref feat/<name> -R radandevist/radan-ui`, wait for it,
+   `gh run download <run-id> -n visual-baselines -D /tmp/baselines`, copy **only** `<name>-*.png` into
+   `apps/catalog/tests/__screenshots__/`, commit them, push. Look at the four images before asking for the merge.
+
+**Files you must not touch** (shared by every component, a change needs the owner): `packages/radan-ui/package.json`
+(exports, peers, dependencies), `pnpm-lock.yaml`, `tsdown.config.ts`, `vitest.config.ts`, `scripts/components.ts`,
+`tests/components.test.ts`, `apps/catalog/main.tsx`, `apps/catalog/tests/pages.spec.ts`, `apps/expo-consumer/package.json`,
+`src/index.ts` (it is the Node-side JS API; components are never exported from it), another component's folder, page or
+changeset. A component needing a new dependency or a new token is a question for the owner, not an edit.
+
+**Shared files you may edit with care** (small, append-only, one line each, to keep merges trivial):
+`src/components/web-only.json`; `src/components/react-native-shim.d.ts` (a React Native export or prop your native
+file uses that it does not list yet; the real check is `apps/expo-consumer`'s `tsc -p tsconfig.src.json`);
+`src/theme/tokens.ts` (a token your component truly needs: say so in the PR).
+
+**Avoiding conflicts**: each component is its own folder, its own catalog page, its own changeset, its own baselines;
+merge order does not matter. If `main` moved, `git rebase origin/main`; a conflict in a shared file above means two
+lines landed together: keep both.
 
 ## Code style
 
@@ -85,7 +138,7 @@ Copied from the approved design spec, §7 (Radan, 2026-11-08):
 
 ## Visual changes
 
-A change to a token, a component or any CSS is a visual change. Update `apps/catalog/` so the new state is visible in light
+A change to a token, a component or any CSS is a visual change. Update the page in `apps/catalog/pages/` so the new state is visible in light
 and dark, at 390×844 and 1440×900, and attach the Playwright captures to the PR. `pnpm catalog:build && pnpm test:visual` compares against
 the committed baselines; a deliberate change needs updated baselines reviewed alongside the diff, never a weakened
 assertion. The baselines are rendered by the CI runner (local fonts differ): run the `Visual baselines` workflow
