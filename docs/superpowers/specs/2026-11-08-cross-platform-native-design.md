@@ -110,13 +110,14 @@ export type ButtonProps = {
 - **Dark mode on native** follows the system or the app's toggle (`useColorScheme` + NativeWind's variable context);
   on the web it stays the `.dark` class. Both read the same light/dark values from the token data. Spike result:
   `.dark {}` works on native only as a wrapper class (a variable scope) and never reads the system scheme, and
-  `:root.dark` is a compile error on native; so the generator also emits
-  `@media (prefers-color-scheme: dark) { :root { … } }` for "follow the system" (Phase 2).
+  `:root.dark` is a compile error on native; so the generator **will** also emit
+  `@media (prefers-color-scheme: dark) { :root { … } }` for "follow the system" (not built yet, issue
+  [#24](https://github.com/radandevist/radan-ui/issues/24)).
 - **Native build options** (spike result, [report](../spikes/2026-11-11-native-spike.md)): react-native-css must run with
   `inlineVariables: false` (by default a variable declared once is inlined and cannot be overridden at runtime, which
   breaks the override mechanism of the main spec §2) and `inlineRem: 16` (default 14 makes radii and spacing smaller
   than on the web). The app's CSS also needs `@source` on `node_modules/@radandevist/radan-ui/dist/native`, since
-  Tailwind v4 does not scan `node_modules`. Shipped as a documented `withRadanUi(config)` helper or README snippet.
+  Tailwind v4 does not scan `node_modules`. A documented `withRadanUi(config)` helper or README snippet **will** carry these (not built yet, issue [#24](https://github.com/radandevist/radan-ui/issues/24)).
 - **Variants are shared**: `button.variants.ts` holds one `cva` whose classes are valid on both platforms. Each
   implementation adds its platform states on top: web `hover:` / `focus-visible:`, native `active:` (pressed).
   A class that only one platform understands never goes in the shared variants file (a guard checks for `hover:`,

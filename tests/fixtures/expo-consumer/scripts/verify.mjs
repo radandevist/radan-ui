@@ -9,7 +9,13 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const run = (cmd, args) => execFileSync(cmd, args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+const run = (cmd, args) =>
+	execFileSync(cmd, args, {
+		cwd: root,
+		encoding: 'utf8',
+		maxBuffer: 256 * 1024 * 1024,
+		stdio: ['ignore', 'pipe', 'pipe'],
+	});
 const out = mkdtempSync(join(tmpdir(), 'expo-export-'));
 
 // 1. Metro: native Button in the bundle (Pressable from react-native-css via the resolver, native-only class), no web Button.
@@ -19,6 +25,7 @@ for (const platform of ['android', 'ios']) {
 	const jsDir = join(dir, '_expo/static/js', platform);
 	const bundle = readFileSync(join(jsDir, readdirSync(jsDir)[0]), 'utf8');
 	assert(bundle.includes('"active:opacity-80"'), `${platform}: native button.js missing`);
+	assert(bundle.includes('accessibilityRole: "button"'), `${platform}: native button.js accessibilityRole missing`);
 	assert(!bundle.includes('focus-visible:ring-2'), `${platform}: web button.js leaked into the native bundle`);
 	assert(
 		/Pressable = \(0, _copyComponentProperties\w*\.copyComponentProperties\)\(_reactNative\.Pressable, props => \{\s*return \(0, _reactNativeCss\.useCssElement\)/.test(
@@ -61,6 +68,13 @@ assert(
 	web.some((l) => l === 'node_modules/@radandevist/radan-ui/dist/web/button.d.ts'),
 	'tsc without react-native condition did not pick web types',
 );
+const trace = run('npx', ['tsc', '--noEmit', '--traceResolution']);
+assert(/Matched 'exports' condition 'react-native'/.test(trace), 'traceResolution: react-native condition not matched');
+assert(
+	trace.includes("Using 'exports' subpath './button' with target './dist/native/button.d.ts'"),
+	'traceResolution: wrong target',
+);
+run('npx', ['tsc', '-p', 'tsconfig.src.json']); // the library's native source typechecks against React Native's types
 console.log('ok tsc');
 
 rmSync(out, { recursive: true, force: true });

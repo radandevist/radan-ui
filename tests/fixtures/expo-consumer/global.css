@@ -8,4 +8,4 @@
 @source './node_modules/@radandevist/radan-ui/dist/native';
 
 /* Skeleton token of the library (spec: bg-foreground/10) is not in the Button; keep it generated to test colour-mix. */
-@source inline('bg-foreground/10');
+@source inline('bg-foreground/10 rounded-4xl');

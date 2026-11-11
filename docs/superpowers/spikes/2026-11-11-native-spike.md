@@ -4,8 +4,8 @@ Branch `spike/native`, issue [#22](https://github.com/radandevist/radan-ui/issue
 (New Architecture only), React 19.3.0, NativeWind `5.0.0-rc.1` + react-native-css `3.1.0-rc.1` (exact pair; the NativeWind
 v5 docs page still names rc.0 and SDK 57), Tailwind 4.1.12, lightningcss 1.30.1 (the versions the docs pin).
 
-Everything below ran headless on Linux. **No device or emulator render was done**: whatever says "style" below is the
-style object react-native-css hands to React Native, not pixels.
+Everything below ran headless on Linux, except §4, which was also rendered on an Android phone. Elsewhere, "style"
+means the style object react-native-css hands to React Native, not pixels.
 
 Reproduce: `scripts/spike-native.sh` (builds, packs, installs the tarball into `tests/fixtures/expo-consumer`, runs
 `npm run verify` then `npm test`). Not wired into CI: the fixture is ~710 MB of `node_modules` (about 35 s with a warm npm
@@ -29,16 +29,19 @@ ok metro android      ok metro ios      ok vite      ok tsc
 ```
 
 - **Metro** (`npx expo export --platform android|ios --no-bytecode --no-minify`): the bundle contains the native Button
-  (`accessibilityRole: "button"`, class `active:opacity-80`) and not the web one (`focus-visible:ring-2` absent). Both
-  platforms, 1148 modules.
+  (class `active:opacity-80` and `accessibilityRole: "button"`, both asserted by `verify.mjs`) and not the web one
+  (`focus-visible:ring-2` absent). Both platforms (manual observation: 1148 modules).
 - **Vite 8** (`build({ lib })` from the fixture root, importing `@radandevist/radan-ui/button`): output contains the web
   class string `focus-visible:ring-2`, no `active:opacity-80`.
 - **tsc 7** `moduleResolution: Bundler` + `customConditions: ["react-native"]`: `--traceResolution` prints
-  `Matched 'exports' condition 'react-native'` … `target './dist/native/button.d.ts'`; `--explainFiles` lists only
+  `Matched 'exports' condition 'react-native'` … `target './dist/native/button.d.ts'` (asserted by `verify.mjs`); `--explainFiles` lists only
   `dist/native/button.d.ts`. With `--customConditions default` it lists `dist/web/button.d.ts`.
 - `pnpm check:package` (publint strict + attw `esm-only`) is green with the nested conditions.
 
-Decision: spec decisions 1, 2, 7 hold as written.
+Decision: the resolution mechanism of decisions 1, 2 and 7 (subpath export with `react-native` / `default`
+conditions, one tsdown build per platform, optional peers) holds. Still deferred, not proven here: the generated export
+map plus its guard test, Base UI on web (plain `<button>` for now), the full variant list, skeletons, the platform-import
+guard and the contract-conformance test.
 
 ## 2. `className` on prebuilt library code — PROVEN, no change needed
 
@@ -51,8 +54,10 @@ Metro resolver rewrites **every** `react-native` import whose origin is not reac
 
 Runtime semantics (Jest 30 + jest-expo 58 + RN Testing Library 14, real React Native and the real react-native-css
 runtime, `__tests__/button.test.tsx`, 9 tests pass): `<Button>` rendered from the packed `dist/native/button.js` gets
-`backgroundColor: '#fecd00'`, `borderRadius: 14`, `paddingInline: 16`, and `className="rounded-card"` passed by the app
-reaches the library's Pressable (`borderRadius: 14`). Jest has no Metro, so `jest.setup.js` re-creates the same
+`backgroundColor: '#fecd00'` and `borderRadius: 14` (manual observation: `paddingInline: 16` too). An app `className`
+that conflicts with a variant utility replaces it: `className="rounded-4xl bg-card"` gives `borderRadius: 26` and
+`#f2f2f2` instead of the variant's 14 / `#fecd00` (this needs the class merger, see below). An earlier version of this test
+used `rounded-card`, which is also 14px and proved nothing. Jest has no Metro, so `jest.setup.js` re-creates the same
 `react-native` redirect with `jest.mock`; the Metro-level proof is the bundle inspection above.
 
 Findings that matter for the library:
@@ -64,9 +69,15 @@ Findings that matter for the library:
   (without it the bundle contains no `bg-primary`, `rounded-control`, … at all; I hit this first). Point it at
   `dist/native` so web-only classes (`hover:`) are not generated for native. Document it in the README.
 - Types: `className` on `Pressable`/`Text`/`View` comes from `react-native-css/types`: the Expo app needs
-  `nativewind-env.d.ts` (`/// <reference types="react-native-css/types" />`); the library repo has
-  `src/components/native-env.d.ts` and `react-native` + `react-native-css` as devDependencies so `pnpm typecheck`
-  covers the native file. (Spec decision 8's two tsconfigs are not needed yet: one program typechecks both files.)
+  `nativewind-env.d.ts` (`/// <reference types="react-native-css/types" />`); the library's root install stays
+  web-only (no React Native devDependencies): root `pnpm typecheck` sees `react-native` through a loose ambient shim
+  (`src/components/react-native-shim.d.ts`), and the real check of the native source runs against React Native's own
+  types in the fixture (`tsc -p tsconfig.src.json`, part of `verify.mjs`). Spec decision 8's two tsconfigs are therefore
+  still open.
+- Class merging: both platforms build `className` with a shared `cn` (`src/lib/cn.ts`, tailwind-merge extended with the
+  library's names: `rounded-card|control|popover|toast`, the theme colours, and the `shadow-*` theme shadows, which
+  need their own group because `shadow-popover` is also read as a colour). Tests: `tests/button.test.ts` (web, server
+  render, no jsdom yet) and the fixture's Jest.
 
 ## 3. Theme — PARTIAL
 
@@ -131,6 +142,6 @@ Phase 2 (same data), document the two Metro options. Spec decision 3 edited acco
 ## Other findings
 
 - `@testing-library/react-native` 14 `render` is async; `jest-expo` 58 needs Jest 30.
-- `pnpm check`: green, 564 tests in 13 files.
+- `pnpm check`: green, 566 tests in 14 files.
 - Not done (outside the spike): the contract-conformance / export-map / platform-import guard tests of decisions 1, 6, 8; skeletons;
   catalog pages; `rn-primitives`. The Button's web side is a plain `<button>` (Base UI is not a dependency yet).

@@ -1,5 +1,6 @@
 import { Pressable, Text } from 'react-native';
 
+import { cn } from '../../lib/cn';
 import type { ButtonProps } from './button.contract';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
@@ -11,11 +12,11 @@ export const Button = ({ variant, size, disabled, loading, onPress, className, c
 			accessibilityState={{ disabled: off, busy: Boolean(loading) }}
 			disabled={off}
 			onPress={onPress}
-			className={[buttonVariants({ variant, size, disabled: off }), 'active:opacity-80', className]
-				.filter(Boolean)
-				.join(' ')}
+			className={cn(buttonVariants({ variant, size, disabled: off }), 'active:opacity-80', className)}
 		>
 			<Text className={buttonTextVariants({ variant })}>{children}</Text>
 		</Pressable>
 	);
 };
+
+export type { ButtonProps, ButtonSize, ButtonVariant } from './button.contract';

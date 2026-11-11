@@ -22,9 +22,10 @@ test('className on the prebuilt Pressable becomes a style (bg-primary, rounded-c
 	expect(pressable()).toMatchObject({ backgroundColor: '#fecd00', borderRadius: 14 });
 });
 
-test('rounded-card via className prop reaches the library Pressable', async () => {
-	await render(<Button className="rounded-card">Go</Button>);
-	expect(pressable().borderRadius).toBe(14);
+test('a conflicting className replaces the variant utility (cn/twMerge): rounded-4xl beats rounded-control', async () => {
+	await render(<Button className="rounded-4xl bg-card">Go</Button>);
+	expect(pressable().borderRadius).toBe(26); // 0.625rem * 2.6 * 16; rounded-control would be 14
+	expect(pressable().backgroundColor).toBe('#f2f2f2'); // bg-card, not bg-primary
 });
 
 test('outline: shadow-raised-control resolves to a 1px ring in the border colour, light', async () => {

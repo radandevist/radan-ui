@@ -1,3 +1,4 @@
+import { cn } from '../../lib/cn';
 import type { ButtonProps } from './button.contract';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
@@ -10,16 +11,16 @@ export const Button = ({ variant, size, disabled, loading, onPress, className, c
 			disabled={off}
 			aria-busy={loading || undefined}
 			onClick={onPress}
-			className={[
+			className={cn(
 				buttonVariants({ variant, size, disabled: off }),
 				buttonTextVariants({ variant }),
 				'hover:opacity-90 focus-visible:ring-2',
 				className,
-			]
-				.filter(Boolean)
-				.join(' ')}
+			)}
 		>
 			{children}
 		</button>
 	);
 };
+
+export type { ButtonProps, ButtonSize, ButtonVariant } from './button.contract';

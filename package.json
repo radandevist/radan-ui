@@ -20,7 +20,8 @@
 		"docs",
 		"README.md",
 		"LICENSE",
-		"CHANGELOG.md"
+		"CHANGELOG.md",
+		"!docs/superpowers/spikes/*.jpg"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -88,8 +89,6 @@
 		"publint": "^0.3.25",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",
-		"react-native": "0.88.1",
-		"react-native-css": "3.1.0-rc.1",
 		"size-limit": "^14.3.0",
 		"tailwindcss": "^4.3.5",
 		"tsdown": "^0.23.7",
@@ -99,7 +98,8 @@
 		"vitest": "^5.1.0"
 	},
 	"dependencies": {
-		"class-variance-authority": "^0.7.1"
+		"class-variance-authority": "^0.7.1",
+		"tailwind-merge": "^3.7.0"
 	},
 	"peerDependencies": {
 		"nativewind": ">=5.0.0-rc.1",
@@ -108,6 +108,9 @@
 		"react-native-css": ">=3.1.0-rc.1"
 	},
 	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		},
 		"react-native": {
 			"optional": true
 		},
