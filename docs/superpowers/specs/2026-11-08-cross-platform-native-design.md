@@ -108,7 +108,15 @@ export type ButtonProps = {
   - `resolveTokens(mode)` in the JS API — resolved values for what classes cannot reach on native (status bar,
     navigation theme, charts).
 - **Dark mode on native** follows the system or the app's toggle (`useColorScheme` + NativeWind's variable context);
-  on the web it stays the `.dark` class. Both read the same light/dark values from the token data.
+  on the web it stays the `.dark` class. Both read the same light/dark values from the token data. Spike result:
+  `.dark {}` works on native only as a wrapper class (a variable scope) and never reads the system scheme, and
+  `:root.dark` is a compile error on native; so the generator also emits
+  `@media (prefers-color-scheme: dark) { :root { … } }` for "follow the system" (Phase 2).
+- **Native build options** (spike result, [report](../spikes/2026-11-11-native-spike.md)): react-native-css must run with
+  `inlineVariables: false` (by default a variable declared once is inlined and cannot be overridden at runtime, which
+  breaks the override mechanism of the main spec §2) and `inlineRem: 16` (default 14 makes radii and spacing smaller
+  than on the web). The app's CSS also needs `@source` on `node_modules/@radandevist/radan-ui/dist/native`, since
+  Tailwind v4 does not scan `node_modules`. Shipped as a documented `withRadanUi(config)` helper or README snippet.
 - **Variants are shared**: `button.variants.ts` holds one `cva` whose classes are valid on both platforms. Each
   implementation adds its platform states on top: web `hover:` / `focus-visible:`, native `active:` (pressed).
   A class that only one platform understands never goes in the shared variants file (a guard checks for `hover:`,
@@ -183,12 +191,16 @@ tarball, like Phase 1's consumer fixtures):
    `react-native` imports in the app's code; whether it does so inside a dependency is the main unknown. If not, the
    native implementations import `View`/`Text`/`Pressable` from `react-native-css/react-native` (or register them
    with NativeWind's interop) themselves — the spike picks the form that works and documents it.
+   *Result: it does, with no wrapper. `withNativewind` redirects every `react-native` import (dependencies included) to
+   `react-native-css/components`; the native files keep importing plain `react-native`.*
 3. The generated theme drives NativeWind: `bg-primary`, `rounded-card`, light and dark, a runtime override of one
    variable. Any construct NativeWind does not support (for example `color-mix`, `oklch`, `calc()` on radii) is listed
    and the generator gets a native output that resolves it at build time.
 4. The `boxShadow` ring renders on Android (New Architecture); otherwise the 1px-border fallback.
 
 Result: a short report in the PR and, if a decision above changes, an edit to this file in the same PR.
+**Done: [spike report](../spikes/2026-11-11-native-spike.md)** (points 1-2 proven, 3 and 4 partial: one theme file kept,
+two Metro options and a system-dark media block added to decision 3; the ring is not yet seen on a device).
 
 ### 10. Releases
 
