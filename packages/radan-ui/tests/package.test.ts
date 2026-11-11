@@ -34,6 +34,14 @@ beforeAll(() => {
 
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
+test('the packed tarball ships docs, README and LICENSE (prepack)', () => {
+	const files = run('npm', ['pack', process.cwd(), '--dry-run', '--json'], dir);
+	const paths: string[] = JSON.parse(files)[0].files.map((f: { path: string }) => f.path);
+	expect(paths).toContain('README.md');
+	expect(paths).toContain('LICENSE');
+	expect(paths.some((p) => p.startsWith('docs/'))).toBe(true);
+});
+
 test('import exposes generateThemeCss', { timeout: 120_000 }, () => {
 	writeFileSync(
 		join(dir, 'check-import.mjs'),

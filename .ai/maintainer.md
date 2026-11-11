@@ -33,7 +33,7 @@ adjust to what is on `main` and fix this file when it lands.
 3. Export from `src/index.ts`. Add tokens (if any) to `src/theme/` and rebuild: `pnpm --filter @radandevist/radan-ui build:theme`.
 4. Tests beside it (`<name>.test.tsx`, Vitest): render, variants, a11y roles, skeleton matches the real component.
 5. Catalog page `apps/catalog/<name>-page.tsx` (all states, light + dark), registered in `apps/catalog/main.tsx`.
-6. `pnpm check`, then (first time on a machine) `pnpm exec playwright install --with-deps chromium`, then
+6. `pnpm check`, then (first time on a machine) `pnpm --filter catalog exec playwright install --with-deps chromium`, then
    `pnpm catalog:build && pnpm test:visual`; attach captures to the PR.
 7. Changeset **minor** (see below). PR title `feat(<name>): ...`.
 

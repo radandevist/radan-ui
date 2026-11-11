@@ -17,9 +17,9 @@ Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-pha
   and `size` scripts.
 - `packages/radan-ui/src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
 - `packages/radan-ui/src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
-- `lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
+- `packages/radan-ui/lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
   the shared one.
-- `tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
+- `packages/radan-ui/tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
 - `.changeset/` — Changesets config, the first changeset, the release workflow (npm Trusted Publishing) and the
   changeset gate; the TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs
   (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
