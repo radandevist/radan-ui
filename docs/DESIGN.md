@@ -68,10 +68,10 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `popover` / `popover-foreground` | `#f2f2f2` / `ink` | `#1f1f23` / `paper` |
 | `popover-surface` | `#fff` | `#1f1f23` |
 | `secondary` / `secondary-foreground` | `#f2f2f2` / `#3f3f46` | `#222226` / `#d4d4d8` |
-| `muted` / `muted-foreground` | `#f7f7f7` / `#71717a` | `#1f1f23` / `#7f7f7f` |
-| `sidebar` / `sidebar-foreground` | `#f6f6f6` / `#71717a` | `ink` / `#7f7f7f` |
+| `muted` / `muted-foreground` | `#f7f7f7` / `#6b6b73` | `#1f1f23` / `#898989` |
+| `sidebar` / `sidebar-foreground` | `#f6f6f6` / `#6b6b73` | `ink` / `#898989` |
 | `sidebar-accent` / `-foreground` | `#fff` / `ink` | `#27272a` / `#fff` |
-| `sidebar-ring` | `oklch(0.705 0.015 286.067)` | `oklch(0.552 0.016 285.938)` |
+| `sidebar-ring` | `#71717a` | `#71717a` |
 
 **Brand and interaction**
 
@@ -80,10 +80,10 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `primary` | `var(--radan-ui-yellow)` | *(inherited — yellow stays)* |
 | `primary-foreground` | `var(--radan-ui-yellow-ink)` | *(inherited)* |
 | `accent` | `var(--radan-ui-cyan)` | *(inherited)* |
-| `accent-foreground` | `ink` | `paper` |
+| `accent-foreground` | `ink` | `ink` |
 | `ring` | `var(--radan-ui-ink)` | `#d4d4d8` |
 | `border` | `#e3e3e3` | `#323234` |
-| `input` (text) | `#414141` | `#646a7a` |
+| `input` (text) | `#414141` | `#808697` |
 | `input-border` | `#e4e4e7` | `#27272a` |
 | `destructive` / `destructive-surface` | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` |
 
@@ -109,16 +109,16 @@ Pointing at the semantic layer: override one and every instance of that componen
 | Token | Value |
 | --- | --- |
 | `--radan-ui-card-bg` | `var(--radan-ui-card)` |
+| `--radan-ui-card-fg` | `var(--radan-ui-card-foreground)` |
 | `--radan-ui-card-radius` | `14px` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
 | `--radan-ui-toast-radius` | `12px` |
 
-`card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground` — it is not
-a component knob to override. The generated theme currently also emits a same-named component variable whose value
-`var(--radan-ui-card-foreground)` resolves to itself and is invalid; until that entry is removed from the theme data,
-prefer `text-foreground` on cards in light mode.
+`card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground`. The card's
+component knob is `--radan-ui-card-fg` (it reads `card-foreground`), next to `--radan-ui-card-bg`. A component knob never
+shares a semantic token's name: 0.1.1 did, and its `--radan-ui-card-foreground` pointed at itself (invalid in light mode).
 
 ### The Tailwind bridge (`@theme inline`)
 
@@ -208,8 +208,8 @@ Triplet rows below list `background / foreground / border`; the single tones lis
 
 | Status | Light | Dark | Meaning |
 | --- | --- | --- | --- |
-| `status-success` | `#15803d` (text/icon) | `#86efac` | generic success |
-| `status-warning` | `#b45309` (text/icon) | `#fdd34d` | generic warning |
+| `status-success` | `#157f3d` (text/icon) | `#86efac` | generic success |
+| `status-warning` | `#b35309` (text/icon) | `#fdd34d` | generic warning |
 | `status-open-*` | `#dff2fe` / `#00598a` / `#b8e6fe` | `#082f49` / `#7dd3fc` / `#075985` | open / in progress |
 | `status-pending-*` | `#fef3c7` / `#92400e` / `#fde68a` | `#382b12` / `#fcd34d` / `#78551b` | waiting / pending |
 | `status-resolved-*` | `#dcfce7` / `#166534` / `#bbf7d0` | `#123524` / `#86efac` / `#226344` | done / resolved |
@@ -246,8 +246,9 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 ## 9. Accessibility
 
 - **Contrast floors**: body text **4.5:1** against its surface; large text, focus indicators and UI graphics
-  **3:1**. Body-size secondary text uses `foreground-secondary`; `muted-foreground` falls below 4.5:1 on `card` and is
-  reserved for large text / non-essential labels — never a "subtle" tint for standalone body-size text.
+  **3:1**. Every text token meets 4.5:1 on each surface it is drawn on, in both themes, `muted-foreground` and
+  `sidebar-foreground` included (pinned by `tests/contrast.test.ts`); `foreground-secondary` stays the stronger
+  choice for body-size secondary text, `muted-foreground` is for de-emphasised but still readable text.
 - **Focus**: every interactive element shows a `focus-visible` ring built from `ring` (≥3:1 against its surface);
   the ring is part of the component, callers never remove it. `aria-invalid` adds a tint without replacing it.
 - **Loading**: a loading region is `aria-busy` with a visually hidden status line; every skeleton bone is
