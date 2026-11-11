@@ -8,8 +8,8 @@ const loadNativewind = () => {
 			throw error;
 		}
 		throw new Error(
-			'@radandevist/radan-ui/metro needs nativewind >= 5 and react-native-css installed in your app: ' +
-				'`npm i nativewind@^5 react-native-css`.',
+			'@radandevist/radan-ui/metro needs nativewind 5 (rc) and react-native-css >= 3.1 (rc) installed in your app: ' +
+				'`npm i nativewind@rc react-native-css@rc`.',
 			{ cause: error },
 		);
 	}

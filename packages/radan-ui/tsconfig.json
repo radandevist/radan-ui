@@ -1,5 +1,5 @@
 {
 	"extends": "../../tsconfig.base.json",
-	"include": ["src", "tests", "scripts", "lint/plugins", "*.config.ts", "metro.d.cts"],
+	"include": ["src", "tests", "scripts", "lint/plugins", "*.config.ts"],
 	"exclude": ["tests/fixtures"]
 }
