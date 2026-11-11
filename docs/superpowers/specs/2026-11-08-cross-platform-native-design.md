@@ -199,8 +199,8 @@ tarball, like Phase 1's consumer fixtures):
 4. The `boxShadow` ring renders on Android (New Architecture); otherwise the 1px-border fallback.
 
 Result: a short report in the PR and, if a decision above changes, an edit to this file in the same PR.
-**Done: [spike report](../spikes/2026-11-11-native-spike.md)** (points 1-2 proven, 3 and 4 partial: one theme file kept,
-two Metro options and a system-dark media block added to decision 3; the ring is not yet seen on a device).
+**Done: [spike report](../spikes/2026-11-11-native-spike.md)** (points 1, 2 and 4 proven, the ring seen on an Android phone; 3
+partial: one theme file kept, two Metro options and a system-dark media block added to decision 3).
 
 ### 10. Releases
 

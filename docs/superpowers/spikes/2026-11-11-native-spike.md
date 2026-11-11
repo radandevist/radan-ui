@@ -18,7 +18,7 @@ cache, a few minutes cold), so it stays a manual script.
 | 1 | One import path resolves per tool (Metro, Vite, tsc) | **PROVEN** |
 | 2 | `className` works on a prebuilt library in `node_modules` | **PROVEN** (no interop wrapper needed) |
 | 3 | The generated theme drives NativeWind | **PARTIAL**: works with two Metro options and one gap (system dark) |
-| 4 | The `boxShadow` ring | **PARTIAL**: style output proven, real rendering NOT PROVEN |
+| 4 | The `boxShadow` ring | **PROVEN** on an Android phone (Expo Go, SDK 58) |
 
 ## 1. Resolution — PROVEN
 
@@ -111,7 +111,7 @@ documented `withRadanUi(config)` helper or in the README. `resolveTokens(mode)` 
 Decision: keep one generated `theme.css` for both platforms; generate the `@media (prefers-color-scheme: dark)` block in
 Phase 2 (same data), document the two Metro options. Spec decision 3 edited accordingly.
 
-## 4. boxShadow ring — PARTIAL (style proven, rendering NOT PROVEN)
+## 4. boxShadow ring — PROVEN
 
 - React Native 0.88.1 declares `boxShadow?: ReadonlyArray<BoxShadowValue> | string` on view styles
   (`Libraries/StyleSheet/StyleSheetTypes.js`: `{ offsetX, offsetY, color, blurRadius, spreadDistance, inset }`) and ships
@@ -121,9 +121,12 @@ Phase 2 (same data), document the two Metro options. Spec decision 3 edited acco
   `boxShadow: [inset, inset-ring, ring-offset, ring, tw-shadow]` and the resolved style on the Button is
   `[{"offsetX":0,"offsetY":0,"blurRadius":0,"spreadDistance":1,"color":"#e3e3e3"}]` (light) and `…"#323234"` (dark):
   a valid 1px spread ring, no `shadowColor`/`elevation` fallback is emitted.
-- **Not proven**: that Android actually draws it with the button's `borderRadius` (needs an emulator or device; none
-  here). Decision: keep the plan (boxShadow first, 1px `border` as fallback) and verify on the first device capture of
-  Phase 2 before Button ships.
+- **Rendered on a device** (2026-11-11, the owner's Android phone, Expo Go SDK 58, the fixture served by
+  `expo start --lan --go`): the 1px ring is drawn around both outline Buttons and follows their rounded corners, light
+  (`#e3e3e3`) and dark (`#323234`); the `.dark` wrapper, `rounded-card` and the runtime override of
+  `--radan-ui-primary` (red Button) render as expected. Capture: [native-spike-android.jpg](2026-11-11-native-spike-android.jpg).
+  (The fixture's first line sits under the status bar: the fixture has no safe-area inset, not a library issue.)
+  Decision: boxShadow is the ring on native; the 1px `border` fallback is not needed.
 
 ## Other findings
 
