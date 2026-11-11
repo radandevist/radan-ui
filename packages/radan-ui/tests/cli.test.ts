@@ -13,6 +13,10 @@ test('theme without --prefix uses radan-ui', () => {
 	expect(run('theme')).toContain('--radan-ui-primary:');
 });
 
+test('theme --native adds the system dark media block', () => {
+	expect(run('theme', '--native')).toContain('@media (prefers-color-scheme: dark)');
+});
+
 test('an unknown command exits non-zero with the usage', () => {
 	expect(() => run('nope')).toThrow(/usage: radan-ui theme/);
 });
