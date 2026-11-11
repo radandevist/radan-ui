@@ -26,3 +26,14 @@ jest.mock('react-native', () => {
 	for (const name of wrapped) css[name] = components[name]; // eager: the getters are lazy requires
 	return new Proxy(actual, { get: (target, key) => (key in css ? css[key] : target[key]) });
 });
+
+// Animated utilities (animate-pulse, animate-spin) reach react-native-css' timing functions, which load Reanimated:
+// the stock Jest mocks stand in for the native runtime.
+jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
+// Components that animate render as their static self; the animation itself is checked on a device.
+jest.mock('react-native-reanimated', () => ({
+	cubicBezier: () => () => 0,
+	steps: () => () => 0,
+	default: {},
+	createAnimatedComponent: (component) => component,
+}));
