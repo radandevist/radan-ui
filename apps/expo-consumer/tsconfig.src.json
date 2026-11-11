@@ -7,5 +7,5 @@
 			"react/*": ["./node_modules/@types/react/*"]
 		}
 	},
-	"include": ["nativewind-env.d.ts", "../../../src/components/button/button.native.tsx"]
+	"include": ["nativewind-env.d.ts", "../../packages/radan-ui/src/components/button/button.native.tsx"]
 }

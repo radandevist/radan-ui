@@ -1,6 +1,5 @@
+import { component, DEFAULT_PREFIX, generateThemeCss, palette, semantic } from '@radandevist/radan-ui';
 import { useState } from 'react';
-
-import { component, DEFAULT_PREFIX, generateThemeCss, palette, semantic } from '../src/index';
 
 const P = DEFAULT_PREFIX;
 const v = (name: string) => `var(--${P}-${name})`;

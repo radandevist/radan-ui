@@ -1,11 +1,12 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"extends": ["./lint/oxlint.json"],
+	"extends": ["./packages/radan-ui/lint/oxlint.json"],
 	"ignorePatterns": [
 		"node_modules/**",
-		"dist/**",
-		"catalog/dist/**",
-		"tests/fixtures/**",
-		"lint/plugins/house/index.js"
+		"**/dist/**",
+		"apps/*/dist/**",
+		"apps/expo-consumer/**",
+		"packages/radan-ui/tests/fixtures/**",
+		"packages/radan-ui/lint/plugins/house/index.js"
 	]
 }

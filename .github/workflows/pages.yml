@@ -22,9 +22,10 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
       - run: pnpm install --frozen-lockfile
-      - run: pnpm catalog:build --base ${{ steps.pages.outputs.base_path }}/
+      - run: pnpm --filter @radandevist/radan-ui build
+      - run: pnpm --filter catalog build --base ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@v4
-        with: { path: catalog/dist }
+        with: { path: apps/catalog/dist }
   deploy:
     needs: build
     runs-on: ubuntu-latest

@@ -13,7 +13,7 @@ jobs:
           base=${{ github.event.pull_request.base.sha }}
           # The automated "Version packages" PR (changesets/action) consumes changesets and adds none.
           case "$HEAD_REF" in changeset-release/*) exit 0 ;; esac
-          if git diff --name-only $base HEAD | grep -qE '^(src/|lint/|scripts/|package\.json$)'; then
+          if git diff --name-only $base HEAD | grep -qE '^packages/radan-ui/(src/|lint/|scripts/|package\.json$)'; then
             git diff --name-only --diff-filter=A $base HEAD | grep -qE '^\.changeset/.+\.md$' \
               || { echo "This PR changes the package: add a changeset (npx changeset)."; exit 1; }
           fi

@@ -6,6 +6,15 @@ other apps, so nothing private (app data, secrets, client names) belongs here.
 > **Status.** The theme, the shared OxLint/oxfmt configs, the build, the Changesets release pipeline, the tokens catalog
 > (<https://radandevist.github.io/radan-ui/>) and the visual regression tests are live.
 
+## Layout
+
+A pnpm + Turborepo monorepo:
+
+- `packages/radan-ui/` — the published package `@radandevist/radan-ui` (`src/`, `lint/`, tsdown configs, its tests).
+- `apps/catalog/` — the tokens catalog (Vite), its Playwright visual tests and baselines.
+- `apps/expo-consumer/` — the npm-based Expo fixture (outside the pnpm workspace; run `scripts/spike-native.sh`).
+- `docs/`, `README.md`, `LICENSE` at the root; `prepack` copies them into the package so the tarball still ships them.
+
 ## Setup
 
 ```sh
@@ -13,7 +22,7 @@ pnpm install
 pnpm check
 ```
 
-`pnpm check` runs, in order: `tsc --noEmit` (typecheck), `oxlint --quiet .` (lint), `oxfmt --check .` (format:check),
+`pnpm check` runs, in order (the package tasks go through `turbo`): `tsc --noEmit` (typecheck), `oxlint --quiet .` (lint), `oxfmt --check .` (format:check),
 `vitest run` (test), the build, `publint --strict` + `attw` (check:package) and the size budget (size). CI runs the same
 command on every pull request with Node 24 and the pnpm version pinned in `packageManager` (10.13.1). Use pnpm inside
 this repo; the published package itself installs with npm, pnpm, yarn and bun.
@@ -22,8 +31,8 @@ this repo; the published package itself installs with npm, pnpm, yarn and bun.
 
 Commit titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `feat(theme): …`,
 `fix(lint): …`, `docs: …`, `ci: …`. `main` accepts squash merges only and keeps a linear history, so the PR title is
-the commit title that lands. CI must be green before a merge. Every PR that changes the package — `src/`, `lint/`,
-`scripts/` or `package.json` — carries a changeset; docs- and catalog-only PRs are exempt with the `no-changeset` label.
+the commit title that lands. CI must be green before a merge. Every PR that changes the package —
+`packages/radan-ui/src/`, `lint/`, `scripts/` or `package.json` — carries a changeset; docs- and catalog-only PRs are exempt with the `no-changeset` label.
 The [PR template](.github/pull_request_template.md) lists the gates.
 
 ## Code style
@@ -51,7 +60,7 @@ with frontmatter naming the package:
 Add the toast-radius token to the component layer.
 ```
 
-The `Changeset` workflow fails a PR that touches `src/`, `lint/`, `scripts/` or `package.json` without a newly added
+The `Changeset` workflow fails a PR that touches `packages/radan-ui/src/`, `lint/`, `scripts/` or `package.json` without a newly added
 `.changeset/*.md`; add the `no-changeset` label for docs/catalog-only PRs.
 
 Releases are automated. The `Release` workflow runs on every push to `main`: it keeps a `chore: version packages` PR up
@@ -73,9 +82,9 @@ Copied from the approved design spec, §7 (Radan, 2026-11-08):
 
 ## Visual changes
 
-A change to a token, a component or any CSS is a visual change. Update `catalog/` so the new state is visible in light
-and dark, at 390×844 and 1440×900, and attach the Playwright captures to the PR. `pnpm test:visual` compares against
+A change to a token, a component or any CSS is a visual change. Update `apps/catalog/` so the new state is visible in light
+and dark, at 390×844 and 1440×900, and attach the Playwright captures to the PR. `pnpm catalog:build && pnpm test:visual` compares against
 the committed baselines; a deliberate change needs updated baselines reviewed alongside the diff, never a weakened
 assertion. The baselines are rendered by the CI runner (local fonts differ): run the `Visual baselines` workflow
 (Actions, manual dispatch) or take the `*-actual.png` files from a failed CI run's `visual-report` artifact, and commit
-them under `catalog/tests/__screenshots__/`.
+them under `apps/catalog/tests/__screenshots__/`.

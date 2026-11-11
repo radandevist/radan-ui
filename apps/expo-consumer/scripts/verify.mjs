@@ -40,7 +40,7 @@ for (const platform of ['android', 'ios']) {
 }
 
 // 2. Vite (never asserts the react-native condition) resolves ./button to dist/web.
-const { build } = createRequire(resolve(root, '../../../package.json'))('vite');
+const { build } = createRequire(resolve(root, '../catalog/package.json'))('vite');
 const result = await build({
 	root,
 	logLevel: 'silent',

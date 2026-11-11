@@ -15,8 +15,8 @@ Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-pha
 
 - `package.json` with the `check`, `typecheck`, `lint`, `format`, `format:check`, `test`, `build`, `check:package`
   and `size` scripts.
-- `src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
-- `src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
+- `packages/radan-ui/src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
+- `packages/radan-ui/src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
 - `lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
   the shared one.
 - `tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
@@ -78,7 +78,7 @@ Generate the same theme under another prefix — lowercase letters, digits and d
 npx @radandevist/radan-ui theme --prefix acme > src/styles/ui-theme.css
 ```
 
-Inside this repo, run the built bin directly: `pnpm build && node dist/cli.js theme --prefix acme`. `npx` needs the
+Inside this repo, run the built bin directly: `pnpm build && node packages/radan-ui/dist/cli.js theme --prefix acme`. `npx` needs the
 scoped package name, otherwise it resolves the unrelated unscoped package. Import the generated file instead of `theme.css`; Tailwind utility
 names stay the same.
 The same generator is available in JavaScript as `generateThemeCss({ prefix })`.
@@ -131,5 +131,5 @@ oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
 - `docs/DESIGN.md` — the visual language: tokens, light/dark, density, radius, shadows, status tones, motion,
   accessibility.
 - `docs/rules/` — the binding front-end rules, linked from a consuming app's `AGENTS.md`.
-- The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `catalog/` holds
+- The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `apps/catalog/` holds
   its source and the visual regression baselines.

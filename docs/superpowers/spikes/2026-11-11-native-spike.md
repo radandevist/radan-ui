@@ -7,7 +7,7 @@ v5 docs page still names rc.0 and SDK 57), Tailwind 4.1.12, lightningcss 1.30.1 
 Everything below ran headless on Linux, except §4, which was also rendered on an Android phone. Elsewhere, "style"
 means the style object react-native-css hands to React Native, not pixels.
 
-Reproduce: `scripts/spike-native.sh` (builds, packs, installs the tarball into `tests/fixtures/expo-consumer`, runs
+Reproduce: `scripts/spike-native.sh` (builds, packs, installs the tarball into `apps/expo-consumer`, runs
 `npm run verify` then `npm test`). Not wired into CI: the fixture is ~710 MB of `node_modules` (about 35 s with a warm npm
 cache, a few minutes cold), so it stays a manual script.
 

@@ -59,7 +59,7 @@ test(
 	{ timeout: 120_000 },
 	() => {
 		// The exact snippet a consumer pastes: no jsPlugins of their own.
-		const readme = readFileSync(join(process.cwd(), 'README.md'), 'utf8');
+		const readme = readFileSync(join(process.cwd(), '../../README.md'), 'utf8');
 		const snippet = readme.slice(readme.indexOf('### Lint')).match(/```json\n([\s\S]*?)```/)?.[1];
 		expect(snippet).toBeDefined();
 		writeFileSync(join(dir, '.oxlintrc.json'), snippet!);

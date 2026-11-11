@@ -1,0 +1,16 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	// Keep the cache inside this checkout: in a linked git worktree turbo resolves the cache against the main repo,
+	// which can be read-only for a worker.
+	"cacheDir": ".turbo/cache",
+	"globalDependencies": ["pnpm-lock.yaml"],
+	"envMode": "loose",
+	"tasks": {
+		"build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
+		"typecheck": { "dependsOn": ["^build"], "outputs": [] },
+		"test": { "outputs": [] },
+		"check:package": { "dependsOn": ["build"], "outputs": [] },
+		"size": { "dependsOn": ["build"], "outputs": [] },
+		"dev": { "persistent": true, "cache": false }
+	}
+}
