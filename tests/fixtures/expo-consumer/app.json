@@ -1,0 +1,11 @@
+{
+	"expo": {
+		"name": "expo-consumer",
+		"slug": "expo-consumer",
+		"version": "1.0.0",
+		"userInterfaceStyle": "automatic",
+		"newArchEnabled": true,
+		"android": { "package": "dev.radandevist.radanui.fixture" },
+		"ios": { "bundleIdentifier": "dev.radandevist.radanui.fixture" }
+	}
+}

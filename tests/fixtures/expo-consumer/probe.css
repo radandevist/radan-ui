@@ -1,0 +1,33 @@
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css';
+@import 'nativewind/theme';
+@import '@radandevist/radan-ui/theme.css';
+@source inline("bg-primary/50 bg-foreground/10 text-foreground/70 rounded-popover rounded-toast rounded-xl rounded-4xl shadow-popover shadow-primary-raised shadow-raised-control border-border ring-ring dark:bg-card bg-card text-muted-foreground");
+.raw-color-mix {
+	background-color: color-mix(in srgb, #fecd00 50%, transparent);
+}
+.raw-oklch {
+	color: oklch(0.7 0.15 80);
+}
+.raw-calc-radius {
+	border-radius: calc(var(--radan-ui-radius) * 1.4);
+}
+.raw-var-chain {
+	background-color: var(--radan-ui-primary);
+}
+.raw-var-fallback {
+	color: var(--does-not-exist, #123456);
+}
+.raw-hover {
+	&:hover {
+		opacity: 0.9;
+	}
+}
+.raw-focus-visible {
+	&:focus-visible {
+		opacity: 0.9;
+	}
+}
+.raw-shadow-var {
+	box-shadow: var(--radan-ui-effect-raised-control);
+}

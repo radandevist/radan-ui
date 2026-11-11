@@ -20,7 +20,8 @@
 		"docs",
 		"README.md",
 		"LICENSE",
-		"CHANGELOG.md"
+		"CHANGELOG.md",
+		"!docs/superpowers/spikes/*.jpg"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -35,6 +36,16 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
+		},
+		"./button": {
+			"react-native": {
+				"types": "./dist/native/button.d.ts",
+				"default": "./dist/native/button.js"
+			},
+			"default": {
+				"types": "./dist/web/button.d.ts",
+				"default": "./dist/web/button.js"
+			}
 		},
 		"./theme.css": "./dist/theme.css",
 		"./oxlint.json": "./lint/oxlint.json",
@@ -85,5 +96,29 @@
 		"typescript": "^7.0.2",
 		"vite": "^8.3.7",
 		"vitest": "^5.1.0"
+	},
+	"dependencies": {
+		"class-variance-authority": "^0.7.1",
+		"tailwind-merge": "^3.7.0"
+	},
+	"peerDependencies": {
+		"nativewind": ">=5.0.0-rc.1",
+		"react": ">=19",
+		"react-native": ">=0.81",
+		"react-native-css": ">=3.1.0-rc.1"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		},
+		"react-native": {
+			"optional": true
+		},
+		"nativewind": {
+			"optional": true
+		},
+		"react-native-css": {
+			"optional": true
+		}
 	}
 }
