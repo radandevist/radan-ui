@@ -140,6 +140,9 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 
 - Light is the design canvas (`:root`, `color-scheme: light`); dark lives under the `.dark` class on the root element
   (`color-scheme: dark`). A project toggles it by adding/removing the class — the swap is instant, no flash.
+- System theme is native-only: `theme.native.css` (same data, `radan-ui theme --native`) also carries
+  `@media (prefers-color-scheme: dark) { :root { … } }`. `theme.css` never has it, otherwise light-only web apps would
+  turn dark under a dark OS. Never `:root.dark` (react-native-css rejects it).
 - Every semantic token that changes is declared **in both blocks**; the palette and theme-invariant values are not
   duplicated.
 - Dark is authored, not computed: each dark value is picked against its light counterpart (surfaces lift, text stays

@@ -102,6 +102,30 @@ Redefine any variable after the import: a whole layer for a project, or one knob
 
 An override is a named, documented exception, never a per-page variant — consistency is the point of the library.
 
+### React Native / Expo
+
+Same tokens, NativeWind v5. Import the **native** theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme (`theme.css` stays dark-only-with-`.dark`, for the web). Tailwind skips `node_modules`, so point `@source` at the native build:
+
+```css
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+@import 'nativewind/theme';
+@import '@radandevist/radan-ui/theme.native.css';
+
+@source './node_modules/@radandevist/radan-ui/dist/native';
+```
+
+```js
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config');
+const { withRadanUi } = require('@radandevist/radan-ui/metro');
+
+module.exports = withRadanUi(getDefaultConfig(__dirname));
+```
+
+`withRadanUi(config)` is `withNativewind(config, { inlineVariables: false, inlineRem: 16 })`: the first keeps every `--radan-ui-*` variable overridable at runtime, the second makes `rem` 16px like the web.
+
 ### Lint
 
 `pnpm check` runs, in order, TypeScript (`tsc --noEmit`), OxLint, oxfmt, the Vitest suite, the build, `publint` +

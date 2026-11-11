@@ -16,6 +16,8 @@
 	"packageManager": "pnpm@10.13.1",
 	"files": [
 		"dist",
+		"metro.cjs",
+		"metro.d.cts",
 		"lint",
 		"docs",
 		"README.md",
@@ -48,6 +50,11 @@
 			}
 		},
 		"./theme.css": "./dist/theme.css",
+		"./theme.native.css": "./dist/theme.native.css",
+		"./metro": {
+			"types": "./metro.d.cts",
+			"default": "./metro.cjs"
+		},
 		"./oxlint.json": "./lint/oxlint.json",
 		"./oxfmt.json": "./lint/oxfmt.json",
 		"./lint/*": "./lint/*",
@@ -63,7 +70,7 @@
 		"build": "rm -rf dist && tsdown && pnpm build:theme",
 		"build:theme": "tsx scripts/build-theme.ts",
 		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
-		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css",
+		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css ./theme.native.css",
 		"size": "size-limit",
 		"check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:package && pnpm size",
 		"prepack": "node scripts/prepack.mjs",

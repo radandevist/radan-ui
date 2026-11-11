@@ -16,8 +16,14 @@ const block = (selector: string, entries: [string, TokenValue][], p: string, ext
 /**
  * The theme as a Tailwind v4 CSS file: the palette and light/component tokens on `:root`, the dark ones on `.dark`,
  * and `@theme inline` mapping Tailwind's names (`bg-primary`, `rounded-card`…) to the prefixed variables.
+ * `native: true` also emits `@media (prefers-color-scheme: dark) { :root { … } }` so NativeWind follows the system
+ * theme. It is a separate output because on the web that block would turn every light-only app dark under a dark OS.
+ * Never emit `:root.dark`: react-native-css rejects it.
  */
-export const generateThemeCss = ({ prefix = DEFAULT_PREFIX }: { prefix?: string } = {}) => {
+export const generateThemeCss = ({
+	prefix = DEFAULT_PREFIX,
+	native = false,
+}: { prefix?: string; native?: boolean } = {}) => {
 	if (!PREFIX.test(prefix)) {
 		throw new Error(`invalid prefix "${prefix}": expected ${PREFIX.source}`);
 	}
@@ -48,6 +54,11 @@ export const generateThemeCss = ({ prefix = DEFAULT_PREFIX }: { prefix?: string 
 			'\tcolor-scheme: light;',
 		]),
 		block('.dark', Object.entries(semantic.dark), p, ['\tcolor-scheme: dark;']),
+		...(native
+			? [
+					`@media (prefers-color-scheme: dark) {\n${block(':root', Object.entries(semantic.dark), p).replace(/^/gm, '\t')}\n}`,
+				]
+			: []),
 		theme,
 		'',
 	].join('\n\n');
