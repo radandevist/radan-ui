@@ -15,5 +15,5 @@ Explain the problem this solves for consumers of the library, not just for this 
 - [ ] `README.md` and `docs/` are updated when behaviour, tokens or the public API change.
 - [ ] The diff contains no private data, secrets, tokens, logs or client names.
 - [ ] The PR title is a Conventional Commit (`feat(theme): …`, `fix: …`, `docs: …`); `main` squashes with that title.
-- [ ] Visual change: `catalog/` shows the new state, `pnpm test:visual` is green with reviewed baselines, and the
+- [ ] Visual change: `apps/catalog/` shows the new state, `pnpm catalog:build && pnpm test:visual` is green with reviewed baselines, and the
       before/after captures are attached (see CONTRIBUTING, Visual changes).

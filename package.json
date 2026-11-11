@@ -1,124 +1,32 @@
 {
-	"name": "@radandevist/radan-ui",
-	"version": "0.3.0",
-	"description": "Theme, React components and lint rules shared by Radan's apps",
+	"name": "radan-ui-monorepo",
+	"private": true,
 	"license": "Apache-2.0",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/radandevist/radan-ui.git"
-	},
-	"homepage": "https://radandevist.github.io/radan-ui/",
-	"bugs": "https://github.com/radandevist/radan-ui/issues",
 	"type": "module",
+	"packageManager": "pnpm@10.13.1",
 	"engines": {
 		"node": ">=22"
 	},
-	"packageManager": "pnpm@10.13.1",
-	"files": [
-		"dist",
-		"lint",
-		"docs",
-		"README.md",
-		"LICENSE",
-		"CHANGELOG.md",
-		"!docs/superpowers/spikes/*.jpg"
-	],
-	"publishConfig": {
-		"access": "public",
-		"provenance": true
-	},
-	"bin": {
-		"radan-ui": "./dist/cli.js"
-	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		},
-		"./button": {
-			"react-native": {
-				"types": "./dist/native/button.d.ts",
-				"default": "./dist/native/button.js"
-			},
-			"default": {
-				"types": "./dist/web/button.d.ts",
-				"default": "./dist/web/button.js"
-			}
-		},
-		"./theme.css": "./dist/theme.css",
-		"./oxlint.json": "./lint/oxlint.json",
-		"./oxfmt.json": "./lint/oxfmt.json",
-		"./lint/*": "./lint/*",
-		"./package.json": "./package.json"
-	},
-	"sideEffects": [
-		"*.css"
-	],
 	"scripts": {
-		"typecheck": "tsc --noEmit",
-		"lint": "pnpm build:lint-plugin && oxlint --quiet --ignore-pattern 'tests/fixtures/**' --ignore-pattern 'dist/**' --ignore-pattern 'catalog/dist/**' .",
+		"typecheck": "turbo run typecheck",
+		"lint": "pnpm --filter @radandevist/radan-ui build:lint-plugin && oxlint --quiet --ignore-pattern 'packages/radan-ui/tests/fixtures/**' --ignore-pattern 'apps/expo-consumer/**' .",
 		"format": "oxfmt --write .",
 		"format:check": "oxfmt --check .",
-		"test": "vitest run",
-		"build": "rm -rf dist && tsdown && pnpm build:theme",
-		"build:theme": "tsx scripts/build-theme.ts",
-		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
-		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css",
-		"size": "size-limit",
-		"catalog:dev": "pnpm build:theme && vite --config catalog/vite.config.ts",
-		"catalog:build": "pnpm build:theme && vite build --config catalog/vite.config.ts",
-		"test:visual": "playwright test",
+		"test": "turbo run test",
+		"build": "turbo run build",
+		"check:package": "turbo run check:package",
+		"size": "turbo run size",
+		"build:lint-plugin": "pnpm --filter @radandevist/radan-ui build:lint-plugin",
+		"catalog:dev": "turbo run build --filter=@radandevist/radan-ui && pnpm --filter catalog dev",
+		"catalog:build": "turbo run build --filter=catalog",
+		"test:visual": "pnpm --filter catalog test:visual",
 		"check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm check:package && pnpm size"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.18.5",
 		"@changesets/changelog-github": "^1.0.1",
 		"@changesets/cli": "^3.0.3",
-		"@oxlint/plugins": "^1.92.0",
-		"@playwright/test": "^1.65.0",
-		"@size-limit/file": "^14.3.0",
-		"@tailwindcss/vite": "^4.3.5",
-		"@types/node": "^24.19.2",
-		"@types/react": "^19.3.0",
-		"@types/react-dom": "^19.3.0",
-		"@vitejs/plugin-react": "^6.3.0",
 		"oxfmt": "^0.73.0",
 		"oxlint": "^1.92.0",
-		"publint": "^0.3.25",
-		"react": "^19.3.1",
-		"react-dom": "^19.3.1",
-		"size-limit": "^14.3.0",
-		"tailwindcss": "^4.3.5",
-		"tsdown": "^0.23.7",
-		"tsx": "^4.23.15",
-		"typescript": "^7.0.2",
-		"vite": "^8.3.7",
-		"vitest": "^5.1.0"
-	},
-	"dependencies": {
-		"class-variance-authority": "^0.7.1",
-		"tailwind-merge": "^3.7.0"
-	},
-	"peerDependencies": {
-		"nativewind": ">=5.0.0-rc.1",
-		"react": ">=19",
-		"react-native": ">=0.81",
-		"react-native-css": ">=3.1.0-rc.1"
-	},
-	"peerDependenciesMeta": {
-		"react": {
-			"optional": true
-		},
-		"react-native": {
-			"optional": true
-		},
-		"nativewind": {
-			"optional": true
-		},
-		"react-native-css": {
-			"optional": true
-		}
+		"turbo": "^2.9.0"
 	}
 }

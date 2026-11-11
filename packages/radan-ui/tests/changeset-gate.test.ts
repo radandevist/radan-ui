@@ -31,19 +31,19 @@ const commit = (message: string) => {
 	git(['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-m', message]);
 };
 
-write('package.json', '{"name":"x","version":"0.0.0"}\n');
+write('packages/radan-ui/package.json', '{"name":"x","version":"0.0.0"}\n');
 write('.changeset/initial-release.md', '---\n"x": minor\n---\n\nfirst\n');
 write('README.md', 'readme\n');
 git(['init', '-q']);
 commit('base');
 const base = git(['rev-parse', 'HEAD']);
 
-write('package.json', '{"name":"x","version":"0.1.0"}\n');
-write('CHANGELOG.md', '# x\n');
+write('packages/radan-ui/package.json', '{"name":"x","version":"0.1.0"}\n');
+write('packages/radan-ui/CHANGELOG.md', '# x\n');
 rmSync(join(repo, '.changeset/initial-release.md'));
 commit('chore: version packages');
 
-const workflow = readFileSync(join(process.cwd(), '.github/workflows/changeset-check.yml'), 'utf8');
+const workflow = readFileSync(join(process.cwd(), '../../.github/workflows/changeset-check.yml'), 'utf8');
 const [, script] = workflow.split('- run: |\n');
 if (script === undefined) {
 	throw new Error('changeset gate script not found');

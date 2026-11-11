@@ -1,6 +1,6 @@
 name: Visual baselines
 # Regenerates the screenshot baselines with the CI runner's fonts; download the artifact and commit the PNGs into
-# catalog/tests/__screenshots__/.
+# apps/catalog/tests/__screenshots__/.
 on:
   workflow_dispatch:
 permissions:
@@ -15,16 +15,16 @@ jobs:
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - id: pw
-        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(pnpm --filter catalog exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter catalog exec playwright install --with-deps chromium
       - run: pnpm catalog:build
       - run: pnpm test:visual --update-snapshots
       - uses: actions/upload-artifact@v4
         with:
           name: visual-baselines
-          path: catalog/tests/__screenshots__
+          path: apps/catalog/tests/__screenshots__
           retention-days: 14

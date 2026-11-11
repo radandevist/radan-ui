@@ -10,7 +10,5 @@
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
 		"types": ["node"]
-	},
-	"include": ["src", "tests", "scripts", "catalog", "lint/plugins", "*.config.ts"],
-	"exclude": ["tests/fixtures"]
+	}
 }

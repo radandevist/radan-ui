@@ -1,11 +1,12 @@
 # radan-ui maintainer runbook
 
-Package `@radandevist/radan-ui` (public, Apache-2.0). Repo `radandevist/radan-ui`. Use pnpm inside this repo. Run
+Package `@radandevist/radan-ui` (public, Apache-2.0). Repo `radandevist/radan-ui`. Monorepo (pnpm + Turborepo): the package lives in `packages/radan-ui/`, the catalog in `apps/catalog/`, the Expo fixture
+in `apps/expo-consumer/` (npm, outside the workspace). Use pnpm inside this repo. Run
 `pnpm check` before every push (typecheck, lint, format, test, build, publint/attw, size).
 
-**Status (when written):** `src/` holds the theme, the CLI and the public entry `src/index.ts`; the shared OxLint /
-oxfmt config lives in `lint/`. The catalog (`catalog/`, `pnpm catalog:build`, `pnpm test:visual`, `pages.yml`) is
-phase 1 task 7; components (`src/components/`) are phase 2. The "add a component" steps describe the intended layout;
+**Status (when written):** `packages/radan-ui/src/` holds the theme, the CLI and the public entry `src/index.ts`; the shared OxLint /
+oxfmt config lives in `packages/radan-ui/lint/`. The catalog (`apps/catalog/`, `pnpm catalog:build`, `pnpm test:visual`, `pages.yml`) is
+phase 1 task 7; components (`packages/radan-ui/src/components/`) are phase 2. The "add a component" steps describe the intended layout;
 adjust to what is on `main` and fix this file when it lands.
 
 ## Publishing facts
@@ -14,6 +15,8 @@ adjust to what is on `main` and fix this file when it lands.
   anywhere. The npm package requires 2FA and disallows tokens: never `npm publish` by hand (except the one-time v0.1.0).
 - Flow: PR with a changeset -> merge -> the `changesets/action` opens/updates the `chore: version packages` PR ->
   merge it -> CI publishes, tags `vX.Y.Z`, creates the GitHub release.
+- The publish runs from `packages/radan-ui/` (changesets). Its `prepack` script copies the root `docs/`, `README.md` and
+  `LICENSE` in so the tarball keeps shipping them (gitignored copies, removed by `postpack`). `CHANGELOG.md` lives in the package.
 - Gotchas (all hit for real):
   - PRs opened by the GitHub Actions bot (the Version packages PR) do **not** trigger CI. Close and reopen the PR to run it.
   - An **empty changeset** (frontmatter only, no bump) blocks publishing. Never commit one; delete it.
@@ -24,13 +27,13 @@ adjust to what is on `main` and fix this file when it lands.
 ## Add a component
 
 1. Branch: `git switch -c feat/<name> origin/main`.
-2. Folder `src/components/<name>/` (files < 300 lines, tabs, single quotes): `<name>.tsx` with compound parts
+2. Folder `packages/radan-ui/src/components/<name>/` (files < 300 lines, tabs, single quotes): `<name>.tsx` with compound parts
    (`Card`, `Card.Header`, ...), `<name>-skeleton.tsx` **beside it** (same layout, tokens `bg-foreground/10` + pulse),
    `index.ts`. No i18n, no router, no fetching: strings come from props/children. Visuals use theme tokens only.
-3. Export from `src/index.ts`. Add tokens (if any) to `src/theme/` and rebuild: `pnpm build:theme`.
+3. Export from `src/index.ts`. Add tokens (if any) to `src/theme/` and rebuild: `pnpm --filter @radandevist/radan-ui build:theme`.
 4. Tests beside it (`<name>.test.tsx`, Vitest): render, variants, a11y roles, skeleton matches the real component.
-5. Catalog page `catalog/<name>-page.tsx` (all states, light + dark), registered in `catalog/main.tsx`.
-6. `pnpm check`, then (first time on a machine) `pnpm exec playwright install --with-deps chromium`, then
+5. Catalog page `apps/catalog/<name>-page.tsx` (all states, light + dark), registered in `apps/catalog/main.tsx`.
+6. `pnpm check`, then (first time on a machine) `pnpm --filter catalog exec playwright install --with-deps chromium`, then
    `pnpm catalog:build && pnpm test:visual`; attach captures to the PR.
 7. Changeset **minor** (see below). PR title `feat(<name>): ...`.
 
@@ -59,7 +62,7 @@ Breaking: rename the `tone` prop of `Badge` to `variant`.
 ```
 ````
 
-The `Changeset` check fails PRs touching `src/`, `lint/`, `scripts/` or `package.json` without a **new**
+The `Changeset` check fails PRs touching `packages/radan-ui/{src,lint,scripts}/` or its `package.json` without a **new**
 `.changeset/*.md`. Docs/catalog/`.ai/` only: add the `no-changeset` label. The gate only checks that a changeset file
 exists: an **empty** changeset (no bump line) passes it but blocks the release later — always write the bump line.
 
@@ -68,8 +71,8 @@ exists: an **empty** changeset (no bump line) passes it but blocks the release l
 Branch `changeset-release/main`, title `chore: version packages`.
 
 1. Close and reopen the PR so CI runs (bot PRs do not trigger it); wait for green.
-2. `package.json` version matches the highest bump of the pending changesets (`ls .changeset/*.md`; 0.x breaking = minor).
-3. `CHANGELOG.md` diff reads well: grouped, user-facing lines, each links its PR, breaking ones carry a migration snippet.
+2. `packages/radan-ui/package.json` version matches the highest bump of the pending changesets (`ls .changeset/*.md`; 0.x breaking = minor).
+3. `packages/radan-ui/CHANGELOG.md` diff reads well: grouped, user-facing lines, each links its PR, breaking ones carry a migration snippet.
    Fix wording by editing the changeset files on `main` (a new PR), not this PR.
 4. Visual changes: before/after captures exist on the source PRs (or the catalog diff); deliberate baseline updates only.
 5. No empty changeset left in `.changeset/`. Merge (squash). Then verify:
@@ -78,7 +81,7 @@ Branch `changeset-release/main`, title `chore: version packages`.
 
 ## Cut a major
 
-1. List deprecations to remove: `grep -rn "deprecated" src docs` and past CHANGELOG "Deprecations".
+1. List deprecations to remove: `grep -rn "deprecated" packages/radan-ui/src docs` and past CHANGELOG "Deprecations".
 2. Remove them in PRs with `major` changesets, each with a migration snippet.
 3. Write a migration guide (`docs/guides/migrate-vN.md`, ships with the package) and link it in the release notes.
 4. Merge, review the Version packages PR as above, then bump both apps one at a time (below).
