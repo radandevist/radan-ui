@@ -109,6 +109,7 @@ Pointing at the semantic layer: override one and every instance of that componen
 | --- | --- |
 | `--radan-ui-card-bg` | `var(--radan-ui-card)` |
 | `--radan-ui-card-fg` | `var(--radan-ui-card-foreground)` |
+| `--radan-ui-input-border` | `var(--radan-ui-input)` |
 | `--radan-ui-card-radius` | `14px` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
@@ -244,7 +245,8 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 ## 9. Accessibility
 
 - **Contrast floors**: body text **4.5:1** against its surface; large text, focus indicators and UI graphics
-  **3:1**. Every text token meets 4.5:1 on each surface it is drawn on, in both themes, `muted-foreground` and
+  **3:1**, with one deliberate exception: the pale field outline `input` (1.18:1) is the owner's default (issue #17).
+  Every text token meets 4.5:1 on each surface it is drawn on, in both themes, `muted-foreground` and
   `sidebar-foreground` included (pinned by `tests/contrast.test.ts`); `foreground-secondary` stays the stronger
   choice for body-size secondary text, `muted-foreground` is for de-emphasised but still readable text.
 - **Focus**: every interactive element shows a `focus-visible` ring built from `ring` (≥3:1 against its surface);

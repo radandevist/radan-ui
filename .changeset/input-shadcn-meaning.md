@@ -8,4 +8,4 @@ Migration:
 
 - `text-input` -> `text-input-foreground`
 - `border-input` used as the dark outline -> `border-input-foreground`
-- `border-[color:var(--radan-ui-input-border)]` -> `border-input` (the old variable still works)
+- `border-[color:var(--radan-ui-input-border)]` -> `border-input` (the old variable still works; keep the arbitrary value if you override `--radan-ui-input-border`)

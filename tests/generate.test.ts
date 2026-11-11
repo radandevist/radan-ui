@@ -71,4 +71,10 @@ test('input is the shadcn outline; input-border is a component alias; input-fore
 	const css = generateThemeCss();
 	expect(css).toContain('--radan-ui-input-border: var(--radan-ui-input);');
 	expect(css).toContain('--color-input-foreground: var(--radan-ui-input-foreground);');
+	const dark = css.slice(css.indexOf('.dark {'), css.indexOf('@theme inline'));
+	const light = css.slice(0, css.indexOf('.dark {'));
+	expect(light).toContain('--radan-ui-input: #e4e4e7;');
+	expect(light).toContain('--radan-ui-input-foreground: #414141;');
+	expect(dark).toContain('--radan-ui-input: #27272a;');
+	expect(dark).toContain('--radan-ui-input-foreground: #808697;');
 });
