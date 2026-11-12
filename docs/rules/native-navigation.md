@@ -50,8 +50,8 @@ Native (Expo) uses the platform's own stack navigator and its defaults; nothing 
   opposite and must be swapped).
 - **Exception to « real content » on back**: the arrow's fallback to a parent never visited (a deep link) may show the
   parent's own skeleton, since nothing is cached.
-- Not a back at all: Back between two top-level sections is a fade (see **Fade**), and on iOS a traversal the app did
-  not start gets no app transition (see **Implementation**).
+- Other history traversals: between two top-level sections, see **Fade**; on iOS, one the app did not start, see
+  **Implementation**.
 - **Push: the incoming screen enters with its real top bar.** The bar's title comes from the route or from cached data,
   never a skeleton; the body may show its own skeleton while its data loads, as a native screen does.
 - **Fade**: a short cross-fade of the whole viewport, for any switch between two top-level sections, by the menu or by
