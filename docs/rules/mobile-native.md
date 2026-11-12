@@ -15,6 +15,8 @@ sheets are always used (cross-platform native design, §5).
   Back restore the same view.
 - **Animations are progressive and scrubbed** with the gesture: no jump, no waiting for the end of a swipe.
 - **Targets clear 44px** for controls and rows; fields in a sheet are 44px tall with stacked actions.
+- **Page changes are screen changes** of the whole viewport: [native-navigation.md](./native-navigation.md).
 - Tablet and desktop (from `md`) keep dropdown menus, side panels and drawers.
+
 
 Related: [forms-in-drawer.md](./forms-in-drawer.md), [motion.md](./motion.md).

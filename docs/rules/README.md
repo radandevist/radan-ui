@@ -11,10 +11,15 @@ holds the rule in full.
   its own skeleton, beside it. [`skeletons.md`](./skeletons.md)
 - **Mobile feels native** — below `md`: bottom sheets not popovers, no visible ✕, no bottom nav, page state in the
   URL. [`mobile-native.md`](./mobile-native.md)
+- **Native navigation on the mobile web** — below `md` a page change is a screen change of the whole viewport, top bar
+  included: push / back / fade / none; on back the leaving screen animates out over the previous one, already shown
+  with its content; back arrow in the top bar; iPhone or Material 3 style by platform (user-overridable).
+  [`native-navigation.md`](./native-navigation.md)
 - **Forms in a drawer, never a modal** — right drawer from `md`, bottom sheet below, sticky footer; modals only for
   confirmations. [`forms-in-drawer.md`](./forms-in-drawer.md)
 - **One appear/disappear animation** — everything that appears or disappears goes through `Collapse`; one element
-  changing shape morphs; reduced motion respected. [`motion.md`](./motion.md)
+  changing shape morphs; reduced motion respected; page transitions are the one exception
+  ([`native-navigation.md`](./native-navigation.md)). [`motion.md`](./motion.md)
 
 The visual language itself (tokens, light/dark, density, radius/shadow, status tones, type, motion, accessibility,
 overrides) is [`../DESIGN.md`](../DESIGN.md).
@@ -25,11 +30,13 @@ contract — `Drawer` / `FormPanel` is always a bottom sheet and menus are actio
 
 ## Linking them from an app
 
-Link these files from your `AGENTS.md` instead of copying them — they ship inside the package:
+Link **this index once** from your `AGENTS.md`, never the rules one by one: a rule added or changed in a release reaches
+the app with the dependency bump, with no edit on the app's side.
 
 ```markdown
-- **Forms in a drawer, never a modal** — … `node_modules/@radandevist/radan-ui/docs/rules/forms-in-drawer.md`
+- **radan-ui binding rules (HARD)** — read `node_modules/@radandevist/radan-ui/docs/rules/README.md` and every rule it
+  lists before touching UI; they apply in full to this app.
 ```
 
-The path pattern is `node_modules/@radandevist/radan-ui/docs/rules/<file>.md`, with `<file>` one of
-`visual-consistency`, `composition`, `skeletons`, `mobile-native`, `forms-in-drawer`, `motion`.
+Every rule file is listed above with its one-line summary; a new rule is added to this list in the same pull request
+that adds its file.
