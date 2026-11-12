@@ -5,7 +5,7 @@ other apps, so nothing private (app data, secrets, client names) belongs here.
 
 > **Status.** Published on npm (`0.x`). Live: the theme (web and React Native), `Button`, the Expo `withRadanUi`
 > helper, the shared OxLint/oxfmt configs, the Changesets release pipeline, the tokens catalog
-> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests. Next, phase 2: the component set.
+> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests. Phase 2 continues the component set.
 
 ## Layout
 
@@ -33,7 +33,7 @@ this repo; the published package itself installs with npm, pnpm, yarn and bun.
 Commit titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `feat(theme): …`,
 `fix(lint): …`, `docs: …`, `ci: …`. `main` accepts squash merges only and keeps a linear history, so the PR title is
 the commit title that lands. CI must be green before a merge. Every PR that changes the package —
-`packages/radan-ui/` `src/`, `lint/`, `scripts/`, `package.json`, `*.config.ts` or `tsconfig*.json` — carries a changeset; docs- and catalog-only PRs are exempt with the `no-changeset` label.
+`packages/radan-ui/{src/,lint/,scripts/}`, `packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` — carries a changeset; docs- and catalog-only PRs are exempt with the `no-changeset` label.
 The [PR template](.github/pull_request_template.md) lists the gates.
 
 ## Code style
@@ -61,8 +61,10 @@ with frontmatter naming the package:
 Add the toast-radius token to the component layer.
 ```
 
-The `Changeset` workflow fails a PR that touches `packages/radan-ui/` `src/`, `lint/`, `scripts/`, `package.json`,
-`*.config.ts` or `tsconfig*.json` without a newly added `.changeset/*.md`; add the `no-changeset` label for docs/catalog-only PRs.
+The `Changeset` workflow fails a PR that touches `packages/radan-ui/{src/,lint/,scripts/}`,
+`packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` without a newly
+added `.changeset/*.md`; root `docs/`, `README.md` and `LICENSE` ship in the tarball via `prepack` but are not gated:
+add a patch changeset when a shipped doc changes in a way users should see (as the README refresh does); docs/catalog-only PRs with no shipped change need none.
 
 Releases are automated. The `Release` workflow runs on every push to `main`: it keeps a `chore: version packages` PR up
 to date, and merging that PR publishes to npm with Trusted Publishing (OIDC, provenance) and creates the GitHub

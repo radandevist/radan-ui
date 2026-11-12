@@ -6,13 +6,13 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 [![npm](https://img.shields.io/npm/v/@radandevist/radan-ui.svg)](https://www.npmjs.com/package/@radandevist/radan-ui)
 
 > **Status: published on npm, `0.x`.** The current version is on the npm badge above; before `1.0` a minor release may
-> change the API (see `CHANGELOG.md`). Next, phase 2: the component set, starting from `Button`.
+> change the API (see `packages/radan-ui/CHANGELOG.md`). `Button` is shipped; phase 2 continues the component set.
 
 ## What it ships
 
 - **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
-- **Components** — `Button` (web and React Native, one `@radandevist/radan-ui/button` entry); more in phase 2.
+- **Components** — `Button` (web and React Native, one `@radandevist/radan-ui/button` entry); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
 - **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` OxLint plugin.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
@@ -102,14 +102,19 @@ import { Button } from '@radandevist/radan-ui/button';
 
 The same import resolves to the web build (a `<button>`) or, under the `react-native` condition, to the native build.
 Props are identical on both: `variant` (`default` | `outline`), `size` (`default` | `sm`), `disabled`, `loading`,
-`onPress`, `className`, `children`. On the web, add `@source '../node_modules/@radandevist/radan-ui/dist/web';` next to
-the theme import so Tailwind sees the classes (Tailwind skips `node_modules`).
+`onPress`, `className`, `children`. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
+`node_modules`, so add a `@source` next to the theme import; the path is relative to that stylesheet (here
+`src/styles/app.css`):
+
+```css
+@source '../../node_modules/@radandevist/radan-ui/dist/web';
+```
 
 ### React Native / Expo
 
 Same tokens, NativeWind v5 (peer dependencies: `nativewind`, `react-native`, `react-native-css`). Import the **native**
 theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme
-(`theme.css` stays light with `.dark` for dark, for the web). Point `@source` at the native build:
+(`theme.css` stays light with `.dark` for dark, for the web). Point `@source` at the native build (path relative to the stylesheet, here at the project root):
 
 ```css
 @import 'tailwindcss/theme.css' layer(theme);
@@ -183,8 +188,8 @@ oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
 
 - `docs/DESIGN.md` — the visual language: tokens, light/dark, density, radius, shadows, status tones, motion,
   accessibility.
-- `docs/rules/README.md` — the index of the binding front-end rules. An app links this index once from its `AGENTS.md`
-  (`node_modules/@radandevist/radan-ui/docs/rules/README.md`) and gets every rule from it.
+- `docs/rules/README.md` — the index of the binding front-end rules. An app's `AGENTS.md` points at this index
+  (`node_modules/@radandevist/radan-ui/docs/rules/README.md`); it lists every rule and agents follow its links.
 - The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `apps/catalog/` holds
   its source and the visual regression baselines.
 
