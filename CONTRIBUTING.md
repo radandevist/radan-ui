@@ -33,7 +33,7 @@ this repo; the published package itself installs with npm, pnpm, yarn and bun.
 Commit titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `feat(theme): …`,
 `fix(lint): …`, `docs: …`, `ci: …`. `main` accepts squash merges only and keeps a linear history, so the PR title is
 the commit title that lands. CI must be green before a merge. Every PR that changes the package —
-any file under `packages/radan-ui/src/**`, `lint/**` or `scripts/**`, or `packages/radan-ui/package.json`, `*.config.ts` or `tsconfig*.json` — carries a changeset; a change to a shipped root doc (`docs/`, `README.md`, `LICENSE`) users should see carries a patch changeset too; only catalog-only PRs skip it with the `no-changeset` label.
+any file under `packages/radan-ui/` `src/**`, `lint/**` or `scripts/**`, or its `package.json`, `*.config.ts` or `tsconfig*.json` — carries a changeset; a change to a shipped root doc (`docs/`, `README.md`, `LICENSE`) users should see carries a patch changeset too; only catalog-only PRs skip it with the `no-changeset` label.
 The [PR template](.github/pull_request_template.md) lists the gates.
 
 ## Code style
@@ -61,8 +61,8 @@ with frontmatter naming the package:
 Add the toast-radius token to the component layer.
 ```
 
-The `Changeset` workflow fails a PR that touches any file under `packages/radan-ui/src/**`, `lint/**` or `scripts/**`,
-`packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` without a newly
+The `Changeset` workflow fails a PR that touches any file under `packages/radan-ui/src/**`, `packages/radan-ui/lint/**` or
+`packages/radan-ui/scripts/**`, `packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` without a newly
 added `.changeset/*.md`; root `docs/`, `README.md` and `LICENSE` ship in the tarball via `prepack` but are not gated:
 add a patch changeset when a shipped doc changes in a way users should see (as the README refresh does); the `no-changeset` label skips the check for catalog-only PRs.
 
