@@ -36,17 +36,21 @@ Native (Expo) uses the platform's own stack navigator and its defaults; nothing 
 
 - **The back arrow** is in the top bar, next to the title, on every screen below the top level. It goes back in
   history only when the app itself has an earlier entry (an app-owned index kept in `history.state`, never
-  `history.length`, which counts other sites), else it navigates to the screen's parent: it never leaves the app. A
+  `history.length`, which counts other sites), else it **replaces** the current entry with the screen's parent (no
+  new entry, the index unchanged): it never leaves the app. A
   system edge gesture is never the only way back.
 
 ## What the user sees
 
 - **Back: the leaving screen animates out over the previous screen, which is already there underneath with its real
-  content and its scroll position** — never its skeleton, never a blank beat, and the leaving screen is never replaced
-  before its exit has played. The previous screen renders from the cache (router / query cache) it was left with, so
+  content and its scroll position** — never its skeleton, never a blank beat. The router swaps the DOM inside the
+  transition's update; the leaving screen's snapshot stays on screen until its exit has completed. The previous screen renders from the cache (router / query cache) it was left with, so
   it is paintable at once; its scroll is restored inside the transition's update, after the leaving screen's snapshot
   is taken. On back the leaving screen is drawn above the one revealed (the default view-transition order is the
   opposite and must be swapped).
+- **Exceptions to « real content » on back**: the arrow's fallback to a parent never visited (a deep link) may show the
+  parent's own skeleton, since nothing is cached; and Back between two top-level sections is a fade, not a back, as
+  switching sections is in a native app's menu or tabs.
 - **Push: the incoming screen enters with its real top bar.** The bar's title comes from the route or from cached data,
   never a skeleton; the body may show its own skeleton while its data loads, as a native screen does.
 - **Fade**: a short cross-fade of the whole viewport.
@@ -82,9 +86,9 @@ Two styles. Initial values below; the shared module's tokens are the source of t
 - **Supported**: Chrome / Android 111+ and Safari / iOS 18+. Elsewhere the screen changes with no animation: an
   accepted degradation, never a broken or half animation.
 - **A browser's own back animation wins**: when the browser reports it already animated a back
-  (`hasUAVisualTransition` on the navigation or popstate event), the app adds no second transition. Where the browser
-  cannot report it (Safari's edge swipe without that flag), a double animation on that gesture is a known, accepted
-  limit.
+  (`hasUAVisualTransition` on the navigation or popstate event), the app adds no second transition. On iOS, where
+  Safari's edge swipe animates without reporting it, a history traversal the app did not start itself (not the
+  top-bar arrow) gets no app transition: never a double animation.
 - One shared module owns the setting, the platform detection, the direction and the CSS; apps wire their router to it
   and never hand-roll a page slide. The module ships with an acceptance test per case: push, back by arrow, back by
   history, back to parent, fade, none on reload, none from `md`, none with reduced motion, none without the API, the
