@@ -11,6 +11,9 @@ holds the rule in full.
   its own skeleton, beside it. [`skeletons.md`](./skeletons.md)
 - **Mobile feels native** — below `md`: bottom sheets not popovers, no visible ✕, no bottom nav, page state in the
   URL. [`mobile-native.md`](./mobile-native.md)
+- **Native navigation on the mobile web** — below `md` a page change is a screen change of the whole viewport, top bar
+  included: push / back / fade / none, exit before the page behind, back arrow in the top bar, iPhone or Material 3
+  style by platform (user-overridable). [`native-navigation.md`](./native-navigation.md)
 - **Forms in a drawer, never a modal** — right drawer from `md`, bottom sheet below, sticky footer; modals only for
   confirmations. [`forms-in-drawer.md`](./forms-in-drawer.md)
 - **One appear/disappear animation** — everything that appears or disappears goes through `Collapse`; one element
@@ -32,4 +35,4 @@ Link these files from your `AGENTS.md` instead of copying them — they ship ins
 ```
 
 The path pattern is `node_modules/@radandevist/radan-ui/docs/rules/<file>.md`, with `<file>` one of
-`visual-consistency`, `composition`, `skeletons`, `mobile-native`, `forms-in-drawer`, `motion`.
+`visual-consistency`, `composition`, `skeletons`, `mobile-native`, `native-navigation`, `forms-in-drawer`, `motion`.

@@ -17,4 +17,6 @@ sheets are always used (cross-platform native design, §5).
 - **Targets clear 44px** for controls and rows; fields in a sheet are 44px tall with stacked actions.
 - Tablet and desktop (from `md`) keep dropdown menus, side panels and drawers.
 
+- **Page changes are screen changes** of the whole viewport: [native-navigation.md](./native-navigation.md).
+
 Related: [forms-in-drawer.md](./forms-in-drawer.md), [motion.md](./motion.md).
