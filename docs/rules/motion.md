@@ -21,3 +21,6 @@ element changing shape morphs, and both respect reduced motion.
 - Reuse the existing motion utilities before writing a new keyframe or transition.
 
 Related: [mobile-native.md](./mobile-native.md), [visual-consistency.md](./visual-consistency.md).
+
+Exception: a page change below `md` is a screen transition, owned by [native-navigation.md](./native-navigation.md),
+not by `Collapse`.

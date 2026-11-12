@@ -12,12 +12,14 @@ holds the rule in full.
 - **Mobile feels native** — below `md`: bottom sheets not popovers, no visible ✕, no bottom nav, page state in the
   URL. [`mobile-native.md`](./mobile-native.md)
 - **Native navigation on the mobile web** — below `md` a page change is a screen change of the whole viewport, top bar
-  included: push / back / fade / none, exit before the page behind, back arrow in the top bar, iPhone or Material 3
-  style by platform (user-overridable). [`native-navigation.md`](./native-navigation.md)
+  included: push / back / fade / none; on back the leaving screen animates out over the previous one, already shown
+  with its content; back arrow in the top bar; iPhone or Material 3 style by platform (user-overridable).
+  [`native-navigation.md`](./native-navigation.md)
 - **Forms in a drawer, never a modal** — right drawer from `md`, bottom sheet below, sticky footer; modals only for
   confirmations. [`forms-in-drawer.md`](./forms-in-drawer.md)
 - **One appear/disappear animation** — everything that appears or disappears goes through `Collapse`; one element
-  changing shape morphs; reduced motion respected. [`motion.md`](./motion.md)
+  changing shape morphs; reduced motion respected; page transitions are the one exception
+  ([`native-navigation.md`](./native-navigation.md)). [`motion.md`](./motion.md)
 
 The visual language itself (tokens, light/dark, density, radius/shadow, status tones, type, motion, accessibility,
 overrides) is [`../DESIGN.md`](../DESIGN.md).
