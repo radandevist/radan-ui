@@ -5,36 +5,26 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 [![CI](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@radandevist/radan-ui.svg)](https://www.npmjs.com/package/@radandevist/radan-ui)
 
-> **Status: pre-release (`0.0.0`, not yet on npm).** The theme, its generator and CLI, the shared OxLint/oxfmt configs
-> and the build/release machinery are in place; the design docs, the front-end rules and the tokens catalog land before
-> the first publish (v0.1.0). See the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
+> **Status: published on npm, `0.x`.** The current version is on the npm badge above; before `1.0` a minor release may
+> change the API (see `CHANGELOG.md`). Components arrive in phase 2.
 
-## What exists today
+## What it ships
 
-Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md) are done.
+- **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
+  dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
+- **Components** — `Button` (web and React Native), more in phase 2.
+- **React Native / Expo** — `withRadanUi` for `metro.config.js`.
+- **Lint** — the shared `oxlint.json` / `oxfmt.json` and the `house` rules.
+- **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
+  package.
+- **Catalog** — <https://radandevist.github.io/radan-ui/>, rebuilt on each push to `main` (`apps/catalog/`).
 
-- `package.json` with the `check`, `typecheck`, `lint`, `format`, `format:check`, `test`, `build`, `check:package`
-  and `size` scripts.
-- `packages/radan-ui/src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
-- `packages/radan-ui/src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
-- `packages/radan-ui/lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
-  the shared one.
-- `packages/radan-ui/tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
-- `.changeset/` — Changesets config, the first changeset, the release workflow (npm Trusted Publishing) and the
-  changeset gate; the TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs
-  (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
-
-Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). There is no `catalog/` yet. The
-package is on npm as `@radandevist/radan-ui`.
+To work on the library: clone the repo, `pnpm install`, then `pnpm check` (see `CONTRIBUTING.md`).
 
 Licensed under Apache-2.0. See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` and `SECURITY.md` before opening a PR or a
 vulnerability report.
 
 ## Usage
-
-The package is not on npm yet: the commands below work once it is published (or against the packed tarball). The design
-docs, the front-end rules and the catalog land before v0.1.0 — see the
-[Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
 
 ### Install
 
@@ -181,6 +171,6 @@ oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
 
 - `docs/DESIGN.md` — the visual language: tokens, light/dark, density, radius, shadows, status tones, motion,
   accessibility.
-- `docs/rules/` — the binding front-end rules, linked from a consuming app's `AGENTS.md`.
+- `docs/rules/` — the binding front-end rules; an app links their index `docs/rules/README.md` once from its `AGENTS.md`.
 - The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `apps/catalog/` holds
   its source and the visual regression baselines.
