@@ -114,7 +114,7 @@ Props are identical on both: `variant` (`default` | `outline`), `size` (`default
 
 Same tokens, NativeWind v5 (peer dependencies: `nativewind`, `react-native`, `react-native-css`). Import the **native**
 theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme
-(`theme.css` stays light with `.dark` for dark, for the web). Point `@source` at the native build (path relative to the stylesheet, here at the project root):
+(`theme.css` stays light with `.dark` for dark, for the web). Point `@source` at the native build (relative to the stylesheet; for a `global.css` at the project root it is `./node_modules/…`):
 
 ```css
 @import 'tailwindcss/theme.css' layer(theme);
