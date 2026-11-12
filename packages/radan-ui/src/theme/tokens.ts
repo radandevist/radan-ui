@@ -15,6 +15,7 @@ export const palette = {
 	paper: '#feffff',
 } as const;
 
+// oxlint-disable-next-line anti-slop/no-known-value-widening -- the public token-map contract, not inferred literals
 export const semantic: { light: Record<string, TokenValue>; dark: Record<string, TokenValue> } = {
 	light: {
 		background: '#f7f7f7',
@@ -113,6 +114,7 @@ export const semantic: { light: Record<string, TokenValue>; dark: Record<string,
 };
 
 /** One knob per component (spec §2): override `--{p}-card-radius` and every card follows. */
+// oxlint-disable-next-line anti-slop/no-known-value-widening -- the public token-map contract, not inferred literals
 export const component: Record<string, TokenValue> = {
 	'card-bg': { semantic: 'card' },
 	'card-fg': { semantic: 'card-foreground' },

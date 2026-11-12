@@ -43,6 +43,7 @@ const Swatch = ({ name, value }: { name: string; value: string }) => (
 const colorNames = Object.keys(semantic.light).filter((k) => k !== 'radius' && !k.startsWith('effect-'));
 const effectNames = Object.keys(semantic.light).filter((k) => k.startsWith('effect-'));
 const radii = ['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', 'card', 'control', 'popover', 'toast'] as const;
+// oxlint-disable-next-line anti-slop/no-known-value-widening -- exhaustive map keyed by the radii tuple, checked by the type
 const radiusClass: Record<(typeof radii)[number], string> = {
 	sm: 'rounded-sm',
 	md: 'rounded-md',

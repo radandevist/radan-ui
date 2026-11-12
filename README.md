@@ -133,8 +133,9 @@ module.exports = withRadanUi(getDefaultConfig(__dirname));
 configuration lives in `.oxlintrc.json` and `.oxfmtrc.json` (tabs, 120 columns, single quotes), and `.oxlintrc.json`
 extends the shared one.
 
-A consuming app gets the shared rules — including the generic `house` plugin, shipped pre-bundled as plain JS — by
-extending the installed config. OxLint treats `extends` entries as filesystem paths (not package specifiers) and
+A consuming app gets the shared rules — including the generic `house` plugin and the `anti-slop` plugin (15 rules that
+reject low-evidence patterns: `as unknown as`, `unknown` parameters/returns, runtime `typeof`, module mocking, …), both
+shipped pre-bundled as plain JS — by extending the installed config. OxLint treats `extends` entries as filesystem paths (not package specifiers) and
 resolves the plugin path relative to the shared file, so point it at the installed file and do not list `jsPlugins`
 yourself:
 
@@ -143,6 +144,32 @@ yourself:
 	"extends": ["./node_modules/@radandevist/radan-ui/lint/oxlint.json"]
 }
 ```
+
+#### Adding your own plugins and rules
+
+Keep the `extends` above and add your own `jsPlugins` and `rules` next to it: OxLint merges them with the shared ones, so
+the app keeps `house/*` and `anti-slop/*`. Plugin specifiers in your file resolve relative to your file. Examples of what
+the apps layer on top (rules too specific to share): ShopKartOS's `no-db-write-in-loop` (database writes inside loops) and PublyApp's `publy/*`
+rules (dayjs, lodash imports, route preloads, …), each in a plugin of the app's own:
+
+```jsonc
+{
+	"extends": ["./node_modules/@radandevist/radan-ui/lint/oxlint.json"],
+	"jsPlugins": [
+		{ "name": "shop", "specifier": "./tools/oxlint/shop/index.ts" }, // e.g. shop/no-db-write-in-loop
+		{ "name": "publy", "specifier": "@org/lint-ts/publy" } // e.g. publy/no-direct-dayjs-in-components
+	],
+	"rules": {
+		"shop/no-db-write-in-loop": "error",
+		"publy/no-direct-dayjs-in-components": "error",
+		"anti-slop/no-object-parameters": "off" // tighten or relax a shared rule here
+	}
+}
+```
+
+Plugin names must be unique, so an app plugin cannot also be called `house` or `anti-slop`: use your own name (the
+`shop/…` rule above was `house/no-db-write-in-loop` while vendored). Type-aware rules need `"options": { "typeAware": true }`
+in your own file.
 
 Format with the shared oxfmt config:
 

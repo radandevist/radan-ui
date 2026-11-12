@@ -3,6 +3,7 @@
 declare module 'react-native' {
 	import type { ComponentType, ReactNode } from 'react';
 
+	// oxlint-disable-next-line anti-slop/no-unsafe-dictionary-type -- loose stand-in for React Native's own props
 	type Props = { children?: ReactNode; className?: string; [prop: string]: unknown };
 	export const Pressable: ComponentType<Props>;
 	export const Text: ComponentType<Props>;

@@ -54,6 +54,11 @@ const runCases = (rule: Rule, label: string) => {
 			],
 			invalid: [
 				{
+					code: "console.log('monorepo-root cwd');",
+					filename: 'apps/web/src/routes/example.tsx',
+					errors: [{ messageId: 'unexpected' }],
+				},
+				{
 					code: "export const warn = () => console.warn('deprecated');",
 					filename: 'src/warn.ts',
 					errors: [{ messageId: 'unexpected' }],

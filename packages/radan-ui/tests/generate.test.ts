@@ -46,6 +46,7 @@ test('a bad prefix is refused', () => {
 
 test('every palette reference exists', () => {
 	const refs = [semantic.light, semantic.dark].flatMap((mode) =>
+		// oxlint-disable-next-line anti-slop/no-runtime-typeof -- TokenValue is string | object by design
 		Object.values(mode).filter((v): v is { palette: keyof typeof palette } => typeof v === 'object' && 'palette' in v),
 	);
 	for (const ref of refs) {

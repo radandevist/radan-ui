@@ -19,11 +19,11 @@ jobs:
       - run: pnpm test
       # Drift guard: the bundle is committed so npm/yarn/bun consumers never run a pnpm-only install script.
       # `pnpm test` rebuilds it, so compare against HEAD (not the index); `ls-files` catches a missing commit.
-      - name: Committed house plugin bundle is current
+      - name: Committed lint plugin bundles are current
         run: |
-          git ls-files --error-unmatch packages/radan-ui/lint/plugins/house/index.js
+          git ls-files --error-unmatch packages/radan-ui/lint/plugins/house/index.js packages/radan-ui/lint/plugins/anti-slop/index.js
           pnpm build:lint-plugin
-          git diff --exit-code HEAD -- packages/radan-ui/lint/plugins/house/index.js
+          git diff --exit-code HEAD -- packages/radan-ui/lint/plugins/house/index.js packages/radan-ui/lint/plugins/anti-slop/index.js
       - run: pnpm check
       - run: pnpm audit --audit-level high
   visual:
