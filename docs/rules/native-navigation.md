@@ -48,12 +48,15 @@ Native (Expo) uses the platform's own stack navigator and its defaults; nothing 
   it is paintable at once; its scroll is restored inside the transition's update, after the leaving screen's snapshot
   is taken. On back the leaving screen is drawn above the one revealed (the default view-transition order is the
   opposite and must be swapped).
-- **Exceptions to « real content » on back**: the arrow's fallback to a parent never visited (a deep link) may show the
-  parent's own skeleton, since nothing is cached; and Back between two top-level sections is a fade, not a back, as
-  switching sections is in a native app's menu or tabs.
+- **Exception to « real content » on back**: the arrow's fallback to a parent never visited (a deep link) may show the
+  parent's own skeleton, since nothing is cached.
+- Not a back at all: Back between two top-level sections is a fade (see **Fade**), and on iOS a traversal the app did
+  not start gets no app transition (see **Implementation**).
 - **Push: the incoming screen enters with its real top bar.** The bar's title comes from the route or from cached data,
   never a skeleton; the body may show its own skeleton while its data loads, as a native screen does.
-- **Fade**: a short cross-fade of the whole viewport.
+- **Fade**: a short cross-fade of the whole viewport, for any switch between two top-level sections, by the menu or by
+  Back/Forward, as switching sections is in a native app's menu or tabs (on iOS, only when the app runs the traversal
+  itself).
 
 ## Styles
 
@@ -91,7 +94,8 @@ Two styles. Initial values below; the shared module's tokens are the source of t
   top-bar arrow) gets no app transition: never a double animation.
 - One shared module owns the setting, the platform detection, the direction and the CSS; apps wire their router to it
   and never hand-roll a page slide. The module ships with an acceptance test per case: push, back by arrow, back by
-  history, back to parent, fade, none on reload, none from `md`, none with reduced motion, none without the API, the
-  style override, an overlay screen, and back revealing real content. Until it ships, this rule is enforced by review.
+  history (outside iOS), none on an iOS traversal the app did not start, back to parent, fade between sections, none
+  on reload, none from `md`, none with reduced motion, none without the API, the style override, an overlay screen,
+  and back revealing real content. Until it ships, this rule is enforced by review.
 
 Related: [mobile-native.md](./mobile-native.md), [motion.md](./motion.md), [skeletons.md](./skeletons.md).
