@@ -14,7 +14,7 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
 - **Components** — `Button` (web and React Native, one `@radandevist/radan-ui/button` entry); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
-- **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` OxLint plugin.
+- **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
   package.
 - **Catalog** — <https://radandevist.github.io/radan-ui/>, rebuilt on each push to `main` (`apps/catalog/`).
