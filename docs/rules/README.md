@@ -28,11 +28,13 @@ contract — `Drawer` / `FormPanel` is always a bottom sheet and menus are actio
 
 ## Linking them from an app
 
-Link these files from your `AGENTS.md` instead of copying them — they ship inside the package:
+Link **this index once** from your `AGENTS.md`, never the rules one by one: a rule added or changed in a release reaches
+the app with the dependency bump, with no edit on the app's side.
 
 ```markdown
-- **Forms in a drawer, never a modal** — … `node_modules/@radandevist/radan-ui/docs/rules/forms-in-drawer.md`
+- **radan-ui binding rules (HARD)** — read `node_modules/@radandevist/radan-ui/docs/rules/README.md` and every rule it
+  lists before touching UI; they apply in full to this app.
 ```
 
-The path pattern is `node_modules/@radandevist/radan-ui/docs/rules/<file>.md`, with `<file>` one of
-`visual-consistency`, `composition`, `skeletons`, `mobile-native`, `native-navigation`, `forms-in-drawer`, `motion`.
+Every rule file is listed above with its one-line summary; a new rule is added to this list in the same pull request
+that adds its file.
