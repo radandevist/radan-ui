@@ -4,12 +4,14 @@ import { palette, semantic, type TokenValue } from '../src/theme/tokens';
 
 /** A semantic value as a hex colour: a palette reference resolved, `#fff` expanded. */
 const hex = (v: TokenValue | undefined, token: string): string => {
+	// oxlint-disable anti-slop/no-runtime-typeof -- TokenValue is string | object by design
 	const raw = typeof v === 'object' && 'palette' in v ? palette[v.palette] : v;
 	const m = typeof raw === 'string' ? /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw) : null;
 	if (!m?.[1]) {
 		throw new Error(`contrast test: token "${token}" is not a resolvable hex colour (got ${JSON.stringify(v)})`);
 	}
 	const h = m[1];
+	// oxlint-enable anti-slop/no-runtime-typeof
 	return h.length === 3 ? [...h].map((c) => c + c).join('') : h;
 };
 
@@ -22,6 +24,7 @@ const luminance = (h: string) => {
 };
 
 const contrast = (a: string, b: string) => {
+	// SAFETY: a two-element array sorted in place keeps two elements.
 	const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
 	return (hi + 0.05) / (lo + 0.05);
 };

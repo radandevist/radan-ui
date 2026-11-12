@@ -4,6 +4,7 @@ import { component, palette, semantic, tailwindColors, type TokenValue } from '.
 const PREFIX = /^[a-z][a-z0-9-]*$/;
 
 const value = (v: TokenValue, p: string) => {
+	// oxlint-disable-next-line anti-slop/no-runtime-typeof -- TokenValue is string | object by design
 	if (typeof v === 'string') {
 		return v.replaceAll('{p}', p);
 	}

@@ -439,10 +439,10 @@ const noArrayReduce = {
 * Shared path helpers for lint rule file scoping.
 */
 const normalizeFilename = (filename) => filename.replaceAll("\\", "/");
-/** App source: `src/**` relative to the lint `cwd`, test files excluded. */
+/** App source: `src/**`, or `apps/<name>/src/**` / `packages/<name>/src/**` when linting from a monorepo root, relative to the lint `cwd`; test files excluded. */
 const isSourceFile = (filename, cwd) => {
 	const normalized = normalizeFilename(relative(cwd, filename));
-	return normalized.startsWith("src/") && !/\.test\.[jt]sx?$/.test(normalized);
+	return /^((apps|packages)\/[^/]+\/)?src\//.test(normalized) && !/\.test\.[jt]sx?$/.test(normalized);
 };
 // lint/plugins/house/no-console-in-source.ts
 /**

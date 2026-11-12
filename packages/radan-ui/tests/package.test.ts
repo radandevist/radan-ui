@@ -71,7 +71,7 @@ test('the installed CLI prints a custom prefix', { timeout: 120_000 }, () => {
 });
 
 test(
-	'the OxLint config documented in the README loads the house plugin from node_modules',
+	'the OxLint config documented in the README loads the house and anti-slop plugins from node_modules',
 	{ timeout: 120_000 },
 	() => {
 		// The exact snippet a consumer pastes: no jsPlugins of their own.
@@ -80,11 +80,15 @@ test(
 		expect(snippet).toBeDefined();
 		writeFileSync(join(dir, '.oxlintrc.json'), snippet!);
 		mkdirSync(join(dir, 'src'), { recursive: true });
-		writeFileSync(join(dir, 'src/bad.ts'), 'export const x = (() => 1)();\n');
+		writeFileSync(
+			join(dir, 'src/bad.ts'),
+			'export const x = (() => 1)();\nexport const y = Reflect.apply(Math.max, null, [1]);\n',
+		);
 		const oxlint = join(process.cwd(), 'node_modules/.bin/oxlint');
 		const result = spawnSync(oxlint, ['src/bad.ts'], { cwd: dir, encoding: 'utf8', env });
 		expect(result.stderr).not.toContain('Failed');
 		expect(result.status).toBe(1);
 		expect(result.stdout).toContain('house(no-iife)');
+		expect(result.stdout).toContain('anti-slop(no-reflect-apply)');
 	},
 );

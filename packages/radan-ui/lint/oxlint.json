@@ -1,6 +1,9 @@
 {
 	"plugins": ["unicorn", "typescript", "oxc", "react", "vitest"],
-	"jsPlugins": [{ "name": "house", "specifier": "./plugins/house/index.js" }],
+	"jsPlugins": [
+		{ "name": "house", "specifier": "./plugins/house/index.js" },
+		{ "name": "anti-slop", "specifier": "./plugins/anti-slop/index.js" }
+	],
 	"categories": { "correctness": "error" },
 	"env": { "builtin": true, "browser": true, "node": true, "es2024": true },
 	"settings": { "react": { "version": "19.3" } },
@@ -51,7 +54,22 @@
 		"house/no-console-in-source": "error",
 		"house/no-iife": "error",
 		"house/no-never-any-casts": "error",
-		"house/prefer-early-return": "error"
+		"house/prefer-early-return": "error",
+		"anti-slop/no-chained-type-assertions": "error",
+		"anti-slop/no-conditional-empty-object-spread": "error",
+		"anti-slop/no-known-value-widening": "error",
+		"anti-slop/no-module-mocking": "error",
+		"anti-slop/no-object-parameters": "error",
+		"anti-slop/no-reflect-apply": "error",
+		"anti-slop/no-reflect-get": "error",
+		"anti-slop/no-runtime-typeof": "error",
+		"anti-slop/no-shape-in-symbol-names": "error",
+		"anti-slop/no-unknown-parameters": "error",
+		"anti-slop/no-unknown-returns": "error",
+		"anti-slop/no-unknown-type-aliases": "error",
+		"anti-slop/no-unsafe-dictionary-type": "error",
+		"anti-slop/no-widen-then-assert": "error",
+		"anti-slop/require-safety-comment-for-type-assertion": "error"
 	},
 	"overrides": [
 		{

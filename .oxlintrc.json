@@ -7,6 +7,19 @@
 		"apps/*/dist/**",
 		"apps/expo-consumer/**",
 		"packages/radan-ui/tests/fixtures/**",
-		"packages/radan-ui/lint/plugins/house/index.js"
+		"packages/radan-ui/lint/plugins/house/index.js",
+		"packages/radan-ui/lint/plugins/anti-slop/index.js"
+	],
+	"overrides": [
+		{
+			// Vendored upstream anti-slop code: house *style* rules are off (upstream style), the anti-slop rules still apply.
+			"files": ["packages/radan-ui/lint/plugins/anti-slop/**"],
+			"rules": {
+				"curly": "off",
+				"func-style": "off",
+				"no-nested-ternary": "off",
+				"house/prefer-early-return": "off"
+			}
+		}
 	]
 }
