@@ -184,6 +184,7 @@ export const noKnownValueWideningRule = defineRule({
 				// `BindingIdentifier` and `IdentifierReference` share the
 				// Identifier shape; scope lookup only reads `name`, and the ESTree
 				// variance lives solely in the optional `typeAnnotation`.
+				// SAFETY: scope lookup only reads `name`, shared by both Identifier shapes (see above).
 				const variable = resolveVariable(context.sourceCode, node.id as ESTree.IdentifierReference);
 				if (variable === null) return;
 				emptyAccumulatorDeclarations.add(variable);

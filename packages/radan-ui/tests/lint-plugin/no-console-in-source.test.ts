@@ -28,6 +28,18 @@ const runCases = (rule: Rule, label: string) => {
 		ruleTester.run(RULE_NAME, rule, {
 			valid: [
 				{
+					code: "console.log('apps/<name>/scripts is not source');",
+					filename: 'apps/web/scripts/seed.ts',
+				},
+				{
+					code: "console.log('packages/<name>/tests is not source');",
+					filename: 'packages/ui/tests/setup.ts',
+				},
+				{
+					code: "console.log('too deep: not apps/<name>/src');",
+					filename: 'apps/web/extra/src/x.ts',
+				},
+				{
 					code: "console.log('allowed in scripts');",
 					filename: 'scripts/example.ts',
 				},
@@ -53,6 +65,11 @@ const runCases = (rule: Rule, label: string) => {
 				},
 			],
 			invalid: [
+				{
+					code: "console.log('monorepo package source');",
+					filename: 'packages/ui/src/button.tsx',
+					errors: [{ messageId: 'unexpected' }],
+				},
 				{
 					code: "console.log('monorepo-root cwd');",
 					filename: 'apps/web/src/routes/example.tsx',

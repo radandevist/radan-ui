@@ -360,7 +360,11 @@ export function classifyWideningTarget(type: ESTree.TSType, environment: TypeEnv
 		const wrapped = unwrapped.typeArguments?.params[0];
 		return wrapped === undefined ? null : classifyWideningTarget(wrapped, environment);
 	}
-	if (name === 'Record' && isBuiltIn(name, environment)) return { kind: 'open dictionary' };
+	if (name === 'Record' && isBuiltIn(name, environment)) {
+		// Local customization: Record<K, V> over a finite key union (`Record<'a' | 'b', V>`) is a closed contract, only broad keys are open.
+		const key = unwrapped.typeArguments?.params[0];
+		return key === undefined || isBroadMappedKey(key, environment, new Map()) ? { kind: 'open dictionary' } : null;
+	}
 	// #1448 item 1: an index-signature-only interface widens exactly like the
 	// byte-equivalent `type … = { [k: string]: T }` literal, so it must
 	// classify as the same open-dictionary target. Interfaces with real named

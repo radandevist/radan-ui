@@ -662,7 +662,10 @@ function classifyWideningTarget(type, environment) {
 		const wrapped = unwrapped.typeArguments?.params[0];
 		return wrapped === void 0 ? null : classifyWideningTarget(wrapped, environment);
 	}
-	if (name === "Record" && isBuiltIn(name, environment)) return { kind: "open dictionary" };
+	if (name === "Record" && isBuiltIn(name, environment)) {
+		const key = unwrapped.typeArguments?.params[0];
+		return key === void 0 || isBroadMappedKey(key, environment, /* @__PURE__ */ new Map()) ? { kind: "open dictionary" } : null;
+	}
 	if (environment.interfaces.has(name) && resolvesToIndexSignatureOnlyInterface(name, environment, /* @__PURE__ */ new Set())) return { kind: "open dictionary" };
 	const alias = environment.aliases.get(name);
 	if (alias === void 0) return null;
@@ -933,6 +936,7 @@ function resolveVariable$1(sourceCode, identifier) {
 	return null;
 }
 function importedName(node) {
+	if (node.type === "ImportDefaultSpecifier" || node.type === "ImportNamespaceSpecifier") return node.local.name;
 	if (node.type !== "ImportSpecifier") return null;
 	return node.imported.type === "Identifier" ? node.imported.name : node.imported.value;
 }
@@ -1163,14 +1167,18 @@ const noRuntimeTypeofRule = defineRule({
 });
 // lint/plugins/anti-slop/rules/no-shape-in-symbol-names.ts
 const FORBIDDEN_SYMBOL_NAME = "shape";
+const WORD_BOUNDARY = /[_$-]+|(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/;
 function containsForbiddenSymbolName(name) {
-	return name.toLowerCase().includes(FORBIDDEN_SYMBOL_NAME);
+	return name.split(WORD_BOUNDARY).some((word) => {
+		const lower = word.toLowerCase();
+		return lower === FORBIDDEN_SYMBOL_NAME || lower === `${FORBIDDEN_SYMBOL_NAME}s`;
+	});
 }
-/** Ban the case-insensitive substring "shape" in every JavaScript and TypeScript symbol name. */
+/** Ban the case-insensitive word "shape" in every JavaScript and TypeScript symbol name. */
 const noForbiddenTermInSymbolNamesRule = defineRule({
 	meta: {
 		type: "problem",
-		docs: { description: "Disallow the case-insensitive substring \"shape\" in JavaScript, TypeScript, private, and JSX symbol names." },
+		docs: { description: "Disallow the case-insensitive word \"shape\" in JavaScript, TypeScript, private, and JSX symbol names." },
 		messages: { forbiddenSymbolName: "Rename symbol \"{{name}}\" for its domain role; \"shape\" describes structure rather than ownership." }
 	},
 	createOnce(context) {
@@ -1316,6 +1324,11 @@ const noUnknownTypeAliasesRule = defineRule({
 		const resolvesToUnknown = (type, visited = /* @__PURE__ */ new Set()) => {
 			if (type.type === "TSUnknownKeyword") return true;
 			if (type.type === "TSParenthesizedType") return resolvesToUnknown(type.typeAnnotation, visited);
+			if (type.type === "TSUnionType") return type.types.some((member) => resolvesToUnknown(member, visited));
+			if (type.type === "TSTypeReference" && type.typeName.type === "Identifier" && (type.typeName.name === "Promise" || type.typeName.name === "PromiseLike")) {
+				const value = type.typeArguments?.params[0];
+				return value !== void 0 && resolvesToUnknown(value, visited);
+			}
 			const name = referencedAliasName(type);
 			if (name === null || visited.has(name)) return false;
 			const alias = aliases.get(name);

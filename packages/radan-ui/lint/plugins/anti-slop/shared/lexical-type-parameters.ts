@@ -2,7 +2,9 @@ import type { ESTree } from '@oxlint/plugins';
 
 type VisitorKeys = Readonly<Record<string, readonly string[]>>;
 
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- generic AST walker: children are read by visitor key and narrowed here
 function isNode(value: unknown): value is ESTree.Node {
+	// oxlint-disable-next-line anti-slop/no-runtime-typeof -- this is the narrowing guard for untyped AST children
 	return typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string';
 }
 
@@ -11,6 +13,7 @@ function collectInferTypeParameterNames(node: ESTree.Node, visitorKeys: VisitorK
 	for (const key of visitorKeys[node.type] ?? []) {
 		// Dynamic access by visitor key on an arbitrary AST node — no
 		// assertion needed; isNode narrows whatever comes back.
+		// oxlint-disable-next-line anti-slop/no-reflect-get -- dynamic access by visitor key is the point of a generic walker
 		const value: unknown = Reflect.get(node, key);
 		if (isNode(value)) {
 			collectInferTypeParameterNames(value, visitorKeys, names);

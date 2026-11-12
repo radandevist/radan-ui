@@ -47,8 +47,10 @@ export const noRuntimeTypeofRule = defineRule({
 		return {
 			UnaryExpression(node) {
 				const option = context.options?.[0];
+				// oxlint-disable anti-slop/no-runtime-typeof -- validating an untyped rule option
 				const allowInTypeGuards =
 					typeof option === 'object' && option !== null && !Array.isArray(option) && option.allowInTypeGuards === true;
+				// oxlint-enable anti-slop/no-runtime-typeof
 				if (node.operator === 'typeof' && (!allowInTypeGuards || !isInsideTypeGuard(node))) {
 					context.report({ node, messageId: 'runtimeTypeof' });
 				}

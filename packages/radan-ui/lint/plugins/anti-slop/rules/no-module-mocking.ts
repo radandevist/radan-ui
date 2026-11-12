@@ -14,6 +14,8 @@ function resolveVariable(sourceCode: SourceCode, identifier: ESTree.IdentifierRe
 }
 
 function importedName(node: ESTree.Node): string | null {
+	// Local customization: `import vi from 'vitest'` / `import * as vi from 'vitest'` keep the local name.
+	if (node.type === 'ImportDefaultSpecifier' || node.type === 'ImportNamespaceSpecifier') return node.local.name;
 	if (node.type !== 'ImportSpecifier') return null;
 	return node.imported.type === 'Identifier' ? node.imported.name : node.imported.value;
 }

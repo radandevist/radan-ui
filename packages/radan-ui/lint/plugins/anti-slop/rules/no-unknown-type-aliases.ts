@@ -28,6 +28,16 @@ export const noUnknownTypeAliasesRule = defineRule({
 		const resolvesToUnknown = (type: ESTree.TSType, visited = new Set<string>()): boolean => {
 			if (type.type === 'TSUnknownKeyword') return true;
 			if (type.type === 'TSParenthesizedType') return resolvesToUnknown(type.typeAnnotation, visited);
+			// Local customization, same as no-unknown-returns: a union containing unknown, and Promise/PromiseLike<unknown>.
+			if (type.type === 'TSUnionType') return type.types.some((member) => resolvesToUnknown(member, visited));
+			if (
+				type.type === 'TSTypeReference' &&
+				type.typeName.type === 'Identifier' &&
+				(type.typeName.name === 'Promise' || type.typeName.name === 'PromiseLike')
+			) {
+				const value = type.typeArguments?.params[0];
+				return value !== undefined && resolvesToUnknown(value, visited);
+			}
 			const name = referencedAliasName(type);
 			if (name === null || visited.has(name)) return false;
 			const alias = aliases.get(name);
