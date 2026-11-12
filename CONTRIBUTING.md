@@ -64,7 +64,7 @@ Add the toast-radius token to the component layer.
 The `Changeset` workflow fails a PR that touches `packages/radan-ui/{src/,lint/,scripts/}`,
 `packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` without a newly
 added `.changeset/*.md`; root `docs/`, `README.md` and `LICENSE` ship in the tarball via `prepack` but are not gated:
-add a patch changeset when a shipped doc changes in a way users should see (as the README refresh does); docs/catalog-only PRs with no shipped change need none.
+add a patch changeset when a shipped doc changes in a way users should see (as the README refresh does); the `no-changeset` label skips the check for catalog-only PRs.
 
 Releases are automated. The `Release` workflow runs on every push to `main`: it keeps a `chore: version packages` PR up
 to date, and merging that PR publishes to npm with Trusted Publishing (OIDC, provenance) and creates the GitHub
