@@ -125,6 +125,12 @@ test('mixed children: the icon stays outside the Text, the string gets the label
 	expect(screen.getByText('Save')).toBeTruthy();
 });
 
+test('consecutive text children share one label Text (no gap between "Save" and the count)', async () => {
+	const count = 3;
+	await render(<Button>Save {count}</Button>);
+	expect(screen.getByText('Save 3')).toBeTruthy();
+});
+
 test('the skeleton is one hidden bone', async () => {
 	await render(<ButtonSkeleton size="lg" />);
 	expect(screen.queryByRole('button')).toBeNull();
