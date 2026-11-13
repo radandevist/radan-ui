@@ -1,5 +1,23 @@
 # @radandevist/radan-ui
 
+## 0.4.0
+
+### Minor Changes
+
+- [#38](https://github.com/radandevist/radan-ui/pull/38) [`1b2545d`](https://github.com/radandevist/radan-ui/commit/1b2545daa141d4599eb0feb755191553361611ed) Thanks [@radandevist](https://github.com/radandevist)! - **Upgrade impact: 15 new rules at `error`.** The shared `lint/oxlint.json` now loads the `anti-slop` OxLint plugin next to `house` (`lint/plugins/anti-slop/index.js`, pre-bundled like `house`). An app that extends the shared config gets, on upgrade, `anti-slop/no-chained-type-assertions`, `no-conditional-empty-object-spread`, `no-known-value-widening`, `no-module-mocking`, `no-object-parameters`, `no-reflect-apply`, `no-reflect-get`, `no-runtime-typeof`, `no-shape-in-symbol-names`, `no-unknown-parameters`, `no-unknown-returns`, `no-unknown-type-aliases`, `no-unsafe-dictionary-type`, `no-widen-then-assert` and `require-safety-comment-for-type-assertion`, all `error`: existing code may start failing lint. Turn one off in your own `.oxlintrc.json` after the `extends`: `"rules": { "anti-slop/no-object-parameters": "off" }` (or `"warn"` to migrate gradually); for a single line use `// oxlint-disable-next-line anti-slop/<rule> -- reason`.
+  
+  Also: `house/no-console-in-source` now applies to `apps/<name>/src` and `packages/<name>/src` when linting from a monorepo root. The README lint section documents how an app adds its own plugins and rules on top.
+
+- [#30](https://github.com/radandevist/radan-ui/pull/30) [`b7be023`](https://github.com/radandevist/radan-ui/commit/b7be023d71a461a0cdfe104eed6376f88c618e1d) Thanks [@radandevist](https://github.com/radandevist)! - React Native / Expo apps can follow the system light/dark setting. New `@radandevist/radan-ui/theme.native.css` is `theme.css` plus `@media (prefers-color-scheme: dark) { :root { … } }` (also `radan-ui theme --native`); `theme.css` is unchanged, so web apps that toggle `.dark` themselves are not turned dark by the OS. New `@radandevist/radan-ui/metro` exports `withRadanUi(config, options?)` for `metro.config.js`: it wraps `withNativewind` with `inlineVariables: false` and `inlineRem: 16`; `options` is passed through to `withNativewind` and overrides them. See the README « React Native / Expo » section.
+
+### Patch Changes
+
+- [#34](https://github.com/radandevist/radan-ui/pull/34) [`39e2f23`](https://github.com/radandevist/radan-ui/commit/39e2f23c12369846effb84f44318a7864f4fc4a9) Thanks [@radandevist](https://github.com/radandevist)! - New binding rule `docs/rules/native-navigation.md`: below `md`, a page change on the mobile web is a screen change of the whole viewport (top bar included), with push / back / fade / none. On back the leaving screen animates out over the previous screen, already shown with its content. The back arrow sits in the top bar. The style is iPhone or Material 3 by platform, and the user can override it. Exceptions are spelled out in the rule: a deep link's fallback to a never-visited parent may show its skeleton; switching between top-level sections is a fade when the app runs the navigation; on iOS a traversal the app did not start (Safari's swipe) gets no app transition.
+  
+  The rules index (`docs/rules/README.md`) now says to link it once from an app's `AGENTS.md` instead of each rule: an app that linked rule files one by one replaces those lines with the single index line, after which new rules arrive with the dependency bump.
+
+- [#37](https://github.com/radandevist/radan-ui/pull/37) [`7693ca3`](https://github.com/radandevist/radan-ui/commit/7693ca33e4ea0a78fccd5f6c477bf73b88159b30) Thanks [@radandevist](https://github.com/radandevist)! - README and CONTRIBUTING brought up to date: the status no longer says « pre-release, 0.0.0, not yet on npm »; usage now covers the theme, the CLI, `Button` (web and native), `withRadanUi`, the lint configs and the docs index, plus how to contribute and how releases work.
+
 ## 0.3.0
 
 ### Minor Changes
