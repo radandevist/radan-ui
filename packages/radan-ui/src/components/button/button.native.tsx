@@ -1,4 +1,4 @@
-import { isValidElement } from 'react';
+import { Children, isValidElement } from 'react';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { cn } from '../../lib/cn';
@@ -27,8 +27,17 @@ export const Button = ({
 			onPress={onPress}
 			className={cn(buttonVariants({ variant, size, disabled: off }), 'active:opacity-80', className)}
 		>
+			{/* react-native-css maps the className text colour to ActivityIndicator's `color` prop (nativeStyleMapping). */}
 			{loading && <ActivityIndicator size="small" className={labelClass} />}
-			{isValidElement(children) ? children : <Text className={labelClass}>{children}</Text>}
+			{Children.toArray(children).map((child) =>
+				isValidElement(child) ? (
+					child
+				) : (
+					<Text key={String(child)} className={labelClass}>
+						{child}
+					</Text>
+				),
+			)}
 		</Pressable>
 	);
 };

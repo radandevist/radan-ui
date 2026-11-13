@@ -114,6 +114,17 @@ test('a non-text child (an icon) is rendered as is, not wrapped in a Text', asyn
 	expect(screen.queryByText('icon')).toBeNull();
 });
 
+test('mixed children: the icon stays outside the Text, the string gets the label Text', async () => {
+	await render(
+		<Button>
+			<View testID="icon" />
+			Save
+		</Button>,
+	);
+	expect(screen.getByTestId('icon').parent?.type).not.toBe('Text');
+	expect(screen.getByText('Save')).toBeTruthy();
+});
+
 test('the skeleton is one hidden bone', async () => {
 	await render(<ButtonSkeleton size="lg" />);
 	expect(screen.queryByRole('button')).toBeNull();

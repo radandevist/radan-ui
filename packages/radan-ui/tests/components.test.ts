@@ -19,8 +19,9 @@ const isTest = (file: string) => /\.test\.tsx?$/.test(file);
 
 // A comment may name a forbidden thing ("no hover: here"); only code counts.
 const code = (source: string) => source.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');
+// `from 'x'`, side-effect `import 'x'`, and `require('x')` / `import('x')`.
 const imports = (source: string) =>
-	[...code(source).matchAll(/(?:from|import\()\s*['"]([^'"]+)['"]/g)].map((match) => match[1]!);
+	[...code(source).matchAll(/(?:\bfrom|\bimport|\brequire)\s*\(?\s*['"]([^'"]+)['"]/g)].map((match) => match[1]!);
 
 const conformance = (name: string) => {
 	const have = files(name);
@@ -80,6 +81,16 @@ describe('export map (decision 1)', () => {
 });
 
 describe('platform imports (decision 6)', () => {
+	test.each([
+		["import { x } from 'nativewind';", 'nativewind'],
+		["import 'nativewind';", 'nativewind'],
+		["const x = require('react-native');", 'react-native'],
+		["const x = await import('@base-ui/react');", '@base-ui/react'],
+		["export * from '@rn-primitives/slot';", '@rn-primitives/slot'],
+	])('the matcher catches %s', (source, from) => {
+		expect(imports(source)).toEqual([from]);
+	});
+
 	const native = /^(react-native|nativewind|@rn-primitives\/)/;
 	const web = /^(@base-ui\/|react-dom)/;
 	// `*.web.tsx` may use Base UI; `*.native.tsx` the native libraries; every other file (contract, variants) neither.
