@@ -1,3 +1,4 @@
+import { isValidElement } from 'react';
 import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { cn } from '../../lib/cn';
@@ -27,11 +28,7 @@ export const Button = ({
 			className={cn(buttonVariants({ variant, size, disabled: off }), 'active:opacity-80', className)}
 		>
 			{loading && <ActivityIndicator size="small" className={labelClass} />}
-			{typeof children === 'string' || typeof children === 'number' ? (
-				<Text className={labelClass}>{children}</Text>
-			) : (
-				children
-			)}
+			{isValidElement(children) ? children : <Text className={labelClass}>{children}</Text>}
 		</Pressable>
 	);
 };
