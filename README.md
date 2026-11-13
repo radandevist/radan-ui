@@ -5,36 +5,24 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 [![CI](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/radandevist/radan-ui/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@radandevist/radan-ui.svg)](https://www.npmjs.com/package/@radandevist/radan-ui)
 
-> **Status: pre-release (`0.0.0`, not yet on npm).** The theme, its generator and CLI, the shared OxLint/oxfmt configs
-> and the build/release machinery are in place; the design docs, the front-end rules and the tokens catalog land before
-> the first publish (v0.1.0). See the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
+> **Status: published on npm, `0.x`.** The current version is on the npm badge above; before `1.0` a minor release may
+> change the API (see `packages/radan-ui/CHANGELOG.md`). `Button` is shipped; phase 2 continues the component set.
 
-## What exists today
+## What it ships
 
-Tasks 1–5 of the [Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md) are done.
-
-- `package.json` with the `check`, `typecheck`, `lint`, `format`, `format:check`, `test`, `build`, `check:package`
-  and `size` scripts.
-- `packages/radan-ui/src/theme/` — the token data, `generateThemeCss({ prefix })`, and `dist/theme.css` built with the default prefix.
-- `packages/radan-ui/src/cli.ts` — `radan-ui theme [--prefix <p>]`, wired as the package `bin`.
-- `packages/radan-ui/lint/` — the shared `oxlint.json` / `oxfmt.json` and the generic `house` rules; this repo's `.oxlintrc.json` extends
-  the shared one.
-- `packages/radan-ui/tsdown.config.ts`, the export map, publint/attw/size budgets, and an installed-package test.
-- `.changeset/` — Changesets config, the first changeset, the release workflow (npm Trusted Publishing) and the
-  changeset gate; the TypeScript, OxLint, oxfmt and Vitest configs, the CI workflow, and the hygiene docs
-  (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `LICENSE`).
-
-Clone the repo and run `pnpm install` then `pnpm check` (see `CONTRIBUTING.md`). There is no `catalog/` yet. The
-package is on npm as `@radandevist/radan-ui`.
+- **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
+  dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
+- **Components** — `Button` (web and React Native, one `@radandevist/radan-ui/button` entry); phase 2 adds the rest of the set.
+- **React Native / Expo** — `withRadanUi` for `metro.config.js`.
+- **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
+- **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
+  package.
+- **Catalog** — <https://radandevist.github.io/radan-ui/>, rebuilt on each push to `main` (`apps/catalog/`).
 
 Licensed under Apache-2.0. See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` and `SECURITY.md` before opening a PR or a
 vulnerability report.
 
 ## Usage
-
-The package is not on npm yet: the commands below work once it is published (or against the packed tarball). The design
-docs, the front-end rules and the catalog land before v0.1.0 — see the
-[Phase 1 plan](docs/superpowers/plans/2026-11-08-radan-ui-phase-1.md).
 
 ### Install
 
@@ -78,10 +66,10 @@ Generate the same theme under another prefix — lowercase letters, digits and d
 npx @radandevist/radan-ui theme --prefix acme > src/styles/ui-theme.css
 ```
 
-Inside this repo, run the built bin directly: `pnpm build && node packages/radan-ui/dist/cli.js theme --prefix acme`. `npx` needs the
-scoped package name, otherwise it resolves the unrelated unscoped package. Import the generated file instead of `theme.css`; Tailwind utility
-names stay the same.
-The same generator is available in JavaScript as `generateThemeCss({ prefix })`. For React Native / Expo, `radan-ui theme --native` (or `generateThemeCss({ native: true })`) adds the system dark `@media (prefers-color-scheme: dark)` block.
+`npx` needs the scoped package name, otherwise it resolves an unrelated unscoped package. Import the generated file
+instead of `theme.css`; Tailwind utility names stay the same. The CLI is `radan-ui theme [--prefix <prefix>]
+[--native]`; `--native` adds the system dark-mode block (see React Native / Expo below). The same generator is
+available in JavaScript as `generateThemeCss({ prefix, native })`.
 
 ### Overrides
 
@@ -102,9 +90,31 @@ Redefine any variable after the import: a whole layer for a project, or one knob
 
 An override is a named, documented exception, never a per-page variant — consistency is the point of the library.
 
+### Components
+
+```tsx
+import { Button } from '@radandevist/radan-ui/button';
+
+<Button variant="outline" size="sm" loading={saving} onPress={save}>
+	Save
+</Button>
+```
+
+The same import resolves to the web build (a `<button>`) or, under the `react-native` condition, to the native build.
+Props are identical on both: `variant` (`default` | `outline`), `size` (`default` | `sm`), `disabled`, `loading`,
+`onPress`, `className`, `children`. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
+`node_modules`, so add a `@source` next to the theme import; the path is relative to that stylesheet (here
+`src/styles/app.css`):
+
+```css
+@source '../../node_modules/@radandevist/radan-ui/dist/web';
+```
+
 ### React Native / Expo
 
-Same tokens, NativeWind v5. Import the **native** theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme (`theme.css` stays dark-only-with-`.dark`, for the web). Tailwind skips `node_modules`, so point `@source` at the native build:
+Same tokens, NativeWind v5 (peer dependencies: `nativewind`, `react-native`, `react-native-css`). Import the **native**
+theme: it is `theme.css` plus a `@media (prefers-color-scheme: dark)` block, so the app follows the system theme
+(`theme.css` stays light with `.dark` for dark, for the web). Point `@source` at the native build (relative to the stylesheet; for a `global.css` at the project root it is `./node_modules/…`):
 
 ```css
 @import 'tailwindcss/theme.css' layer(theme);
@@ -124,18 +134,15 @@ const { withRadanUi } = require('@radandevist/radan-ui/metro');
 module.exports = withRadanUi(getDefaultConfig(__dirname));
 ```
 
-`withRadanUi(config, options?)` is `withNativewind(config, { inlineVariables: false, inlineRem: 16, ...options })`: the first keeps every `--radan-ui-*` variable overridable at runtime, the second makes `rem` 16px like the web.
+`withRadanUi(config, options?)` is `withNativewind(config, { inlineVariables: false, inlineRem: 16, ...options })`: the
+first keeps every `--radan-ui-*` variable overridable at runtime, the second makes `rem` 16px like the web.
 
 ### Lint
 
-`pnpm check` runs, in order, TypeScript (`tsc --noEmit`), OxLint, oxfmt, the Vitest suite, the build, `publint` +
-`attw` (`check:package`) and the size budget; CI runs the same command on every pull request. The repo's own
-configuration lives in `.oxlintrc.json` and `.oxfmtrc.json` (tabs, 120 columns, single quotes), and `.oxlintrc.json`
-extends the shared one.
-
 A consuming app gets the shared rules — including the generic `house` plugin and the `anti-slop` plugin (15 rules that
 reject low-evidence patterns: `as unknown as`, `unknown` parameters/returns, runtime `typeof`, module mocking, …), both
-shipped pre-bundled as plain JS — by extending the installed config. OxLint treats `extends` entries as filesystem paths (not package specifiers) and
+shipped pre-bundled as plain JS — by extending the installed config. OxLint treats `extends` entries as filesystem
+paths (not package specifiers) and
 resolves the plugin path relative to the shared file, so point it at the installed file and do not list `jsPlugins`
 yourself:
 
@@ -181,6 +188,14 @@ oxfmt -c node_modules/@radandevist/radan-ui/lint/oxfmt.json
 
 - `docs/DESIGN.md` — the visual language: tokens, light/dark, density, radius, shadows, status tones, motion,
   accessibility.
-- `docs/rules/` — the binding front-end rules, linked from a consuming app's `AGENTS.md`.
+- `docs/rules/README.md` — the index of the binding front-end rules. An app's `AGENTS.md` points at this index
+  (`node_modules/@radandevist/radan-ui/docs/rules/README.md`); it lists every rule and agents follow its links.
 - The tokens catalog, deployed to <https://radandevist.github.io/radan-ui/> on each push to `main`; `apps/catalog/` holds
   its source and the visual regression baselines.
+
+## Contributing and releases
+
+Clone the repo, `pnpm install`, then `pnpm check` (typecheck, lint, format, tests, build, package checks, size budget);
+CI runs the same on every PR. Every PR that changes the package carries a changeset (`pnpm changeset`). Merging to
+`main` updates a `chore: version packages` PR; merging that PR publishes to npm through Trusted Publishing (OIDC, no
+token) and creates the GitHub release. Details in `CONTRIBUTING.md`.

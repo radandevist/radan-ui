@@ -3,14 +3,15 @@
 Thanks for contributing. This is a public, Apache-2.0 library: everything in the repo is read by other agents and by
 other apps, so nothing private (app data, secrets, client names) belongs here.
 
-> **Status.** The theme, the shared OxLint/oxfmt configs, the build, the Changesets release pipeline, the tokens catalog
-> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests are live.
+> **Status.** Published on npm (`0.x`). Live: the theme (web and React Native), `Button`, the Expo `withRadanUi`
+> helper, the shared OxLint/oxfmt configs, the Changesets release pipeline, the tokens catalog
+> (<https://radandevist.github.io/radan-ui/>) and the visual regression tests. Phase 2 continues the component set.
 
 ## Layout
 
 A pnpm + Turborepo monorepo:
 
-- `packages/radan-ui/` — the published package `@radandevist/radan-ui` (`src/`, `lint/`, tsdown configs, its tests).
+- `packages/radan-ui/` — the published package `@radandevist/radan-ui` (`src/theme`, `src/components`, `lint/`, `metro.cjs`, tsdown configs, its tests).
 - `apps/catalog/` — the tokens catalog (Vite), its Playwright visual tests and baselines.
 - `apps/expo-consumer/` — the npm-based Expo fixture (outside the pnpm workspace; run `scripts/spike-native.sh`).
 - `docs/`, `README.md`, `LICENSE` at the root; `prepack` copies them into the package so the tarball still ships them.
@@ -32,7 +33,7 @@ this repo; the published package itself installs with npm, pnpm, yarn and bun.
 Commit titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `feat(theme): …`,
 `fix(lint): …`, `docs: …`, `ci: …`. `main` accepts squash merges only and keeps a linear history, so the PR title is
 the commit title that lands. CI must be green before a merge. Every PR that changes the package —
-`packages/radan-ui/src/`, `lint/`, `scripts/` or `package.json` — carries a changeset; docs- and catalog-only PRs are exempt with the `no-changeset` label.
+any file under `packages/radan-ui/` `src/**`, `lint/**` or `scripts/**`, or its `package.json`, `*.config.ts` or `tsconfig*.json` — carries a changeset; a change to a shipped root doc (`docs/`, `README.md`, `LICENSE`) users should see carries a patch changeset too; only catalog-only PRs skip it with the `no-changeset` label.
 The [PR template](.github/pull_request_template.md) lists the gates.
 
 ## Code style
@@ -43,7 +44,7 @@ through props or children, so each app keeps its own translations.
 
 ## Changesets and releases
 
-Every package-changing PR carries a changeset:
+Every PR that changes what is published carries a changeset:
 
 ```sh
 npx changeset
@@ -60,8 +61,10 @@ with frontmatter naming the package:
 Add the toast-radius token to the component layer.
 ```
 
-The `Changeset` workflow fails a PR that touches `packages/radan-ui/src/`, `lint/`, `scripts/` or `package.json` without a newly added
-`.changeset/*.md`; add the `no-changeset` label for docs/catalog-only PRs.
+The `Changeset` workflow fails a PR that touches any file under `packages/radan-ui/src/**`, `packages/radan-ui/lint/**` or
+`packages/radan-ui/scripts/**`, `packages/radan-ui/package.json`, `packages/radan-ui/*.config.ts` or `packages/radan-ui/tsconfig*.json` without a newly
+added `.changeset/*.md`; root `docs/`, `README.md` and `LICENSE` ship in the tarball via `prepack` but are not gated:
+add a patch changeset when a shipped doc changes in a way users should see (as the README refresh does); the `no-changeset` label skips the check for catalog-only PRs.
 
 Releases are automated. The `Release` workflow runs on every push to `main`: it keeps a `chore: version packages` PR up
 to date, and merging that PR publishes to npm with Trusted Publishing (OIDC, provenance) and creates the GitHub
