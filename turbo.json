@@ -3,7 +3,15 @@
 	// Keep the cache inside this checkout: in a linked git worktree turbo resolves the cache against the main repo,
 	// which can be read-only for a worker.
 	"cacheDir": ".turbo/cache",
-	"globalDependencies": ["pnpm-lock.yaml", "tsconfig.base.json", "pnpm-workspace.yaml"],
+	"globalDependencies": [
+		"pnpm-lock.yaml",
+		"tsconfig.base.json",
+		"pnpm-workspace.yaml",
+		// Root files read by package tests (package.test.ts, changeset-gate.test.ts, rules-index.test.ts).
+		"README.md",
+		".github/workflows/changeset-check.yml",
+		"docs/rules/**"
+	],
 	"envMode": "loose",
 	"tasks": {
 		"build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
