@@ -7,6 +7,7 @@ declare module 'react-native' {
 	type Base = { children?: ReactNode; className?: string; testID?: string };
 	type A11y = {
 		accessible?: boolean;
+		accessibilityLiveRegion?: 'none' | 'polite' | 'assertive';
 		accessibilityLabel?: string;
 		accessibilityRole?: 'button' | 'text' | 'header' | 'link' | 'image' | 'none';
 		accessibilityState?: { disabled?: boolean; busy?: boolean; selected?: boolean; checked?: boolean };
@@ -29,6 +30,7 @@ declare module 'react-native' {
 				onChangeText?: (text: string) => void;
 			}
 	>;
+	export const AccessibilityInfo: { announceForAccessibility: (announcement: string) => void };
 	export const ActivityIndicator: ComponentType<Base & { size?: 'small' | 'large'; color?: string }>;
 }
 

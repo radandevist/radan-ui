@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { View } from 'react-native';
+import { useContext, useEffect } from 'react';
+import { AccessibilityInfo, View } from 'react-native';
 
 import { cn } from '../../lib/cn';
 import { SkeletonRegionContext } from './skeleton.context';
@@ -7,15 +7,33 @@ import type { SkeletonPartProps, SkeletonRegionProps } from './skeleton.contract
 import { Bone, Line, Pill, Text } from './skeleton.skeleton.native';
 import { skeletonCard, skeletonCardBody, skeletonCardHeader, skeletonLoading, skeletonRoot } from './skeleton.variants';
 
-// One accessible node that reads "Loading…" and is busy; its bones are hidden from the screen reader.
+// One accessible node that reads "Loading…" and is busy; its bones are hidden from the screen reader. Android reads the
+// polite live region; iOS has none, so the label is announced once on mount (React Native's documented way).
+const Busy = ({ label, className, children }: Required<Pick<SkeletonRegionProps, 'label'>> & SkeletonRegionProps) => {
+	useEffect(() => {
+		AccessibilityInfo.announceForAccessibility(label);
+	}, [label]);
+	return (
+		<View
+			accessible
+			accessibilityLabel={label}
+			accessibilityLiveRegion="polite"
+			accessibilityState={{ busy: true }}
+			className={className}
+		>
+			{children}
+		</View>
+	);
+};
+
 const Region = ({ label = skeletonLoading, className, children }: SkeletonRegionProps) =>
 	useContext(SkeletonRegionContext) ? (
 		<View className={className}>{children}</View>
 	) : (
 		<SkeletonRegionContext value>
-			<View accessible accessibilityLabel={label} accessibilityState={{ busy: true }} className={className}>
+			<Busy label={label} className={className}>
 				{children}
-			</View>
+			</Busy>
 		</SkeletonRegionContext>
 	);
 

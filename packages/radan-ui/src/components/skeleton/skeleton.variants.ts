@@ -1,9 +1,7 @@
 import { cva } from 'class-variance-authority';
 
-import { skeletonBone } from '../../lib/skeleton';
-
-/** The one bone: fill + pulse come from `src/lib/skeleton.ts`, the shape from the className. */
-export const bone = skeletonBone;
+/** The one bone, single source of the skeleton token: fill `bg-foreground/10` + one pulse; the shape comes from the className. */
+export const bone = 'animate-pulse bg-foreground/10';
 
 export const skeletonLineVariants = cva(`${bone} rounded-md`, {
 	variants: { size: { xs: 'h-3', sm: 'h-4', md: 'h-5', lg: 'h-7' } },

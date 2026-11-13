@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 
+import { ButtonSkeleton } from '@radandevist/radan-ui/button';
 import { Skeleton } from '@radandevist/radan-ui/skeleton';
 import { render, screen } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
 import { registerCSS } from 'react-native-css/jest';
 
 const css = readFileSync('node_modules/.cache/tailwind-out.css', 'utf8');
@@ -41,9 +43,28 @@ test('a nested card adds no second Loading… node', async () => {
 	expect(screen.queryByLabelText('Loading…', { hidden: true })).toBeNull();
 });
 
-test('bones are hidden from assistive tech and carry the pulse fill', async () => {
+test('the region is a polite live region and announces its label once on mount', async () => {
+	const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
+	await render(card);
+	expect(screen.getByLabelText('Loading…', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
+	expect(announce).toHaveBeenCalledTimes(1);
+	expect(announce).toHaveBeenCalledWith('Loading…');
+	announce.mockRestore();
+});
+
+test('bones are hidden from assistive tech (both flags) and carry the shared token classes', async () => {
 	await render(<Skeleton.Line />);
 	const bone = screen.toJSON() as { props: Record<string, unknown> };
 	expect(bone.props.importantForAccessibility).toBe('no-hide-descendants');
+	expect(bone.props.accessibilityElementsHidden).toBe(true);
+	expect(bone.props.className).toContain('animate-pulse');
+	expect(bone.props.className).toContain('bg-foreground/10');
 	expect(String(flat(bone.props.style).backgroundColor)).toMatch(/^(#|rgba?\()/);
+});
+
+test('ButtonSkeleton keeps its classes (shared bone + button silhouette)', async () => {
+	await render(<ButtonSkeleton size="lg" />);
+	const bone = screen.toJSON() as { props: Record<string, unknown> };
+	expect(bone.props.className).toBe('animate-pulse bg-foreground/10 rounded-control h-10 w-24');
+	expect(bone.props.accessibilityElementsHidden).toBe(true);
 });

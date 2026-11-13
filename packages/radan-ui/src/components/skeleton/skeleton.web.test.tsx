@@ -54,6 +54,7 @@ test('the region is aria-busy with one visually hidden Loading status beside it'
 	expect(screen.getByRole('status').textContent).toBe('Loading…');
 	expect(screen.getByRole('status').className).toContain('sr-only');
 	expect(container.querySelectorAll('[aria-busy]')).toHaveLength(1);
+	expect(container.querySelector('[aria-busy]')!.contains(screen.getByRole('status'))).toBe(false);
 });
 
 test('nested cards add no second status, and the label is overridable', () => {
@@ -66,6 +67,7 @@ test('nested cards add no second status, and the label is overridable', () => {
 	expect(screen.getAllByRole('status')).toHaveLength(1);
 	expect(screen.getByRole('status').textContent).toBe('Chargement…');
 	expect(document.querySelectorAll('[aria-busy]')).toHaveLength(1);
+	expect(document.querySelector('[aria-busy]')!.contains(screen.getByRole('status'))).toBe(false);
 });
 
 test('ButtonSkeleton is a bone from the same library', () => {
