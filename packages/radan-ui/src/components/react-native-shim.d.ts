@@ -30,6 +30,7 @@ declare module 'react-native' {
 				onChangeText?: (text: string) => void;
 			}
 	>;
+	export const Platform: { OS: 'ios' | 'android' | 'web' };
 	export const AccessibilityInfo: { announceForAccessibility: (announcement: string) => void };
 	export const ActivityIndicator: ComponentType<Base & { size?: 'small' | 'large'; color?: string }>;
 }

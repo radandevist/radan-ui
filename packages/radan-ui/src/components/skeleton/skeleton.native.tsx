@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { AccessibilityInfo, Platform, View } from 'react-native';
 
 import { cn } from '../../lib/cn';
 import { SkeletonRegionContext } from './skeleton.context';
@@ -11,7 +11,10 @@ import { skeletonCard, skeletonCardBody, skeletonCardHeader, skeletonLoading, sk
 // polite live region; iOS has none, so the label is announced once on mount (React Native's documented way).
 const Busy = ({ label, className, children }: Required<Pick<SkeletonRegionProps, 'label'>> & SkeletonRegionProps) => {
 	useEffect(() => {
-		AccessibilityInfo.announceForAccessibility(label);
+		// Android reads the live region below: announcing too would make TalkBack say it twice.
+		if (Platform.OS === 'ios') {
+			AccessibilityInfo.announceForAccessibility(label);
+		}
 	}, [label]);
 	return (
 		<View

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { ButtonSkeleton } from '@radandevist/radan-ui/button';
 import { Skeleton } from '@radandevist/radan-ui/skeleton';
 import { render, screen } from '@testing-library/react-native';
-import { AccessibilityInfo, View } from 'react-native';
+import { AccessibilityInfo, Platform, View } from 'react-native';
 import { registerCSS } from 'react-native-css/jest';
 
 const css = readFileSync('node_modules/.cache/tailwind-out.css', 'utf8');
@@ -43,12 +43,25 @@ test('a nested card adds no second Loading… node', async () => {
 	expect(screen.queryByLabelText('Loading…', { hidden: true })).toBeNull();
 });
 
-test('the region is a polite live region and announces its label once on mount', async () => {
+const withPlatform = async (os: 'ios' | 'android', label: string) => {
 	const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
-	await render(<Skeleton.Card label="Announce me">{null}</Skeleton.Card>);
-	expect(screen.getByLabelText('Announce me', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
-	expect(announce.mock.calls.filter(([text]) => text === 'Announce me')).toHaveLength(1);
+	const before = Platform.OS;
+	Platform.OS = os;
+	await render(<Skeleton.Card label={label}>{null}</Skeleton.Card>);
+	Platform.OS = before;
+	const calls = announce.mock.calls.filter(([text]) => text === label).length;
 	announce.mockRestore();
+	return calls;
+};
+
+test('iOS: a polite live region plus exactly one explicit announcement on mount', async () => {
+	expect(await withPlatform('ios', 'Announce ios')).toBe(1);
+	expect(screen.getByLabelText('Announce ios', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
+});
+
+test('Android: the live region is present and there is no explicit announcement (no double read)', async () => {
+	expect(await withPlatform('android', 'Announce android')).toBe(0);
+	expect(screen.getByLabelText('Announce android', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
 });
 
 // The host View carries a resolved `style`, not the className: compare it with a reference View given the token classes.
