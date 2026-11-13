@@ -12,7 +12,7 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 
 - **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
-- **Components** — `Button` (web and React Native, one `@radandevist/radan-ui/button` entry); phase 2 adds the rest of the set.
+- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
 - **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
@@ -125,6 +125,28 @@ beside it. On the web `onPress` is wired to the button's `onClick`. Tailwind ski
 ```css
 @source '../../node_modules/@radandevist/radan-ui/dist/web';
 ```
+
+#### Skeleton
+
+```tsx
+import { Skeleton } from '@radandevist/radan-ui/skeleton';
+
+<Skeleton.Card>
+	<Skeleton.Card.Header>
+		<Skeleton.Line size="sm" width="w-16" />
+		<Skeleton.Pill width="w-14" />
+	</Skeleton.Card.Header>
+	<Skeleton.Card.Body>
+		<Skeleton.Text lines={2} size="xs" />
+	</Skeleton.Card.Body>
+</Skeleton.Card>
+```
+
+A compound component, one bone per real element (`docs/rules/skeletons.md`). `Skeleton` and `Skeleton.Card` are regions:
+`aria-busy` plus a visually hidden "Loading…" status (`label` translates it; a region nested in another adds none), bones
+are hidden from assistive tech. `Skeleton.Line` takes `size` (`xs` | `sm` | `md` | `lg`) and `width` (a Tailwind width
+class), `Skeleton.Pill` a `width`, `Skeleton.Text` `lines` and `size`; every part takes `className`. The bone is
+`bg-foreground/10` plus one pulse, fixed in the library.
 
 ### React Native / Expo
 
