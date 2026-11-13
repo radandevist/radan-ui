@@ -1,7 +1,5 @@
 import { cva } from 'class-variance-authority';
 
-import { skeletonBone } from '../../lib/skeleton';
-
 // Classes valid on both platforms: no hover:, focus-visible: or color-mix() here (platform states live in each file).
 export const buttonVariants = cva('flex flex-row items-center justify-center rounded-control', {
 	variants: {
@@ -41,8 +39,8 @@ export const buttonTextVariants = cva('font-medium', {
 	defaultVariants: { variant: 'default', size: 'default' },
 });
 
-/** The skeleton bone: the button's silhouette (same height and radius; the width stands for a short label). */
-export const buttonSkeletonVariants = cva(`${skeletonBone} rounded-control`, {
+/** The skeleton bone shape (the fill + pulse come from the Skeleton library): the button's silhouette (same height and radius; the width stands for a short label). */
+export const buttonSkeletonVariants = cva('rounded-control', {
 	variants: { size: { default: 'h-9 w-20', xs: 'h-6 w-14', sm: 'h-8 w-16', lg: 'h-10 w-24', icon: 'size-9' } },
 	defaultVariants: { size: 'default' },
 });
