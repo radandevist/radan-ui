@@ -45,39 +45,42 @@ test('a nested card adds no second Loading… node', async () => {
 
 test('the region is a polite live region and announces its label once on mount', async () => {
 	const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
-	await render(card);
-	expect(screen.getByLabelText('Loading…', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
-	expect(announce).toHaveBeenCalled();
-	expect(new Set(announce.mock.calls.map(([text]) => text))).toEqual(new Set(['Loading…'])); // one card = one announcement text
+	await render(<Skeleton.Card label="Announce me">{null}</Skeleton.Card>);
+	expect(screen.getByLabelText('Announce me', { hidden: true }).props.accessibilityLiveRegion).toBe('polite');
+	expect(announce.mock.calls.filter(([text]) => text === 'Announce me')).toHaveLength(1);
 	announce.mockRestore();
 });
 
 // The host View carries a resolved `style`, not the className: compare it with a reference View given the token classes.
-const style = (node: unknown) => flat((node as { props: { style?: unknown } }).props.style);
-
-test('bones are hidden from assistive tech (both flags) and resolve to the shared token classes', async () => {
+const pair = async (bone: React.ReactElement, reference: React.ReactElement) => {
 	await render(
 		<>
-			<Skeleton.Line size="sm" width="w-16" />
-			<View className="animate-pulse bg-foreground/10 h-4 rounded-md w-16" />
+			<View testID="bone">{bone}</View>
+			<View testID="reference">{reference}</View>
 		</>,
 	);
-	const [first, reference] = screen.toJSON() as unknown as unknown[];
-	const bone = first as { props: Record<string, unknown> };
+	return {
+		bone: screen.getByTestId('bone').children[0] as unknown as { props: Record<string, unknown> },
+		reference: screen.getByTestId('reference').children[0] as unknown as { props: Record<string, unknown> },
+	};
+};
+
+test('bones are hidden from assistive tech (both flags) and resolve to the shared token classes', async () => {
+	const { bone, reference } = await pair(
+		<Skeleton.Line size="sm" width="w-16" />,
+		<View className="animate-pulse bg-foreground/10 h-4 rounded-md w-16" />,
+	);
 	expect(bone.props.importantForAccessibility).toBe('no-hide-descendants');
 	expect(bone.props.accessibilityElementsHidden).toBe(true);
-	expect(String(style(first).backgroundColor)).toMatch(/^(#|rgba?\()/);
-	expect(style(first)).toEqual(style(reference));
+	expect(String(flat(bone.props.style).backgroundColor)).toMatch(/^(#|rgba?\()/);
+	expect(flat(bone.props.style)).toEqual(flat(reference.props.style));
 });
 
 test('ButtonSkeleton keeps its classes (shared bone + button silhouette)', async () => {
-	await render(
-		<>
-			<ButtonSkeleton size="lg" />
-			<View className="animate-pulse bg-foreground/10 rounded-control h-10 w-24" />
-		</>,
+	const { bone, reference } = await pair(
+		<ButtonSkeleton size="lg" />,
+		<View className="animate-pulse bg-foreground/10 rounded-control h-10 w-24" />,
 	);
-	const [bone, reference] = screen.toJSON() as unknown as unknown[];
-	expect(style(bone)).toEqual(style(reference));
-	expect((bone as { props: Record<string, unknown> }).props.accessibilityElementsHidden).toBe(true);
+	expect(flat(bone.props.style)).toEqual(flat(reference.props.style));
+	expect(bone.props.accessibilityElementsHidden).toBe(true);
 });
