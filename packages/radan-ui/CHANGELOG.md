@@ -1,5 +1,11 @@
 # @radandevist/radan-ui
 
+## 0.6.0
+
+### Minor Changes
+
+- [#44](https://github.com/radandevist/radan-ui/pull/44) [`3134930`](https://github.com/radandevist/radan-ui/commit/313493058e69d6dd17f306843de160557740ec12) Thanks [@radandevist](https://github.com/radandevist)! - Add the `Skeleton` library (`@radandevist/radan-ui/skeleton`, web and React Native): a compound component (`Skeleton`, `Skeleton.Card` with `.Header` / `.Body`, `Skeleton.Line`, `Skeleton.Pill`, `Skeleton.Text`, `Skeleton.Bone`) that mirrors real content one bone per element. The region is `aria-busy` with a visually hidden "Loading…" status (`label` to translate it), bones are hidden from assistive tech. `ButtonSkeleton` now composes the same bone, its output is unchanged.
+
 ## 0.5.0
 
 ### Minor Changes
