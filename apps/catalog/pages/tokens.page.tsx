@@ -16,11 +16,6 @@ const rootValues = parse(css.slice(0, darkAt));
 const darkValues = parse(css.slice(darkAt, themeEnd));
 const isDark = () => document.documentElement.classList.contains('dark');
 
-// Read ?theme=dark once, before first paint, so tests can open the page in dark directly.
-if (new URLSearchParams(location.search).get('theme') === 'dark') {
-	document.documentElement.classList.add('dark');
-}
-
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
 	<section className="mb-10">
 		<h2 className="mb-4 text-lg font-semibold">{title}</h2>
@@ -141,3 +136,5 @@ export const TokensPage = () => {
 		</main>
 	);
 };
+
+export default TokensPage;

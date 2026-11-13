@@ -6,6 +6,7 @@ a card skeleton is the real card surface with bones inside it, never a filled gr
 - **One skeleton library.** It owns every bone (`bg-foreground/10` fill + one pulse from the primitive). No file
   outside the library imports the base skeleton primitive or defines its own bone: no local `Bar`, no hand-rolled
   `animate-pulse` block. Contrast is fixed once in the primitive — never re-styled per skeleton to "fix" it.
+- **Until the library lands**, component skeletons take their bone (fill + pulse) from `src/lib/skeleton.ts`, never a hand-rolled copy.
 - **A skeleton beside each component.** Every display component that can load exports its own skeleton — same file or
   a sibling `<name>-skeleton.tsx` — taking the same layout props where they change its shape. When the component
   changes, its skeleton sits next to it and changes with it. A screen skeleton only **composes** component skeletons;

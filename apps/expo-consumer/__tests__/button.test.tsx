@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
-import { Button } from '@radandevist/radan-ui/button';
-import { render, screen } from '@testing-library/react-native';
+import { Button, ButtonSkeleton } from '@radandevist/radan-ui/button';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { vars } from 'nativewind';
 import { View } from 'react-native';
 import { registerCSS } from 'react-native-css/jest';
@@ -34,14 +34,14 @@ test('outline: shadow-raised-control resolves to a 1px ring in the border colour
 	expect(JSON.stringify(pressable().boxShadow)).toContain('#e3e3e3');
 });
 
-test('dark: a .dark ancestor switches bg-card and the ring colour', async () => {
+test('dark: a .dark ancestor switches bg-background and the ring colour', async () => {
 	await render(
 		<View className="dark">
 			<Button variant="outline">Go</Button>
 		</View>,
 	);
 	console.log('dark style', JSON.stringify(pressable()));
-	expect(pressable().backgroundColor).toBe('#1f1f23');
+	expect(pressable().backgroundColor).toBe('#18181b'); // bg-background, dark
 	expect(JSON.stringify(pressable().boxShadow)).toContain('#323234');
 });
 
@@ -52,6 +52,88 @@ test('runtime override of --radan-ui-primary on an ancestor', async () => {
 		</View>,
 	);
 	expect(pressable().backgroundColor).toBe('#ff0000');
+});
+
+test('every variant and size renders a button', async () => {
+	for (const variant of ['default', 'outline', 'secondary', 'ghost', 'destructive', 'link'] as const) {
+		for (const size of ['default', 'xs', 'sm', 'lg', 'icon'] as const) {
+			await render(
+				<Button variant={variant} size={size} accessibilityLabel={`${variant}-${size}`}>
+					Go
+				</Button>,
+			);
+			expect(screen.getByRole('button', { name: `${variant}-${size}` })).toBeTruthy();
+		}
+	}
+});
+
+test('size changes the height: lg is taller than xs', async () => {
+	await render(<Button size="xs">Go</Button>);
+	const xs = pressable().height;
+	await render(<Button size="lg">Go</Button>);
+	expect(xs).toBe(24);
+	expect(screen.getAllByRole('button').map((b) => flat(b.props.style).height)).toContain(40);
+});
+
+test('loading: busy state, disabled, no press, a spinner', async () => {
+	const onPress = jest.fn();
+	await render(
+		<Button loading onPress={onPress}>
+			Saving
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.props.accessibilityState).toMatchObject({ busy: true, disabled: true });
+	expect(JSON.stringify(screen.toJSON())).toContain('ActivityIndicator');
+});
+
+test('onPress fires', async () => {
+	const onPress = jest.fn();
+	await render(<Button onPress={onPress}>Go</Button>);
+	fireEvent.press(screen.getByRole('button'));
+	expect(onPress).toHaveBeenCalledTimes(1);
+});
+
+test('labelClassName reaches the Text and replaces the variant colour; className stays on the Pressable', async () => {
+	await render(
+		<Button labelClassName="text-status-success" className="rounded-4xl">
+			Go
+		</Button>,
+	);
+	expect(flat(screen.getByText('Go').props.style).color).not.toBe('#423600'); // text-primary-foreground replaced
+	expect(pressable().borderRadius).toBe(26);
+});
+
+test('a non-text child (an icon) is rendered as is, not wrapped in a Text', async () => {
+	await render(
+		<Button size="icon" accessibilityLabel="add">
+			<View testID="icon" />
+		</Button>,
+	);
+	expect(screen.getByTestId('icon')).toBeTruthy();
+	expect(screen.queryByText('icon')).toBeNull();
+});
+
+test('mixed children: the icon stays outside the Text, the string gets the label Text', async () => {
+	await render(
+		<Button>
+			<View testID="icon" />
+			Save
+		</Button>,
+	);
+	expect(screen.getByTestId('icon').parent?.type).not.toBe('Text');
+	expect(screen.getByText('Save')).toBeTruthy();
+});
+
+test('consecutive text children share one label Text (no gap between "Save" and the count)', async () => {
+	const count = 3;
+	await render(<Button>Save {count}</Button>);
+	expect(screen.getByText('Save 3')).toBeTruthy();
+});
+
+test('the skeleton is one hidden bone', async () => {
+	await render(<ButtonSkeleton size="lg" />);
+	expect(screen.queryByRole('button')).toBeNull();
 });
 
 // Findings that shaped metro.config.js: react-native-css' defaults break the library's contract.

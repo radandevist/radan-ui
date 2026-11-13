@@ -53,6 +53,17 @@ jobs:
             apps/catalog/playwright-report
             apps/catalog/test-results
           retention-days: 7
+  native:
+    # The real React Native typecheck and the native component tests (jest-expo) run in the npm-based Expo fixture.
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: bash scripts/spike-native.sh
   install-matrix:
     needs: check
     runs-on: ubuntu-latest

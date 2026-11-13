@@ -4,10 +4,9 @@ Package `@radandevist/radan-ui` (public, Apache-2.0). Repo `radandevist/radan-ui
 in `apps/expo-consumer/` (npm, outside the workspace). Use pnpm inside this repo. Run
 `pnpm check` before every push (typecheck, lint, format, test, build, publint/attw, size).
 
-**Status (when written):** `packages/radan-ui/src/` holds the theme, the CLI and the public entry `src/index.ts`; the shared OxLint /
-oxfmt config lives in `packages/radan-ui/lint/`. The catalog (`apps/catalog/`, `pnpm catalog:build`, `pnpm test:visual`, `pages.yml`) is
-phase 1 task 7; components (`packages/radan-ui/src/components/`) are phase 2. The "add a component" steps describe the intended layout;
-adjust to what is on `main` and fix this file when it lands.
+**Status:** `packages/radan-ui/src/` holds the theme, the CLI, the public entry `src/index.ts` and the components
+(`src/components/`, Button is the model); the shared OxLint / oxfmt config lives in `packages/radan-ui/lint/`. The catalog
+(`apps/catalog/`, `pnpm catalog:build`, `pnpm test:visual`, `pages.yml`) has one page per component in `pages/`.
 
 ## Publishing facts
 
@@ -26,16 +25,19 @@ adjust to what is on `main` and fix this file when it lands.
 
 ## Add a component
 
-1. Branch: `git switch -c feat/<name> origin/main`.
-2. Folder `packages/radan-ui/src/components/<name>/` (files < 300 lines, tabs, single quotes): `<name>.tsx` with compound parts
-   (`Card`, `Card.Header`, ...), `<name>-skeleton.tsx` **beside it** (same layout, tokens `bg-foreground/10` + pulse),
-   `index.ts`. No i18n, no router, no fetching: strings come from props/children. Visuals use theme tokens only.
-3. Export from `src/index.ts`. Add tokens (if any) to `src/theme/` and rebuild: `pnpm --filter @radandevist/radan-ui build:theme`.
-4. Tests beside it (`<name>.test.tsx`, Vitest): render, variants, a11y roles, skeleton matches the real component.
-5. Catalog page `apps/catalog/<name>-page.tsx` (all states, light + dark), registered in `apps/catalog/main.tsx`.
-6. `pnpm check`, then (first time on a machine) `pnpm --filter catalog exec playwright install --with-deps chromium`, then
-   `pnpm catalog:build && pnpm test:visual`; attach captures to the PR.
-7. Changeset **minor** (see below). PR title `feat(<name>): ...`.
+The exact checklist (files to create, shared files to leave alone, tests, catalog page, changeset, baselines from CI,
+conflict-free parallel work) is **CONTRIBUTING.md, "Adding a component"**: follow it verbatim and copy
+`packages/radan-ui/src/components/button/`. Maintainer notes:
+
+- Nothing is registered by hand: `scripts/components.ts` lists `src/components/*` for tsdown and for the guards in
+  `tests/components.test.ts` (contract conformance, platform imports, shared variants, export entries); `package.json`
+  carries one `./*` export pattern for every component. A PR that edits those shared files, `package.json` exports or
+  `pnpm-lock.yaml` for one component is wrong: send it back.
+- Dependencies for the v1 list are already optional peers (`@base-ui/react`, nine `@rn-primitives/*`); a new one is the
+  owner's decision (also add it to `apps/expo-consumer/package.json` if native, to the package's devDependencies if web).
+- A native side may lag: `src/components/web-only.json` with a reason and an issue; the list must shrink.
+- Visual baselines are produced by the `Visual baselines` workflow, never locally; review the four PNGs of a new page.
+- The native tests and the real React Native typecheck run in `apps/expo-consumer` (`bash scripts/spike-native.sh`, CI job `native`).
 
 ## Write a changeset
 

@@ -33,7 +33,7 @@ for (const platform of ['android', 'ios']) {
 		),
 		`${platform}: react-native-css Pressable (className interop) missing`,
 	);
-	for (const cls of ['bg-primary', 'rounded-control', 'rounded-card', 'shadow-raised-control', 'bg-card']) {
+	for (const cls of ['bg-primary', 'rounded-control', 'rounded-card', 'shadow-raised-control', 'bg-secondary']) {
 		assert(bundle.includes(`["${cls}", [{`), `${platform}: no compiled style for ${cls}`);
 	}
 	console.log(`ok metro ${platform}`);
@@ -71,7 +71,7 @@ assert(
 const trace = run('npx', ['tsc', '--noEmit', '--traceResolution']);
 assert(/Matched 'exports' condition 'react-native'/.test(trace), 'traceResolution: react-native condition not matched');
 assert(
-	trace.includes("Using 'exports' subpath './button' with target './dist/native/button.d.ts'"),
+	trace.includes("Using 'exports' subpath './*' with target './dist/native/button.d.ts'"),
 	'traceResolution: wrong target',
 );
 run('npx', ['tsc', '-p', 'tsconfig.src.json']); // the library's native source typechecks against React Native's types

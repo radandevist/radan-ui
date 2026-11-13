@@ -36,6 +36,19 @@ bun add @radandevist/radan-ui
 The package is ESM, needs Node 22 or newer, and installs with npm, pnpm, yarn (node-modules and pnp) or bun alike —
 CI installs the packed tarball with all of them. Only this repository uses pnpm as its package manager.
 
+Component peers are optional, so install the ones for your platform. Web (the components use Base UI):
+
+```sh
+pnpm add @base-ui/react
+```
+
+React Native / Expo (NativeWind v5, plus the `@rn-primitives/*` packages of the components you use; `slot` and
+`portal` are shared by most):
+
+```sh
+pnpm add nativewind react-native-css @rn-primitives/slot @rn-primitives/portal
+```
+
 ### Theme
 
 Import the theme right after Tailwind, then add `.dark` on `<html>` for dark mode:
@@ -101,8 +114,11 @@ import { Button } from '@radandevist/radan-ui/button';
 ```
 
 The same import resolves to the web build (a `<button>`) or, under the `react-native` condition, to the native build.
-Props are identical on both: `variant` (`default` | `outline`), `size` (`default` | `sm`), `disabled`, `loading`,
-`onPress`, `className`, `children`. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
+Props are identical on both: `variant` (`default` | `outline` | `secondary` | `ghost` | `destructive` | `link`),
+`size` (`default` | `xs` | `sm` | `lg` | `icon`), `disabled`, `loading`, `onPress`, `className` (the button itself),
+`labelClassName` (the label: on native `Text` does not inherit colour, so text utilities go here), `accessibilityLabel`
+(the accessible name, needed for `size="icon"`) and `children`. `ButtonSkeleton` (`size`, `className`) is exported
+beside it. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
 `node_modules`, so add a `@source` next to the theme import; the path is relative to that stylesheet (here
 `src/styles/app.css`):
 

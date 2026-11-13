@@ -23,7 +23,7 @@
 		"README.md",
 		"LICENSE",
 		"CHANGELOG.md",
-		"!docs/superpowers/spikes/*.jpg"
+		"!docs/superpowers/spikes"
 	],
 	"publishConfig": {
 		"access": "public",
@@ -39,16 +39,6 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
-		"./button": {
-			"react-native": {
-				"types": "./dist/native/button.d.ts",
-				"default": "./dist/native/button.js"
-			},
-			"default": {
-				"types": "./dist/web/button.d.ts",
-				"default": "./dist/web/button.js"
-			}
-		},
 		"./theme.css": "./dist/theme.css",
 		"./theme.native.css": "./dist/theme.native.css",
 		"./metro": {
@@ -58,7 +48,17 @@
 		"./oxlint.json": "./lint/oxlint.json",
 		"./oxfmt.json": "./lint/oxfmt.json",
 		"./lint/*": "./lint/*",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./*": {
+			"react-native": {
+				"types": "./dist/native/*.d.ts",
+				"default": "./dist/native/*.js"
+			},
+			"default": {
+				"types": "./dist/web/*.d.ts",
+				"default": "./dist/web/*.js"
+			}
+		}
 	},
 	"sideEffects": [
 		"*.css"
@@ -78,11 +78,15 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.18.5",
+		"@base-ui/react": "1.9.0",
 		"@oxlint/plugins": "^1.92.0",
 		"@size-limit/file": "^14.3.0",
+		"@testing-library/dom": "^10.4.2",
+		"@testing-library/react": "^16.3.3",
 		"@types/node": "^24.19.2",
 		"@types/react": "^19.3.0",
 		"@types/react-dom": "^19.3.0",
+		"jsdom": "^31.0.0",
 		"oxlint": "^1.92.0",
 		"publint": "^0.3.25",
 		"react": "^19.3.1",
@@ -99,19 +103,59 @@
 		"tailwind-merge": "^3.7.0"
 	},
 	"peerDependencies": {
+		"@base-ui/react": ">=1.8.0",
+		"@rn-primitives/checkbox": ">=1.5.0",
+		"@rn-primitives/collapsible": ">=1.5.0",
+		"@rn-primitives/dialog": ">=1.5.0",
+		"@rn-primitives/label": ">=1.5.0",
+		"@rn-primitives/portal": ">=1.5.0",
+		"@rn-primitives/select": ">=1.5.0",
+		"@rn-primitives/slot": ">=1.5.0",
+		"@rn-primitives/switch": ">=1.5.0",
+		"@rn-primitives/tabs": ">=1.5.0",
 		"nativewind": ">=5.0.0-rc.1",
 		"react": ">=19",
 		"react-native": ">=0.81",
 		"react-native-css": ">=3.1.0-rc.1"
 	},
 	"peerDependenciesMeta": {
+		"@base-ui/react": {
+			"optional": true
+		},
+		"@rn-primitives/checkbox": {
+			"optional": true
+		},
+		"@rn-primitives/collapsible": {
+			"optional": true
+		},
+		"@rn-primitives/dialog": {
+			"optional": true
+		},
+		"@rn-primitives/label": {
+			"optional": true
+		},
+		"@rn-primitives/portal": {
+			"optional": true
+		},
+		"@rn-primitives/select": {
+			"optional": true
+		},
+		"@rn-primitives/slot": {
+			"optional": true
+		},
+		"@rn-primitives/switch": {
+			"optional": true
+		},
+		"@rn-primitives/tabs": {
+			"optional": true
+		},
+		"nativewind": {
+			"optional": true
+		},
 		"react": {
 			"optional": true
 		},
 		"react-native": {
-			"optional": true
-		},
-		"nativewind": {
 			"optional": true
 		},
 		"react-native-css": {
