@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createTapGuard, goBack } from './page-transition.back';
+import type { Place } from './page-transition.contract';
 import { beginPageTransition } from './page-transition.core';
 
 describe('the back arrow tap guard', () => {
@@ -39,25 +40,58 @@ describe('the back arrow tap guard', () => {
 });
 
 describe('goBack', () => {
-	it('goes back in history when the app has an earlier entry', () => {
+	const phone = () => {
+		vi.stubGlobal('document', { documentElement: { dataset: {} }, startViewTransition: () => {} });
+		vi.stubGlobal('matchMedia', () => ({ matches: false }));
+		vi.stubGlobal('localStorage', { getItem: () => 'ios', setItem: () => {} });
+	};
+	const place = (path: string, index: number): Place => ({ path, index, overlay: false });
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.useRealTimers();
+	});
+
+	it('goes back in history when the app has an earlier entry', async () => {
 		const back = vi.fn<() => void>();
 		const toParent = vi.fn<() => void>();
-		expect(goBack({ canGoBack: true, back, toParent })).toBeUndefined();
+		await goBack({ canGoBack: true, back, toParent });
 		expect(back).toHaveBeenCalledOnce();
 		expect(toParent).not.toHaveBeenCalled();
 	});
 
-	it('replaces with the parent otherwise, and that navigation reads as a back', () => {
+	it('replaces with the parent otherwise, and that navigation reads as a back', async () => {
+		phone();
 		const back = vi.fn<() => void>();
-		const done = Promise.resolve();
-		expect(goBack({ canGoBack: false, back, toParent: () => done })).toBe(done);
+		await goBack({ canGoBack: false, back, toParent: () => Promise.resolve() });
 		expect(back).not.toHaveBeenCalled();
 		// The replace keeps its history index, yet the page transition reads it as a back.
-		vi.stubGlobal('document', { documentElement: { dataset: {} }, startViewTransition: () => {} });
-		vi.stubGlobal('matchMedia', () => ({ matches: false }));
-		vi.stubGlobal('localStorage', { getItem: () => 'ios', setItem: () => {} });
-		const place = (path: string) => ({ path, index: 1, overlay: false });
-		expect(beginPageTransition(place('/a/1'), place('/a'))).toBe('back');
-		vi.unstubAllGlobals();
+		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBe('back');
+	});
+
+	it('rejects with the navigation error and leaves no mark when the parent navigation fails', async () => {
+		phone();
+		await expect(
+			goBack({ canGoBack: false, back: () => {}, toParent: () => Promise.reject(new Error('no')) }),
+		).rejects.toThrow('no');
+		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBeUndefined();
+	});
+
+	it('rejects when an async back fails, marks cleared', async () => {
+		phone();
+		await expect(
+			goBack({ canGoBack: true, back: () => Promise.reject(new Error('no')), toParent: () => {} }),
+		).rejects.toThrow('no');
+		expect(beginPageTransition(place('/a', 1), place('/b/1', 2))).toBe('push');
+	});
+
+	it('lets the marks of a back() that did nothing expire before the next navigation', async () => {
+		vi.useFakeTimers();
+		phone();
+		await goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
+		vi.advanceTimersByTime(5000);
+		// Without the expiry the stale mark would make this an app-started traversal on iOS; the toParent mark likewise.
+		await goBack({ canGoBack: false, back: () => {}, toParent: () => {} });
+		vi.advanceTimersByTime(5000);
+		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBeUndefined();
 	});
 });

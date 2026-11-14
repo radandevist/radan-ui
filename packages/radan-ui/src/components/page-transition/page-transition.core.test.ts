@@ -31,6 +31,9 @@ describe('directionOf', () => {
 		expect(directionOf(at('/pickups/P-4', 2), at('/forwarders', 3))).toBe('fade');
 		expect(directionOf(at('/', 2), at('/pickups', 1), { traversal: true })).toBe('fade');
 	});
+	it('goes back to the parent even when only the search changed (same path)', () => {
+		expect(directionOf(at('/pickups', 1), at('/pickups', 1), { toParent: true })).toBe('back');
+	});
 	it('goes back to the parent with the arrow when there is no earlier entry', () => {
 		expect(directionOf(at('/pickups/P-4', 0), at('/pickups', 1), { toParent: true })).toBe('back');
 	});
@@ -195,6 +198,24 @@ describe('guardViewTransitions', () => {
 	});
 });
 
+describe('guardViewTransitions fallback', () => {
+	it('returns a settled ViewTransition-shaped object when startViewTransition throws', async () => {
+		const doc: Parameters<typeof guardViewTransitions>[0] = {
+			documentElement: { dataset: {} },
+			startViewTransition: () => {
+				throw new Error('nope');
+			},
+		};
+		guardViewTransitions(doc);
+		const transition = doc.startViewTransition(() => {});
+		await expect(transition.ready).resolves.toBeUndefined();
+		await expect(transition.finished).resolves.toBeUndefined();
+		await expect(transition.updateCallbackDone).resolves.toBeUndefined();
+		expect(() => transition.skipTransition?.()).not.toThrow();
+		expect(transition.types?.size).toBe(0);
+	});
+});
+
 describe('beginPageTransition on a phone', () => {
 	const place = (path: string, index: number): Place => ({ path, index, overlay: false });
 	const phone = (style: string, dataset: DOMStringMap = {}) => {
@@ -207,6 +228,13 @@ describe('beginPageTransition on a phone', () => {
 
 	it('does nothing outside a browser', () => {
 		expect(beginPageTransition(undefined, place('/', 0))).toBeUndefined();
+	});
+
+	it('reports unsupported, not a throw, without matchMedia', () => {
+		const dataset = phone('ios');
+		vi.stubGlobal('matchMedia', undefined);
+		expect(beginPageTransition(place('/pickups', 1), place('/pickups/P-4', 2))).toBeUndefined();
+		expect(dataset.pageDirection).toBeUndefined();
 	});
 
 	it('marks <html> with the style and the direction', () => {

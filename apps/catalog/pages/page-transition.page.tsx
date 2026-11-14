@@ -37,19 +37,14 @@ const frames: { title: string; frame: Frame }[] = [
 	{ title: 'Fade (sections)', frame: { old: { opacity: 0.5 }, next: { opacity: 0.5 } } },
 ];
 
-const Screen = ({ name, tone, style, top }: { name: string; tone: string; style: CSSProperties; top?: boolean }) => (
-	<div
-		className={`absolute inset-0 flex items-start p-2 text-xs font-medium ${tone}`}
-		style={{ ...style, zIndex: top ? 2 : 1 }}
-	>
-		{name}
-	</div>
+const Screen = ({ tone, style, top }: { tone: string; style: CSSProperties; top?: boolean }) => (
+	<div className={`absolute inset-0 ${tone}`} style={{ ...style, zIndex: top ? 2 : 1 }} />
 );
 
 const Mock = ({ frame }: { frame: Frame }) => (
 	<div className="relative h-44 w-24 overflow-hidden rounded-lg border border-border bg-background">
-		<Screen name="old" tone="bg-foreground/10" style={frame.old} top={frame.oldOnTop} />
-		<Screen name="new" tone="bg-foreground/25" style={frame.next} top={!frame.oldOnTop} />
+		<Screen tone="bg-foreground/10" style={frame.old} top={frame.oldOnTop} />
+		<Screen tone="bg-foreground/25" style={frame.next} top={!frame.oldOnTop} />
 	</div>
 );
 
@@ -75,6 +70,10 @@ const PageTransitionPage = () => (
 	<main className="mx-auto max-w-3xl p-6">
 		<h1 className="mb-6 text-xl font-semibold">Page transitions</h1>
 		<Section title="Styles and directions, frozen halfway">
+			<p className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+				<span className="inline-block size-3 rounded-sm border border-border bg-foreground/10" /> leaving page
+				<span className="ml-3 inline-block size-3 rounded-sm border border-border bg-foreground/25" /> arriving page
+			</p>
 			<div className="flex flex-wrap gap-4">
 				{frames.map(({ title, frame }) => (
 					<figure key={title} className="flex flex-col items-center gap-2">

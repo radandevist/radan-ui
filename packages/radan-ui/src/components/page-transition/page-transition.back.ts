@@ -1,11 +1,11 @@
-import { markAppTraversal, markBackToParent } from './page-transition.core';
+import { clearMarks, markAppTraversal, markBackToParent } from './page-transition.core';
 
 /** What `goBack` needs of the app's router. */
 export type BackNavigation = {
 	/** Whether the app itself has an earlier entry (an app-owned index, never `history.length`, which counts other sites). */
 	canGoBack: boolean;
 	/** Goes back one history entry. */
-	back: () => void;
+	back: () => Promise<void> | void;
 	/** Replaces the current entry with the screen's parent (no new entry): the arrow never leaves the app. */
 	toParent: () => Promise<void> | void;
 };
@@ -15,14 +15,20 @@ export type BackNavigation = {
  * its filters), else to the parent, replacing the entry (a deep link, a reload). Marks the navigation so the page
  * transition knows its direction.
  */
-export const goBack = ({ canGoBack, back, toParent }: BackNavigation): Promise<void> | void => {
-	if (canGoBack) {
-		markAppTraversal();
-		back();
-		return undefined;
+export const goBack = async ({ canGoBack, back, toParent }: BackNavigation): Promise<void> => {
+	try {
+		if (canGoBack) {
+			markAppTraversal();
+			await back();
+			return;
+		}
+		markBackToParent();
+		await toParent();
+	} catch (error) {
+		// The navigation never happened: its marks must not reach the next one.
+		clearMarks();
+		throw error;
 	}
-	markBackToParent();
-	return toParent();
 };
 
 /**

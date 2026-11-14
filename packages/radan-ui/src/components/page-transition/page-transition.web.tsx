@@ -45,7 +45,7 @@ export const PageBack = ({ label, onBack, className, children }: PageBackProps) 
 			}
 			className={cn(
 				pageBackVariants(),
-				'cursor-pointer outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+				'cursor-pointer outline-hidden hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring',
 				className,
 			)}
 		>

@@ -33,6 +33,13 @@ describe('PageBack', () => {
 		expect(unhandled).not.toHaveBeenCalled();
 	});
 
+	it('keeps a focus outline in forced colors', () => {
+		render(<PageBack label="Back" onBack={() => {}} />);
+		const { className } = screen.getByRole('button', { name: 'Back' });
+		expect(className).toContain('outline-hidden');
+		expect(className).not.toContain('outline-none');
+	});
+
 	it('takes a className and its own icon', () => {
 		render(
 			<PageBack label="Back" onBack={() => {}} className="fixed">

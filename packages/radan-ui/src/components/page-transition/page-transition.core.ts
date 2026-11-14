@@ -89,15 +89,15 @@ export const directionOf = (
 	if (!from) {
 		return undefined;
 	}
+	// The arrow's fallback replaces the entry (same index): a back whatever the pages are.
+	if (via.toParent) {
+		return 'back';
+	}
 	if (from.path === to.path) {
 		if (from.overlay === to.overlay) {
 			return undefined;
 		}
 		return to.overlay ? 'push' : 'back';
-	}
-	// The arrow's fallback replaces the entry (same index): a back whatever the pages are.
-	if (via.toParent) {
-		return 'back';
 	}
 	if (from.index === undefined || to.index === undefined || from.index === to.index) {
 		return undefined;
@@ -115,32 +115,54 @@ export const directionOf = (
 export const transitionFor = (direction: Direction | undefined, env: Environment): Direction | undefined =>
 	direction && env.style !== 'none' && !env.fromMd && !env.reducedMotion && env.supported ? direction : undefined;
 
+// A webview or a test DOM without `matchMedia` cannot run the transition: report it unsupported instead of throwing.
 const browserEnvironment = (): Environment => ({
 	style: appliedStyle(readStyle()),
-	fromMd: matchMedia('(min-width: 48rem)').matches,
-	reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
-	supported: 'startViewTransition' in document,
+	fromMd: !!globalThis.matchMedia?.('(min-width: 48rem)').matches,
+	reducedMotion: !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+	supported: !!globalThis.matchMedia && 'startViewTransition' in document,
 });
 
 // What the router cannot tell the adapter, each read once by the next transition (`take`): a browser that already
 // animated a back (`hasUAVisualTransition` on the navigate event: no second transition), a history traversal
 // (popstate), a traversal the app started itself (the arrow, the sheet's close) and the arrow's fallback to the parent.
-const pending = { browserAnimated: false, traversal: false, appStarted: false, toParent: false };
+// The two marks the app arms itself before navigating expire after MARK_TTL_MS: a `back()` that does nothing or a
+// navigation that never starts must not leak them into the next, unrelated navigation.
+const MARK_TTL_MS = 1500;
+const pending = { browserAnimated: false, traversal: false, appStarted: false, toParent: false, armedAt: 0 };
 const take = () => {
-	const seen = { ...pending };
+	if (performance.now() - pending.armedAt > MARK_TTL_MS) {
+		pending.appStarted = pending.toParent = false;
+	}
+	const seen = {
+		browserAnimated: pending.browserAnimated,
+		traversal: pending.traversal,
+		appStarted: pending.appStarted,
+		toParent: pending.toParent,
+	};
 	pending.browserAnimated = pending.traversal = pending.appStarted = pending.toParent = false;
 	return seen;
 };
 
 /** The back arrow with no earlier entry replaces the page with its parent: that navigation is a back, not a push. */
-export const markBackToParent = () => void (pending.toParent = true);
+export const markBackToParent = () => {
+	pending.toParent = true;
+	pending.armedAt = performance.now();
+};
+
+/** Forgets the two app marks (a navigation that failed to start must not leave them for the next one). */
+export const clearMarks = () => void (pending.appStarted = pending.toParent = false);
 
 /** A history traversal the app starts itself (the arrow, the sheet's close): it gets the app transition even on iOS. */
-export const markAppTraversal = () => void (pending.appStarted = true);
+export const markAppTraversal = () => {
+	pending.appStarted = true;
+	pending.armedAt = performance.now();
+};
 
 type StartArg = Parameters<Document['startViewTransition']>[0];
 /** What a router reads from a started transition, and what the guard needs of a document. */
-type Settleable = Pick<ViewTransition, 'finished' | 'updateCallbackDone'>;
+type Settleable = Pick<ViewTransition, 'finished' | 'updateCallbackDone'> &
+	Partial<Pick<ViewTransition, 'ready' | 'skipTransition' | 'types'>>;
 type GuardedDocument = {
 	documentElement: { dataset: DOMStringMap };
 	startViewTransition: (arg: StartArg) => Settleable;
@@ -176,7 +198,14 @@ export const guardViewTransitions = (doc: GuardedDocument) => {
 			clearAttributes(doc);
 			const update = arg instanceof Function ? arg : arg?.update;
 			const done = Promise.resolve().then(() => update?.());
-			return { updateCallbackDone: done, finished: done };
+			// The whole ViewTransition contract, settled: callers may await `ready` or call `skipTransition`.
+			return {
+				ready: done,
+				finished: done,
+				updateCallbackDone: done,
+				skipTransition: () => {},
+				types: new Set<string>(),
+			};
 		}
 	};
 };
