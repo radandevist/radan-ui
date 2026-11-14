@@ -3,7 +3,7 @@ import { Toaster as Sonner } from 'sonner';
 
 import { cn } from '../../lib/cn';
 import type { ToasterProps, ToastType } from './toast.contract';
-import { toastIconVariants } from './toast.variants';
+import { toastCard, toastIconVariants } from './toast.variants';
 
 const MD = '(min-width: 768px)';
 const subscribe = (notify: () => void) => {
@@ -66,7 +66,7 @@ const glyphs: Record<Exclude<ToastType, 'default'>, ReactNode> = {
 		</Svg>
 	),
 	loading: (
-		<Svg className="animate-spin">
+		<Svg className="animate-spin motion-reduce:animate-none">
 			<path d="M21 12a9 9 0 1 1-6.2-8.56" />
 		</Svg>
 	),
@@ -82,7 +82,9 @@ const Tile = ({ type }: { type: Exclude<ToastType, 'default'> }) => (
 const types = ['success', 'error', 'warning', 'info', 'loading'] as const;
 const content = cn(
 	'min-w-0! flex-1!',
-	'before:mb-0.5 before:block before:pr-[72px] before:text-[11px] before:leading-[1.3] before:font-semibold',
+	// A plain toast() has no icon tile: a spacer keeps its text aligned with the typed cards.
+	'[li:not([data-type]):not(:has([data-icon]))_&]:ps-[52px]',
+	'before:mb-0.5 before:block before:pe-[72px] before:text-[11px] before:leading-[1.3] before:font-semibold',
 	'before:tracking-[0.08em] before:text-muted-foreground before:uppercase',
 	'before:content-[var(--toast-label-default)]',
 	'group-data-[type=success]:before:content-[var(--toast-label-success)]',
@@ -91,40 +93,41 @@ const content = cn(
 	'group-data-[type=info]:before:content-[var(--toast-label-info)]',
 	'group-data-[type=loading]:before:content-[var(--toast-label-loading)]',
 	// On the content, not on the card: sonner's own ::after is the hover bridge between stacked toasts.
-	'after:absolute after:top-3.5 after:right-4 after:text-xs after:leading-[1.3] after:text-muted-foreground',
+	'after:absolute after:top-3.5 after:end-4 after:text-xs after:leading-[1.3] after:text-muted-foreground',
 	'after:content-[var(--toast-time)]',
 );
+// `!` on the outline: sonner's own `[data-button]` / card rules reset it, a plain utility would lose.
+const ring = 'focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-ring!';
 const toast = cn(
-	'group gap-3! rounded-[20px]! border-transparent! bg-popover-surface! px-4! py-3.5! text-[13px]! text-foreground!',
-	'shadow-popover! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+	'group border-transparent! text-[13px]! text-foreground!',
+	toastCard,
+	ring,
 	// An action chip sits at the bottom right under the time: 76 px tall so they never meet; a collapsed card behind the
 	// front one keeps sonner's front height so it never overhangs its stack slot.
 	"[&:has([data-button]):not([data-expanded='false'][data-front='false'])]:min-h-[76px]",
 );
+// A 44 px target on a phone.
 const action = cn(
-	'h-8! self-end! rounded-[8px]! bg-secondary! px-3! text-[13px]! font-medium! text-foreground!',
-	'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+	'h-8! self-end! rounded-md! bg-secondary! px-3! text-[13px]! font-medium! text-foreground! max-md:h-11!',
+	ring,
 );
 
-export const Toaster = ({ labels, now, theme = 'light', expand, visibleToasts, className }: ToasterProps) => {
+export const Toaster = ({ labels, now, theme = 'light', ...rest }: ToasterProps) => {
 	const fromMd = useFromMd();
-	const vars = {
-		'--width': 'min(400px, calc(100vw - 24px))',
-		'--toast-time': JSON.stringify(now ?? ''),
-		...Object.fromEntries(
-			Object.entries(labels).map(([type, text]) => [`--toast-label-${type}`, JSON.stringify(text)]),
-		),
-	};
+	const entries = Object.entries(labels).map(([type, text]) => [`--toast-label-${type}`, JSON.stringify(text)]);
+	entries.push(['--width', 'min(400px, calc(100vw - 24px))']);
+	if (now !== undefined) {
+		entries.push(['--toast-time', JSON.stringify(now)]);
+	}
+	const vars = Object.fromEntries(entries);
 	return (
 		<Sonner
-			theme={theme}
 			position={fromMd ? 'bottom-right' : 'top-center'}
-			expand={expand}
-			visibleToasts={visibleToasts}
-			className={className}
-			icons={Object.fromEntries(types.map((type) => [type, <Tile key={type} type={type} />]))}
 			offset={{ top: TOP }}
 			mobileOffset={{ top: TOP, left: 12, right: 12 }}
+			{...rest}
+			theme={theme}
+			icons={Object.fromEntries(types.map((type) => [type, <Tile key={type} type={type} />]))}
 			// SAFETY: CSSProperties has no index signature for custom properties; every value here is a string.
 			style={vars as CSSProperties}
 			toastOptions={{

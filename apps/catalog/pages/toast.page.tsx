@@ -25,7 +25,7 @@ const ToastPage = () => {
 	return (
 		<main className="mx-auto max-w-3xl p-6">
 			<h1 className="mb-6 text-xl font-semibold">Toast</h1>
-			<Toaster labels={labels} now="now" expand visibleToasts={6} />
+			<Toaster labels={labels} containerAriaLabel="Notifications" now="now" expand visibleToasts={6} />
 			<h2 className="mb-3 text-sm font-semibold text-muted-foreground">ToastSkeleton</h2>
 			<ToastSkeleton />
 		</main>

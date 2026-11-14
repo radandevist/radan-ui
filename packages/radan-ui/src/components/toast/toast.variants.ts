@@ -6,15 +6,19 @@ export const toastIconVariants = cva('flex size-10 shrink-0 items-center justify
 	variants: {
 		type: {
 			default: 'text-muted-foreground',
-			success: 'text-status-resolved-foreground',
-			error: 'text-status-breached-foreground',
-			warning: 'text-status-pending-foreground',
-			info: 'text-status-open-foreground',
+			success: 'text-status-success',
+			error: 'text-destructive',
+			warning: 'text-status-warning',
+			// The domain status tones are not in the Tailwind bridge: read the variable (DESIGN §6).
+			info: 'text-[color:var(--radan-ui-status-open-foreground)]',
 			loading: 'text-muted-foreground',
 		},
 	},
 	defaultVariants: { type: 'default' },
 });
 
-/** The card surface: the neutral popover surface, the popover shadow, never the type's colour. */
-export const toastCard = 'flex-row items-center gap-3 rounded-[20px] bg-popover-surface p-4 shadow-popover';
+/**
+ * The card surface, shared by the real toast and its skeleton: the neutral popover surface, the popover shadow, never
+ * the type's colour. `!` because sonner's own stylesheet is one level more specific than a utility.
+ */
+export const toastCard = 'flex items-center gap-3! rounded-toast! bg-popover-surface! px-4! py-3.5! shadow-popover!';

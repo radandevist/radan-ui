@@ -123,7 +123,7 @@ export const component: Record<string, TokenValue> = {
 	'card-shadow': { semantic: 'effect-raised-control' },
 	'control-radius': 'calc(var(--{p}-radius) * 1.4)',
 	'popover-radius': '14px',
-	'toast-radius': '12px',
+	'toast-radius': '20px',
 };
 
 /** Tailwind theme names → the semantic token they read (`@theme inline`). */

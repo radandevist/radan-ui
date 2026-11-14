@@ -114,7 +114,7 @@ Pointing at the semantic layer: override one and every instance of that componen
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
-| `--radan-ui-toast-radius` | `12px` |
+| `--radan-ui-toast-radius` | `20px` |
 
 `card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground`. The card's
 component knob is `--radan-ui-card-fg` (it reads `card-foreground`), next to `--radan-ui-card-bg`. A component knob never
@@ -174,7 +174,7 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 | `rounded-card` | `14px` | cards |
 | `rounded-control` | `calc(radius × 1.4)` | buttons, inputs |
 | `rounded-popover` | `14px` | popovers, menus |
-| `rounded-toast` | `12px` | toasts |
+| `rounded-toast` | `20px` | toasts |
 
 **Shadow** — flat surfaces, elevation only where something floats:
 
