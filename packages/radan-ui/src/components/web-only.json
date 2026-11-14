@@ -1,1 +1,6 @@
-{}
+{
+	"toast": {
+		"reason": "ShopKartOS has no native toast yet; the web card ships first",
+		"issue": "https://github.com/radandevist/radan-ui/issues/47"
+	}
+}
