@@ -553,8 +553,8 @@ const readType = (node, ctx, seen, out) => {
 			const name = propName(node.key);
 			const type = node.typeAnnotation?.typeAnnotation;
 			if (name === null || !type) return;
-			if (isBooleanType(type) && isToggle(name, ctx.allowed)) out.toggles.push(name);
-			else if (LAYOUT_PROPS.has(name) && unionLayoutCount(type) >= 2) out.layoutUnions.push(name);
+			if (isBooleanType(type) && isToggle(name, ctx.allowed)) out.toggles.add(name);
+			else if (LAYOUT_PROPS.has(name) && unionLayoutCount(type) >= 2) out.layoutUnions.add(name);
 			return;
 		}
 	}
@@ -630,36 +630,45 @@ const noBooleanPropSoup = {
 			allowed: new Set([...DEFAULT_STATES, ...config.allow ?? []].map((word) => word.toLowerCase())),
 			decls: /* @__PURE__ */ new Map()
 		};
+		const cache = /* @__PURE__ */ new Map();
+		const membersOf = (props) => {
+			const key = props.type === "TSTypeReference" && props.typeName.type === "Identifier" ? props.typeName.name : props;
+			let found = cache.get(key);
+			if (!found) {
+				found = {
+					toggles: /* @__PURE__ */ new Set(),
+					layoutUnions: /* @__PURE__ */ new Set()
+				};
+				readType(props, ctx, /* @__PURE__ */ new Set(), found);
+				cache.set(key, found);
+			}
+			return found;
+		};
 		const check = (name, props, at) => {
-			if (!props || !/^[A-Z]/.test(name)) return;
-			const found = {
-				toggles: [],
-				layoutUnions: []
-			};
-			readType(props, ctx, /* @__PURE__ */ new Set(), found);
-			if (found.toggles.length > max) context.report({
+			if (!props || name !== "default" && !/^[A-Z]/.test(name)) return;
+			const found = membersOf(props);
+			if (found.toggles.size > max) context.report({
 				node: at,
 				messageId: "tooManyToggles",
 				data: {
 					name,
-					count: String(found.toggles.length),
-					props: found.toggles.join(", ")
+					count: String(found.toggles.size),
+					props: [...found.toggles].join(", ")
 				}
 			});
-			if (layoutUnions && found.layoutUnions.length > 0) context.report({
+			if (layoutUnions && found.layoutUnions.size > 0) context.report({
 				node: at,
 				messageId: "layoutUnion",
 				data: {
 					name,
-					props: found.layoutUnions.join(", ")
+					props: [...found.layoutUnions].join(", ")
 				}
 			});
 		};
 		const checkInit = (name, init, annotation, at) => {
 			const wrapperProps = [];
 			const fn = unwrapComponent(init, wrapperProps);
-			if (!fn) return;
-			check(name, paramType(fn) ?? wrapperProps[0] ?? annotation, at);
+			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at);
 		};
 		return {
 			Program(program) {
@@ -667,6 +676,15 @@ const noBooleanPropSoup = {
 			},
 			FunctionDeclaration(node) {
 				if (node.id) check(node.id.name, paramType(node), node.id);
+			},
+			ExportDefaultDeclaration(node) {
+				const { declaration } = node;
+				if (declaration.type === "FunctionDeclaration") {
+					if (!declaration.id) check("default", paramType(declaration), node);
+					return;
+				}
+				if (declaration.type === "TSInterfaceDeclaration" || declaration.type === "ClassDeclaration") return;
+				checkInit("default", declaration, null, node);
 			},
 			VariableDeclarator(node) {
 				if (node.id.type !== "Identifier" || !node.init) return;
