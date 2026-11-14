@@ -114,7 +114,7 @@ Pointing at the semantic layer: override one and every instance of that componen
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
-| `--radan-ui-toast-radius` | `12px` |
+| `--radan-ui-toast-radius` | `20px` |
 
 `card-foreground` is a semantic token (light `ink`, dark `paper`), bridged as `--color-card-foreground`. The card's
 component knob is `--radan-ui-card-fg` (it reads `card-foreground`), next to `--radan-ui-card-bg`. A component knob never
@@ -174,7 +174,7 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 | `rounded-card` | `14px` | cards |
 | `rounded-control` | `calc(radius × 1.4)` | buttons, inputs |
 | `rounded-popover` | `14px` | popovers, menus |
-| `rounded-toast` | `12px` | toasts |
+| `rounded-toast` | `20px` | toasts |
 
 **Shadow** — flat surfaces, elevation only where something floats:
 
@@ -242,6 +242,9 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 - **A small duration scale**: colour/feedback ≈ `120ms`, layout/surfaces ≈ `240ms`. A surface unmounts after its exit.
 - Entrances (`rise`, `pop`, `fade`) play **once on mount**, cascaded with a `--i` index (~45ms apart); never re-play on
   re-render.
+- **Named exception, toasts**: sonner owns the toast's enter, exit, stack and swipe motion (its own curves, not
+  `Collapse`); its stylesheet already drops them under `prefers-reduced-motion`, and the loading spinner carries
+  `motion-reduce:animate-none`.
 - `prefers-reduced-motion`: entrances become plain fades, morphs stop moving entirely — enforced inside the
   primitives, not by each caller.
 
