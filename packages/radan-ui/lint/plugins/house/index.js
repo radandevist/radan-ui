@@ -569,6 +569,21 @@ const typeArgsOf = (node) => {
 	const withArgs = node;
 	return (withArgs.typeArguments ?? withArgs.typeParameters)?.params ?? [];
 };
+const typeParamNames = (fn) => {
+	return fn.typeParameters?.params.map((param) => param.name.name) ?? [];
+};
+/** `FC<P>`, `React.FC<P>`, `FunctionComponent<P>`: the only annotations whose type argument is the props type. */
+const COMPONENT_TYPES = /* @__PURE__ */ new Set([
+	"FC",
+	"FunctionComponent",
+	"VoidFunctionComponent"
+]);
+const isComponentAnnotation = (node) => {
+	if (node?.type !== "TSTypeReference") return false;
+	const { typeName } = node;
+	const last = typeName.type === "TSQualifiedName" ? typeName.right : typeName;
+	return last.type === "Identifier" && COMPONENT_TYPES.has(last.name);
+};
 const paramType = (fn) => {
 	const [first] = fn.params;
 	if (!first || first.type === "RestElement") return null;
@@ -631,22 +646,22 @@ const noBooleanPropSoup = {
 			decls: /* @__PURE__ */ new Map()
 		};
 		const cache = /* @__PURE__ */ new Map();
-		const membersOf = (props) => {
-			const key = props.type === "TSTypeReference" && props.typeName.type === "Identifier" ? props.typeName.name : props;
-			let found = cache.get(key);
+		const membersOf = (props, bound) => {
+			const key = props.type === "TSTypeReference" && props.typeName.type === "Identifier" ? ctx.decls.get(props.typeName.name) ?? props : props;
+			let found = bound.length === 0 ? cache.get(key) : void 0;
 			if (!found) {
 				found = {
 					toggles: /* @__PURE__ */ new Set(),
 					layoutUnions: /* @__PURE__ */ new Set()
 				};
-				readType(props, ctx, /* @__PURE__ */ new Set(), found);
-				cache.set(key, found);
+				readType(props, ctx, new Set(bound), found);
+				if (bound.length === 0) cache.set(key, found);
 			}
 			return found;
 		};
-		const check = (name, props, at) => {
+		const check = (name, props, at, fn) => {
 			if (!props || name !== "default" && !/^[A-Z]/.test(name)) return;
-			const found = membersOf(props);
+			const found = membersOf(props, fn ? typeParamNames(fn) : []);
 			if (found.toggles.size > max) context.report({
 				node: at,
 				messageId: "tooManyToggles",
@@ -668,19 +683,19 @@ const noBooleanPropSoup = {
 		const checkInit = (name, init, annotation, at) => {
 			const wrapperProps = [];
 			const fn = unwrapComponent(init, wrapperProps);
-			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at);
+			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at, fn);
 		};
 		return {
 			Program(program) {
 				collectDecls(program.body, ctx.decls);
 			},
 			FunctionDeclaration(node) {
-				if (node.id) check(node.id.name, paramType(node), node.id);
+				if (node.id) check(node.id.name, paramType(node), node.id, node);
 			},
 			ExportDefaultDeclaration(node) {
 				const { declaration } = node;
 				if (declaration.type === "FunctionDeclaration") {
-					if (!declaration.id) check("default", paramType(declaration), node);
+					if (!declaration.id) check("default", paramType(declaration), node, declaration);
 					return;
 				}
 				if (declaration.type === "TSInterfaceDeclaration" || declaration.type === "ClassDeclaration") return;
@@ -689,7 +704,7 @@ const noBooleanPropSoup = {
 			VariableDeclarator(node) {
 				if (node.id.type !== "Identifier" || !node.init) return;
 				const annotation = node.id.typeAnnotation?.typeAnnotation;
-				const fcProps = annotation?.type === "TSTypeReference" ? typeArgsOf(annotation)[0] : void 0;
+				const fcProps = isComponentAnnotation(annotation) ? typeArgsOf(annotation)[0] : void 0;
 				checkInit(node.id.name, node.init, fcProps ?? null, node.id);
 			}
 		};

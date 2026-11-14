@@ -190,6 +190,23 @@ const typeArgsOf = (node: ESTree.Node): ESTree.Node[] => {
 	return (withArgs.typeArguments ?? withArgs.typeParameters)?.params ?? [];
 };
 
+const typeParamNames = (fn: FunctionNode): string[] => {
+	// SAFETY: oxc's TS-ESTree puts `typeParameters.params[].name` (an Identifier) on functions; the base typing omits it.
+	const withParams = fn as { typeParameters?: { params: { name: { name: string } }[] } | null };
+	return withParams.typeParameters?.params.map((param) => param.name.name) ?? [];
+};
+
+/** `FC<P>`, `React.FC<P>`, `FunctionComponent<P>`: the only annotations whose type argument is the props type. */
+const COMPONENT_TYPES = new Set(['FC', 'FunctionComponent', 'VoidFunctionComponent']);
+const isComponentAnnotation = (node: ESTree.Node | undefined): node is ESTree.TSTypeReference => {
+	if (node?.type !== 'TSTypeReference') {
+		return false;
+	}
+	const { typeName } = node;
+	const last = typeName.type === 'TSQualifiedName' ? typeName.right : typeName;
+	return last.type === 'Identifier' && COMPONENT_TYPES.has(last.name);
+};
+
 const paramType = (fn: FunctionNode): ESTree.Node | null => {
 	const [first] = fn.params;
 	if (!first || first.type === 'RestElement') {
@@ -268,26 +285,31 @@ export const noBooleanPropSoup = {
 			decls: new Map(),
 		};
 
-		// One walk per props type: a same-file `P` shared by many components is read once. Keyed by name when a plain reference.
-		const cache = new Map<ESTree.Node | string, Members>();
-		const membersOf = (props: ESTree.Node): Members => {
+		// One walk per props type: a same-file `P` shared by many components is read once. Keyed by the resolved declaration.
+		// A function's own type parameters shadow same-file types, so they pre-fill `seen` and skip the cache.
+		const cache = new Map<ESTree.Node, Members>();
+		const membersOf = (props: ESTree.Node, bound: string[]): Members => {
 			const key =
-				props.type === 'TSTypeReference' && props.typeName.type === 'Identifier' ? props.typeName.name : props;
-			let found = cache.get(key);
+				props.type === 'TSTypeReference' && props.typeName.type === 'Identifier'
+					? (ctx.decls.get(props.typeName.name) ?? props)
+					: props;
+			let found = bound.length === 0 ? cache.get(key) : undefined;
 			if (!found) {
 				found = { toggles: new Set(), layoutUnions: new Set() };
-				readType(props, ctx, new Set(), found);
-				cache.set(key, found);
+				readType(props, ctx, new Set(bound), found);
+				if (bound.length === 0) {
+					cache.set(key, found);
+				}
 			}
 			return found;
 		};
 
 		// `default` stands for an anonymous default export, which has no PascalCase name to test.
-		const check = (name: string, props: ESTree.Node | null | undefined, at: ESTree.Node) => {
+		const check = (name: string, props: ESTree.Node | null | undefined, at: ESTree.Node, fn?: FunctionNode | null) => {
 			if (!props || (name !== 'default' && !/^[A-Z]/.test(name))) {
 				return;
 			}
-			const found = membersOf(props);
+			const found = membersOf(props, fn ? typeParamNames(fn) : []);
 			if (found.toggles.size > max) {
 				context.report({
 					node: at,
@@ -308,7 +330,7 @@ export const noBooleanPropSoup = {
 			const wrapperProps: ESTree.Node[] = [];
 			const fn = unwrapComponent(init, wrapperProps);
 			// No inline function (`memo<P>(Existing)`, `const C: FC<P> = Existing`): the type arguments / annotation still count.
-			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at);
+			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at, fn);
 		};
 
 		return {
@@ -317,7 +339,7 @@ export const noBooleanPropSoup = {
 			},
 			FunctionDeclaration(node) {
 				if (node.id) {
-					check(node.id.name, paramType(node), node.id);
+					check(node.id.name, paramType(node), node.id, node);
 				}
 			},
 			ExportDefaultDeclaration(node) {
@@ -325,7 +347,7 @@ export const noBooleanPropSoup = {
 				if (declaration.type === 'FunctionDeclaration') {
 					// A named one is already seen by `FunctionDeclaration`.
 					if (!declaration.id) {
-						check('default', paramType(declaration), node);
+						check('default', paramType(declaration), node, declaration);
 					}
 					return;
 				}
@@ -340,7 +362,7 @@ export const noBooleanPropSoup = {
 				}
 				// `const X: FC<Props> = …` / `React.FC<Props>`
 				const annotation = node.id.typeAnnotation?.typeAnnotation;
-				const fcProps = annotation?.type === 'TSTypeReference' ? typeArgsOf(annotation)[0] : undefined;
+				const fcProps = isComponentAnnotation(annotation) ? typeArgsOf(annotation)[0] : undefined;
 				checkInit(node.id.name, node.init, fcProps ?? null, node.id);
 			},
 		};

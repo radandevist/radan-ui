@@ -43,6 +43,11 @@ const i = (code: string, messageId = 'tooManyToggles', options: Options = []) =>
 
 new RuleTester().run(RULE_NAME, noBooleanPropSoup, {
 	valid: [
+		// UI53B-1: a generic annotation that is not a component type is not a props type.
+		v('type Props = { hasA: boolean; hasB: boolean };\nconst CardDefaults: Partial<Props> = {};'),
+		v('type Props = { hasA: boolean; hasB: boolean };\nconst CardContext: Context<Props> = createContext(null);'),
+		// UI53B-2: a function's own type parameter shadows a same-file type.
+		v('type P = { hasA: boolean; hasB: boolean };\nfunction Card<P>(props: P) { return <div />; }'),
 		// UI53-3: a prop redeclared via extends / intersection counts once.
 		v('interface B { hasA?: boolean }\ninterface P extends B { hasA?: boolean }\nconst Card = (props: P) => <div />;'),
 		v('type B = { hasA?: boolean };\nconst Card = (props: B & { hasA?: boolean }) => <div />;'),
@@ -129,7 +134,7 @@ new RuleTester().run(RULE_NAME, noBooleanPropSoup, {
 		i(
 			'type P = { hasA: boolean; hasB: boolean };\nexport default forwardRef<HTMLDivElement, P>((props, ref) => <div />);',
 		),
-		// UI53-4: a props type shared by several components is reported for each (memoized walk).
+		// UI53-4: a props type shared by several components is reported for each (one report per component).
 		{
 			code: 'type P = { hasA: boolean; hasB: boolean };\nconst A = (props: P) => <div />;\nconst B = (props: P) => <div />;',
 			filename: 'file.tsx',
