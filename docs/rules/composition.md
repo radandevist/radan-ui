@@ -25,3 +25,5 @@ Short example — the shape is what you compose:
 ```
 
 …never `<Card hasHeader showPill lines={2} />`.
+
+Lint: [`house/no-boolean-prop-soup`](./no-boolean-prop-soup.md) flags part-toggle boolean props (warn).
