@@ -1,4 +1,10 @@
-import { PageBack, PageBackSkeleton, directionOf, type Direction, type Place } from '@radandevist/radan-ui/page-transition';
+import {
+	PageBack,
+	PageBackSkeleton,
+	directionOf,
+	type Direction,
+	type Place,
+} from '@radandevist/radan-ui/page-transition';
 import type { CSSProperties } from 'react';
 
 // A catalog page: the states shown statically (no animation, no clock, no router), so the screenshot is stable.
@@ -20,21 +26,30 @@ const frames: { title: string; frame: Frame }[] = [
 		title: 'iPhone, back',
 		frame: { old: { translate: '50% 0' }, next: { translate: '-15% 0', filter: 'brightness(0.95)' }, oldOnTop: true },
 	},
-	{ title: 'Material, push', frame: { old: { translate: '-15px 0', opacity: 0.4 }, next: { translate: '15px 0', opacity: 0.4 } } },
-	{ title: 'Material, back', frame: { old: { translate: '15px 0', opacity: 0.4 }, next: { translate: '-15px 0', opacity: 0.4 } } },
+	{
+		title: 'Material, push',
+		frame: { old: { translate: '-15px 0', opacity: 0.4 }, next: { translate: '15px 0', opacity: 0.4 } },
+	},
+	{
+		title: 'Material, back',
+		frame: { old: { translate: '15px 0', opacity: 0.4 }, next: { translate: '-15px 0', opacity: 0.4 } },
+	},
 	{ title: 'Fade (sections)', frame: { old: { opacity: 0.5 }, next: { opacity: 0.5 } } },
 ];
 
 const Screen = ({ name, tone, style, top }: { name: string; tone: string; style: CSSProperties; top?: boolean }) => (
-	<div className={`absolute inset-0 flex items-end p-2 text-xs ${tone}`} style={{ ...style, zIndex: top ? 2 : 1 }}>
+	<div
+		className={`absolute inset-0 flex items-start p-2 text-xs font-medium ${tone}`}
+		style={{ ...style, zIndex: top ? 2 : 1 }}
+	>
 		{name}
 	</div>
 );
 
 const Mock = ({ frame }: { frame: Frame }) => (
 	<div className="relative h-44 w-24 overflow-hidden rounded-lg border border-border bg-background">
-		<Screen name="old page" tone="bg-muted" style={frame.old} top={frame.oldOnTop} />
-		<Screen name="new page" tone="bg-secondary" style={frame.next} top={!frame.oldOnTop} />
+		<Screen name="old" tone="bg-foreground/10" style={frame.old} top={frame.oldOnTop} />
+		<Screen name="new" tone="bg-foreground/25" style={frame.next} top={!frame.oldOnTop} />
 	</div>
 );
 
@@ -48,7 +63,10 @@ const rules: { navigation: string; direction: Direction | undefined }[] = [
 		navigation: 'arrow with no earlier entry',
 		direction: directionOf(at('/pickups/P-4', 0), at('/pickups', 0), { toParent: true }),
 	},
-	{ navigation: 'forward to a later entry', direction: directionOf(at('/pickups', 1), at('/pickups/P-4', 2), { traversal: true }) },
+	{
+		navigation: 'forward to a later entry',
+		direction: directionOf(at('/pickups', 1), at('/pickups/P-4', 2), { traversal: true }),
+	},
 	{ navigation: 'overlay sheet opens', direction: directionOf(at('/', 1), at('/', 2, true)) },
 	{ navigation: 'replace, same entry', direction: directionOf(at('/pickups', 1), at('/forwarders', 1)) },
 ];
