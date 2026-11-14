@@ -7,12 +7,13 @@ export type ToasterLabels = Record<ToastType, string>;
 
 /**
  * The public API of the `<Toaster />` (render it once, near the root); toasts themselves are fired with `toast`.
- * Everything else sonner's `<Toaster>` takes passes through (`duration`, `dir`, `closeButton` (off by default),
- * `hotkey`, `position`, `offset`, `expand`, `visibleToasts`, `className`, …), except what the card owns.
+ * Everything else sonner's `<Toaster>` takes passes through (`duration`, `dir`, `hotkey`, `position`, `offset`,
+ * `expand`, `visibleToasts`, `className`, …), except what the card owns. No `closeButton`: the apps' rule is no visible ✕
+ * (a toast closes by timeout, swipe or its action), so it is not offered.
  */
 export type ToasterProps = Omit<
 	SonnerToasterProps,
-	'icons' | 'style' | 'toastOptions' | 'theme' | 'containerAriaLabel'
+	'icons' | 'style' | 'toastOptions' | 'theme' | 'containerAriaLabel' | 'closeButton'
 > & {
 	/** The label of each type (« DONE » for `success`, …). */
 	labels: ToasterLabels;
@@ -24,4 +25,8 @@ export type ToasterProps = Omit<
 	theme?: 'light' | 'dark';
 };
 
-export type ToastSkeletonProps = { className?: string };
+export type ToastSkeletonProps = {
+	/** The announced "Loading…" text, translate it in the app. */
+	label?: string;
+	className?: string;
+};

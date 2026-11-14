@@ -156,6 +156,7 @@ import { toast, Toaster } from '@radandevist/radan-ui/toast';
 // once, near the root: the words come from your i18n, the library has none
 <Toaster
 	theme={dark ? 'dark' : 'light'}
+	containerAriaLabel={t('toast.region')}
 	now={t('toast.now')}
 	labels={{
 		default: t('toast.default'),
@@ -173,11 +174,14 @@ toast.info('Notification dismissed', { action: { label: 'Undo', onClick: undo },
 
 Web only for now (native: [#47](https://github.com/radandevist/radan-ui/issues/47)). `toast` is [sonner](https://sonner.emilkowal.ski/)'s,
 re-exported, so ids, actions, `toast.promise` and `toast.dismiss` work as documented there; `sonner` is an optional peer
-dependency (`pnpm add sonner`). `Toaster` takes `labels` (the small uppercase word over the title, per type), `now` (the
-time at the card's top right), `theme` (the app's theme, never the OS's), `expand`, `visibleToasts` and `className`.
+dependency (`pnpm add sonner`). `Toaster` requires `labels` (the small uppercase word over the title, per type) and `containerAriaLabel` (the accessible
+name of the notifications region, in your language; sonner appends its hotkey hint). It also takes `now` (the time at the
+card's top right) and `theme` (the app's theme, never the OS's); every other sonner `<Toaster>` prop passes through
+(`duration`, `dir`, `hotkey`, `position`, `offset`, `expand`, `visibleToasts`, `className`, …) except `closeButton`, `icons`,
+`style` and `toastOptions`, which the card owns: there is no visible ✕, a toast closes by timeout, swipe or its action.
 The card is a raised rounded surface with a tinted 40 px icon tile (the tone is on the icon alone), the label, a bold
 title, an optional description and a neutral action chip. Below `md` it slides down over the header like an Android
-notification (top-center, under the status area); from `md` it sits bottom-right. `ToastSkeleton` is exported beside it.
+notification (top-center, under the status area); from `md` it sits bottom-right. `ToastSkeleton` (`label`, `className`) is exported beside it.
 Like `Button`, add the `@source` for `dist/web`.
 
 ### React Native / Expo

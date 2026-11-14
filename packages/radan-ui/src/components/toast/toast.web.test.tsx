@@ -94,17 +94,27 @@ test('the region name comes from the app, and the close button is off by default
 	expect(el.querySelector('[data-close-button]')).toBeNull();
 });
 
-test('sonner props pass through: visibleToasts caps the stack, expand opens it, closeButton opts in', async () => {
+test('sonner props pass through: visibleToasts caps the stack, expand opens it', async () => {
 	await open(
 		() => {
 			toast('one');
 			toast('two');
 			toast('three');
 		},
-		{ visibleToasts: 2, expand: true, closeButton: true },
+		{ visibleToasts: 2, expand: true },
 	);
 	await waitFor(() => expect(document.querySelectorAll('[data-sonner-toast]').length).toBe(3));
 	expect(document.querySelectorAll('[data-sonner-toast][data-visible="true"]').length).toBe(2);
 	expect(card().dataset.expanded).toBe('true');
-	expect(card().querySelector('[data-close-button]')).toBeTruthy();
+});
+
+test('the skeleton announces the app-supplied label', () => {
+	render(<ToastSkeleton label="Chargement" />);
+	expect(screen.getByRole('status').textContent).toBe('Chargement');
+});
+
+test('closeButton is not offered: the type refuses it and no ✕ renders', async () => {
+	// @ts-expect-error closeButton is omitted from ToasterProps (no visible ✕ rule)
+	const el = await open(() => toast.success('Saved'), { closeButton: undefined });
+	expect(el.querySelector('[data-close-button]')).toBeNull();
 });
