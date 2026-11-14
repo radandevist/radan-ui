@@ -24,6 +24,8 @@ export const goBack = async ({ canGoBack, back, toParent }: BackNavigation): Pro
 		}
 		markBackToParent();
 		await toParent();
+		// Settled: the transition hook has run if there was one. A navigation that changed nothing keeps no mark.
+		clearMarks();
 	} catch (error) {
 		// The navigation never happened: its marks must not reach the next one.
 		clearMarks();

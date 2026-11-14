@@ -75,10 +75,10 @@ export const skipsTraversal = (via: Via & { appStarted?: boolean }, nav?: Nav): 
 
 /**
  * How `to` follows `from`, or undefined for no transition. First match wins: a first load (no `from`), a replace
- * (same history index) or a change inside one page (filters, tabs, an open drawer) none; an overlay sheet opening is a
- * push, closing a back; a top-level section to another a fade (the history Back between two included); the arrow of a
- * screen with no earlier entry, to its parent, a back; a traversal to an earlier entry a back; a traversal to a later
- * entry a push; any other navigation to a screen below the top level a push; anything else a fade.
+ * (same history index) or a change inside one page (filters, tabs, an open drawer) none; the arrow of a screen with no
+ * earlier entry, to its parent, a back (even on the same path, a search change only); an overlay sheet opening is a
+ * push, closing a back; a top-level section to another a fade (the history Back between two included); a traversal to
+ * an earlier entry a back; a traversal to a later entry a push; any other navigation to a screen below the top level a push; anything else a fade.
  */
 export const directionOf = (
 	from: Place | undefined,
@@ -115,47 +115,64 @@ export const directionOf = (
 export const transitionFor = (direction: Direction | undefined, env: Environment): Direction | undefined =>
 	direction && env.style !== 'none' && !env.fromMd && !env.reducedMotion && env.supported ? direction : undefined;
 
+const hasMatchMedia = () => globalThis.matchMedia instanceof Function;
 // A webview or a test DOM without `matchMedia` cannot run the transition: report it unsupported instead of throwing.
 const browserEnvironment = (): Environment => ({
 	style: appliedStyle(readStyle()),
-	fromMd: !!globalThis.matchMedia?.('(min-width: 48rem)').matches,
-	reducedMotion: !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
-	supported: !!globalThis.matchMedia && 'startViewTransition' in document,
+	fromMd: hasMatchMedia() && globalThis.matchMedia('(min-width: 48rem)').matches,
+	reducedMotion: hasMatchMedia() && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches,
+	supported: hasMatchMedia() && 'startViewTransition' in document,
 });
 
 // What the router cannot tell the adapter, each read once by the next transition (`take`): a browser that already
 // animated a back (`hasUAVisualTransition` on the navigate event: no second transition), a history traversal
 // (popstate), a traversal the app started itself (the arrow, the sheet's close) and the arrow's fallback to the parent.
-// The two marks the app arms itself before navigating expire after MARK_TTL_MS: a `back()` that does nothing or a
-// navigation that never starts must not leak them into the next, unrelated navigation.
-const MARK_TTL_MS = 1500;
-const pending = { browserAnimated: false, traversal: false, appStarted: false, toParent: false, armedAt: 0 };
-const take = () => {
-	if (performance.now() - pending.armedAt > MARK_TTL_MS) {
-		pending.appStarted = pending.toParent = false;
+// The two marks the app arms itself. `toParent` is armed with its own navigation (the arrow calls the router at once)
+// and cleared by `goBack` when that navigation settles or fails, so it never outlives it. `appStarted` waits for the
+// browser to confirm the traversal (popstate / a `traverse` navigate event): confirmed, it is kept however long the
+// loaders take before `beginPageTransition` runs; unconfirmed, (a `back()` that did nothing) it expires after
+// UNCONFIRMED_TTL_MS, so it never lends itself to a later, unrelated traversal.
+const UNCONFIRMED_TTL_MS = 1500;
+const pending = {
+	browserAnimated: false,
+	traversal: false,
+	appStarted: false,
+	confirmed: false,
+	toParent: false,
+	armedAt: 0,
+};
+const expire = () => {
+	if (pending.appStarted && !pending.confirmed && performance.now() - pending.armedAt > UNCONFIRMED_TTL_MS) {
+		pending.appStarted = false;
 	}
+};
+const confirmTraversal = () => {
+	expire();
+	pending.traversal = true;
+	pending.confirmed = pending.appStarted;
+};
+const take = () => {
+	expire();
 	const seen = {
 		browserAnimated: pending.browserAnimated,
 		traversal: pending.traversal,
 		appStarted: pending.appStarted,
 		toParent: pending.toParent,
 	};
-	pending.browserAnimated = pending.traversal = pending.appStarted = pending.toParent = false;
+	pending.browserAnimated = pending.traversal = pending.appStarted = pending.confirmed = pending.toParent = false;
 	return seen;
 };
 
 /** The back arrow with no earlier entry replaces the page with its parent: that navigation is a back, not a push. */
-export const markBackToParent = () => {
-	pending.toParent = true;
-	pending.armedAt = performance.now();
-};
+export const markBackToParent = () => void (pending.toParent = true);
 
-/** Forgets the two app marks (a navigation that failed to start must not leave them for the next one). */
-export const clearMarks = () => void (pending.appStarted = pending.toParent = false);
+/** Forgets the two app marks (a navigation that failed, or settled without a transition, must not leave them for the next one). */
+export const clearMarks = () => void (pending.appStarted = pending.confirmed = pending.toParent = false);
 
 /** A history traversal the app starts itself (the arrow, the sheet's close): it gets the app transition even on iOS. */
 export const markAppTraversal = () => {
 	pending.appStarted = true;
+	pending.confirmed = false;
 	pending.armedAt = performance.now();
 };
 
@@ -222,11 +239,13 @@ export const installPageTransitions = () => {
 	installed = true;
 	if (globalThis.window && 'startViewTransition' in document) {
 		guardViewTransitions(document);
-		window.addEventListener('popstate', () => void (pending.traversal = true), true);
+		window.addEventListener('popstate', confirmTraversal, true);
 		// The Navigation API (Chrome, Safari 18.2+): a push or a replace is never a traversal, whatever popstate said before.
 		window.navigation?.addEventListener('navigate', (e) => {
 			if (e.navigationType !== 'traverse') {
 				pending.traversal = false;
+			} else {
+				confirmTraversal();
 			}
 			if (e.hasUAVisualTransition) {
 				pending.browserAnimated = true;

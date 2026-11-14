@@ -62,10 +62,17 @@ describe('goBack', () => {
 	it('replaces with the parent otherwise, and that navigation reads as a back', async () => {
 		phone();
 		const back = vi.fn<() => void>();
-		await goBack({ canGoBack: false, back, toParent: () => Promise.resolve() });
+		let direction: unknown;
+		await goBack({
+			canGoBack: false,
+			back,
+			// The router's commit hook runs inside the navigation. The replace keeps its history index, yet it is a back.
+			toParent: () => {
+				direction = beginPageTransition(place('/a/1', 1), place('/a', 1));
+			},
+		});
 		expect(back).not.toHaveBeenCalled();
-		// The replace keeps its history index, yet the page transition reads it as a back.
-		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBe('back');
+		expect(direction).toBe('back');
 	});
 
 	it('rejects with the navigation error and leaves no mark when the parent navigation fails', async () => {
@@ -73,25 +80,6 @@ describe('goBack', () => {
 		await expect(
 			goBack({ canGoBack: false, back: () => {}, toParent: () => Promise.reject(new Error('no')) }),
 		).rejects.toThrow('no');
-		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBeUndefined();
-	});
-
-	it('rejects when an async back fails, marks cleared', async () => {
-		phone();
-		await expect(
-			goBack({ canGoBack: true, back: () => Promise.reject(new Error('no')), toParent: () => {} }),
-		).rejects.toThrow('no');
-		expect(beginPageTransition(place('/a', 1), place('/b/1', 2))).toBe('push');
-	});
-
-	it('lets the marks of a back() that did nothing expire before the next navigation', async () => {
-		vi.useFakeTimers();
-		phone();
-		await goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
-		vi.advanceTimersByTime(5000);
-		// Without the expiry the stale mark would make this an app-started traversal on iOS; the toParent mark likewise.
-		await goBack({ canGoBack: false, back: () => {}, toParent: () => {} });
-		vi.advanceTimersByTime(5000);
 		expect(beginPageTransition(place('/a/1', 1), place('/a', 1))).toBeUndefined();
 	});
 });

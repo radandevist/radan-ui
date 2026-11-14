@@ -37,14 +37,21 @@ const frames: { title: string; frame: Frame }[] = [
 	{ title: 'Fade (sections)', frame: { old: { opacity: 0.5 }, next: { opacity: 0.5 } } },
 ];
 
-const Screen = ({ tone, style, top }: { tone: string; style: CSSProperties; top?: boolean }) => (
-	<div className={`absolute inset-0 ${tone}`} style={{ ...style, zIndex: top ? 2 : 1 }} />
+// The leaving page is striped, the arriving one solid: told apart by pattern, not only by tone (dark mode included).
+const stripes: CSSProperties = {
+	backgroundImage: 'repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 8px)',
+	color: 'color-mix(in oklab, var(--color-foreground) 35%, transparent)',
+};
+const solid: CSSProperties = { backgroundColor: 'color-mix(in oklab, var(--color-foreground) 30%, transparent)' };
+
+const Screen = ({ look, style, top }: { look: CSSProperties; style: CSSProperties; top?: boolean }) => (
+	<div className="absolute inset-0" style={{ ...look, ...style, zIndex: top ? 2 : 1 }} />
 );
 
 const Mock = ({ frame }: { frame: Frame }) => (
 	<div className="relative h-44 w-24 overflow-hidden rounded-lg border border-border bg-background">
-		<Screen tone="bg-foreground/10" style={frame.old} top={frame.oldOnTop} />
-		<Screen tone="bg-foreground/25" style={frame.next} top={!frame.oldOnTop} />
+		<Screen look={stripes} style={frame.old} top={frame.oldOnTop} />
+		<Screen look={solid} style={frame.next} top={!frame.oldOnTop} />
 	</div>
 );
 
@@ -71,8 +78,8 @@ const PageTransitionPage = () => (
 		<h1 className="mb-6 text-xl font-semibold">Page transitions</h1>
 		<Section title="Styles and directions, frozen halfway">
 			<p className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-				<span className="inline-block size-3 rounded-sm border border-border bg-foreground/10" /> leaving page
-				<span className="ml-3 inline-block size-3 rounded-sm border border-border bg-foreground/25" /> arriving page
+				<span className="inline-block size-4 rounded-sm border border-border" style={stripes} /> striped: leaving page
+				<span className="ml-3 inline-block size-4 rounded-sm border border-border" style={solid} /> solid: arriving page
 			</p>
 			<div className="flex flex-wrap gap-4">
 				{frames.map(({ title, frame }) => (
