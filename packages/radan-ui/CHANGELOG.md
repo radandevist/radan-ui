@@ -1,5 +1,15 @@
 # @radandevist/radan-ui
 
+## 0.7.0
+
+### Minor Changes
+
+- [#53](https://github.com/radandevist/radan-ui/pull/53) [`7cb82a0`](https://github.com/radandevist/radan-ui/commit/7cb82a0cdf29b3e2e6cbf69db82ef7d0c85940cf) Thanks [@radandevist](https://github.com/radandevist)! - Add the `house/no-boolean-prop-soup` lint rule (shipped in `lint/oxlint.json` at `warn`): it reports a component whose props type has more than `max` (default 1) boolean part-toggle props (`hasX`, `showY`, `hideZ`, `withX`, `noX`, `enableX`, `disableX`, `isX` that is not a real state like `isOpen`), enforcing `docs/rules/composition.md`. Only same-file props types are resolved; an imported props type is never reported. Options: `max`, `allow` (extra real states), `layoutUnions` (off by default, reports `variant` / `layout` / `mode` unions of layout names).
+
+- [#52](https://github.com/radandevist/radan-ui/pull/52) [`c6e19b1`](https://github.com/radandevist/radan-ui/commit/c6e19b1f7e8d9a65633565be95ad9070e8bd920b) Thanks [@radandevist](https://github.com/radandevist)! - Add `page-transition` (web): native-feeling page transitions on the View Transitions API (iPhone, Material 3, fade; `@radandevist/radan-ui/page-transition.css`), router-agnostic direction marking (`beginPageTransition`, `directionOf`), the device style storage, and `PageBack` / `PageBackSkeleton` with their tap guard and `goBack`.
+
+- [#54](https://github.com/radandevist/radan-ui/pull/54) [`bbf8c60`](https://github.com/radandevist/radan-ui/commit/bbf8c6038fb374c1a3fe84f2ab30bfbad738a9b2) Thanks [@radandevist](https://github.com/radandevist)! - Add the `Toast` component (web): `@radandevist/radan-ui/toast` exports `Toaster` (render once, with the labels and time text in your language) and sonner's `toast`. `sonner` is a new optional peer dependency. The `toast-radius` token is now 20px. Native follows in [#47](https://github.com/radandevist/radan-ui/issues/47).
+
 ## 0.6.0
 
 ### Minor Changes
