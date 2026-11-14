@@ -41,6 +41,7 @@
 		},
 		"./theme.css": "./dist/theme.css",
 		"./theme.native.css": "./dist/theme.native.css",
+		"./page-transition.css": "./dist/page-transition.css",
 		"./metro": {
 			"types": "./metro.d.cts",
 			"default": "./metro.cjs"
@@ -70,7 +71,7 @@
 		"build": "rm -rf dist && tsdown && pnpm build:theme",
 		"build:theme": "tsx scripts/build-theme.ts",
 		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
-		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css ./theme.native.css",
+		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css ./theme.native.css ./page-transition.css",
 		"size": "size-limit",
 		"check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:package && pnpm size",
 		"prepack": "node scripts/prepack.mjs",

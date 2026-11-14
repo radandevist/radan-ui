@@ -82,6 +82,9 @@ Two styles. Initial values below; the shared module's tokens are the source of t
 
 ## Implementation
 
+- The library ships it: `@radandevist/radan-ui/page-transition` (direction marking, style storage, back arrow with its tap
+  guard) and `@radandevist/radan-ui/page-transition.css`; the router adapter stays in the app (README).
+
 - The browser View Transitions API (same-document), driven by the router. The style is `data-page-transition` and
   the direction `data-page-direction` (`push`, `back`, `fade`) on `<html>`, set before the transition starts, so it
   works without view-transition types; CSS-only animations on the view-transition pseudo-elements. Page transitions are the one exception to [motion.md](./motion.md)'s « everything
