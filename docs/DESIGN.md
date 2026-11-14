@@ -242,6 +242,9 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 - **A small duration scale**: colour/feedback ≈ `120ms`, layout/surfaces ≈ `240ms`. A surface unmounts after its exit.
 - Entrances (`rise`, `pop`, `fade`) play **once on mount**, cascaded with a `--i` index (~45ms apart); never re-play on
   re-render.
+- **Named exception, toasts**: sonner owns the toast's enter, exit, stack and swipe motion (its own curves, not
+  `Collapse`); its stylesheet already drops them under `prefers-reduced-motion`, and the loading spinner carries
+  `motion-reduce:animate-none`.
 - `prefers-reduced-motion`: entrances become plain fades, morphs stop moving entirely — enforced inside the
   primitives, not by each caller.
 
