@@ -43,6 +43,9 @@ const i = (code: string, messageId = 'tooManyToggles', options: Options = []) =>
 
 new RuleTester().run(RULE_NAME, noBooleanPropSoup, {
 	valid: [
+		// UI53-3: a prop redeclared via extends / intersection counts once.
+		v('interface B { hasA?: boolean }\ninterface P extends B { hasA?: boolean }\nconst Card = (props: P) => <div />;'),
+		v('type B = { hasA?: boolean };\nconst Card = (props: B & { hasA?: boolean }) => <div />;'),
 		// One toggle is within the default max.
 		v('const Card = (props: { hasThumb?: boolean }) => <div />;'),
 		// Real element states are not toggles, bare or `is*`.
@@ -119,5 +122,23 @@ new RuleTester().run(RULE_NAME, noBooleanPropSoup, {
 		i("type P = { layout?: 'list' | 'grid' };\nconst List = (props: P) => <div />;", 'layoutUnion', [
 			{ layoutUnions: true },
 		]),
+		// UI53-1: default exports (anonymous function / arrow, memo, forwardRef).
+		i('export default function (props: { hasA: boolean; hasB: boolean }) { return <div />; }'),
+		i('export default (props: { hasA: boolean; hasB: boolean }) => <div />;'),
+		i('export default memo((props: { hasA: boolean; hasB: boolean }) => <div />);'),
+		i(
+			'type P = { hasA: boolean; hasB: boolean };\nexport default forwardRef<HTMLDivElement, P>((props, ref) => <div />);',
+		),
+		// UI53-4: a props type shared by several components is reported for each (memoized walk).
+		{
+			code: 'type P = { hasA: boolean; hasB: boolean };\nconst A = (props: P) => <div />;\nconst B = (props: P) => <div />;',
+			filename: 'file.tsx',
+			options: [],
+			errors: [{ messageId: 'tooManyToggles' }, { messageId: 'tooManyToggles' }],
+		},
+		// UI53-2: props type from type arguments / annotation without an inline function.
+		i('type P = { hasA: boolean; hasB: boolean };\nconst Card = memo<P>(Existing);'),
+		i('type P = { hasA: boolean; hasB: boolean };\nconst Card = forwardRef<HTMLDivElement, P>(render);'),
+		i('type P = { hasA: boolean; hasB: boolean };\nconst Card: FC<P> = Existing;'),
 	],
 });

@@ -56,7 +56,7 @@ const WRAPPERS = new Set(['memo', 'forwardRef']);
 type FunctionNode = ESTree.Function | ESTree.ArrowFunctionExpression;
 type Ctx = { allowed: Set<string>; decls: Map<string, ESTree.Node> };
 type RuleOptions = { max?: number; allow?: string[]; layoutUnions?: boolean };
-type Members = { toggles: string[]; layoutUnions: string[] };
+type Members = { toggles: Set<string>; layoutUnions: Set<string> };
 
 const calleeName = (callee: ESTree.Node): string | null => {
 	if (callee.type === 'Identifier') {
@@ -161,9 +161,9 @@ const readType = (node: ESTree.Node, ctx: Ctx, seen: Set<string>, out: Members):
 				return;
 			}
 			if (isBooleanType(type) && isToggle(name, ctx.allowed)) {
-				out.toggles.push(name);
+				out.toggles.add(name);
 			} else if (LAYOUT_PROPS.has(name) && unionLayoutCount(type) >= 2) {
-				out.layoutUnions.push(name);
+				out.layoutUnions.add(name);
 			}
 			return;
 		}
@@ -268,31 +268,47 @@ export const noBooleanPropSoup = {
 			decls: new Map(),
 		};
 
+		// One walk per props type: a same-file `P` shared by many components is read once. Keyed by name when a plain reference.
+		const cache = new Map<ESTree.Node | string, Members>();
+		const membersOf = (props: ESTree.Node): Members => {
+			const key =
+				props.type === 'TSTypeReference' && props.typeName.type === 'Identifier' ? props.typeName.name : props;
+			let found = cache.get(key);
+			if (!found) {
+				found = { toggles: new Set(), layoutUnions: new Set() };
+				readType(props, ctx, new Set(), found);
+				cache.set(key, found);
+			}
+			return found;
+		};
+
+		// `default` stands for an anonymous default export, which has no PascalCase name to test.
 		const check = (name: string, props: ESTree.Node | null | undefined, at: ESTree.Node) => {
-			if (!props || !/^[A-Z]/.test(name)) {
+			if (!props || (name !== 'default' && !/^[A-Z]/.test(name))) {
 				return;
 			}
-			const found: Members = { toggles: [], layoutUnions: [] };
-			readType(props, ctx, new Set(), found);
-			if (found.toggles.length > max) {
+			const found = membersOf(props);
+			if (found.toggles.size > max) {
 				context.report({
 					node: at,
 					messageId: 'tooManyToggles',
-					data: { name, count: String(found.toggles.length), props: found.toggles.join(', ') },
+					data: { name, count: String(found.toggles.size), props: [...found.toggles].join(', ') },
 				});
 			}
-			if (layoutUnions && found.layoutUnions.length > 0) {
-				context.report({ node: at, messageId: 'layoutUnion', data: { name, props: found.layoutUnions.join(', ') } });
+			if (layoutUnions && found.layoutUnions.size > 0) {
+				context.report({
+					node: at,
+					messageId: 'layoutUnion',
+					data: { name, props: [...found.layoutUnions].join(', ') },
+				});
 			}
 		};
 
 		const checkInit = (name: string, init: ESTree.Node, annotation: ESTree.Node | null, at: ESTree.Node) => {
 			const wrapperProps: ESTree.Node[] = [];
 			const fn = unwrapComponent(init, wrapperProps);
-			if (!fn) {
-				return;
-			}
-			check(name, paramType(fn) ?? wrapperProps[0] ?? annotation, at);
+			// No inline function (`memo<P>(Existing)`, `const C: FC<P> = Existing`): the type arguments / annotation still count.
+			check(name, (fn && paramType(fn)) ?? wrapperProps[0] ?? annotation, at);
 		};
 
 		return {
@@ -303,6 +319,20 @@ export const noBooleanPropSoup = {
 				if (node.id) {
 					check(node.id.name, paramType(node), node.id);
 				}
+			},
+			ExportDefaultDeclaration(node) {
+				const { declaration } = node;
+				if (declaration.type === 'FunctionDeclaration') {
+					// A named one is already seen by `FunctionDeclaration`.
+					if (!declaration.id) {
+						check('default', paramType(declaration), node);
+					}
+					return;
+				}
+				if (declaration.type === 'TSInterfaceDeclaration' || declaration.type === 'ClassDeclaration') {
+					return;
+				}
+				checkInit('default', declaration, null, node);
 			},
 			VariableDeclarator(node) {
 				if (node.id.type !== 'Identifier' || !node.init) {
