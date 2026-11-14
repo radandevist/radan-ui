@@ -129,10 +129,12 @@ const browserEnvironment = (): Environment => ({
 // (popstate), a traversal the app started itself (the arrow, the sheet's close) and the arrow's fallback to the parent.
 // The two marks the app arms itself. `toParent` is armed with its own navigation (the arrow calls the router at once)
 // and cleared by `goBack` when that navigation settles or fails, so it never outlives it. `appStarted` waits for the
-// browser to confirm the traversal (popstate / a `traverse` navigate event): confirmed, it is kept however long the
-// loaders take before `beginPageTransition` runs; unconfirmed, (a `back()` that did nothing) it expires after
-// UNCONFIRMED_TTL_MS, so it never lends itself to a later, unrelated traversal.
+// browser to confirm the traversal (one traversal event per traversal: popstate, or `navigate` of type `traverse` where
+// the Navigation API exists). The confirmation belongs to that first traversal: a second one before the transition
+// starts is someone else's (the user's own swipe) and drops the mark. Unconfirmed, (a `back()` that did nothing) it
+// expires after UNCONFIRMED_TTL_MS; confirmed it waits out slow loaders, with CONFIRMED_TTL_MS as a backstop.
 const UNCONFIRMED_TTL_MS = 1500;
+const CONFIRMED_TTL_MS = 15_000;
 const pending = {
 	browserAnimated: false,
 	traversal: false,
@@ -142,14 +144,20 @@ const pending = {
 	armedAt: 0,
 };
 const expire = () => {
-	if (pending.appStarted && !pending.confirmed && performance.now() - pending.armedAt > UNCONFIRMED_TTL_MS) {
-		pending.appStarted = false;
+	const ttl = pending.confirmed ? CONFIRMED_TTL_MS : UNCONFIRMED_TTL_MS;
+	if (pending.appStarted && performance.now() - pending.armedAt > ttl) {
+		pending.appStarted = pending.confirmed = false;
 	}
 };
-const confirmTraversal = () => {
+const onTraversal = () => {
 	expire();
+	if (pending.confirmed) {
+		// A second traversal before the first one's transition started: the mark was not for this one.
+		pending.appStarted = pending.confirmed = false;
+	} else {
+		pending.confirmed = pending.appStarted;
+	}
 	pending.traversal = true;
-	pending.confirmed = pending.appStarted;
 };
 const take = () => {
 	expire();
@@ -166,7 +174,10 @@ const take = () => {
 /** The back arrow with no earlier entry replaces the page with its parent: that navigation is a back, not a push. */
 export const markBackToParent = () => void (pending.toParent = true);
 
-/** Forgets the two app marks (a navigation that failed, or settled without a transition, must not leave them for the next one). */
+/** Forgets the parent mark only (its navigation settled: a later back may already have armed its own mark). */
+export const clearBackToParent = () => void (pending.toParent = false);
+
+/** Forgets both app marks (a navigation that failed must not leave them for the next one). */
 export const clearMarks = () => void (pending.appStarted = pending.confirmed = pending.toParent = false);
 
 /** A history traversal the app starts itself (the arrow, the sheet's close): it gets the app transition even on iOS. */
@@ -233,25 +244,28 @@ let installed = false;
  * can run: elsewhere nothing would ever consume the flags.
  */
 export const installPageTransitions = () => {
-	if (installed) {
+	if (installed || !globalThis.window || !globalThis.document || !('startViewTransition' in document)) {
 		return;
 	}
 	installed = true;
-	if (globalThis.window && 'startViewTransition' in document) {
-		guardViewTransitions(document);
-		window.addEventListener('popstate', confirmTraversal, true);
-		// The Navigation API (Chrome, Safari 18.2+): a push or a replace is never a traversal, whatever popstate said before.
-		window.navigation?.addEventListener('navigate', (e) => {
-			if (e.navigationType !== 'traverse') {
-				pending.traversal = false;
-			} else {
-				confirmTraversal();
-			}
-			if (e.hasUAVisualTransition) {
-				pending.browserAnimated = true;
-			}
-		});
+	guardViewTransitions(document);
+	const navigation = window.navigation;
+	if (!navigation) {
+		window.addEventListener('popstate', onTraversal, true);
+		return;
 	}
+	// The Navigation API (Chrome, Safari 18.2+) reports every navigation once: only a `traverse` is a traversal, and
+	// popstate (which fires for it too) is not listened to, so one traversal is never counted twice.
+	navigation.addEventListener('navigate', (e) => {
+		if (e.navigationType === 'traverse') {
+			onTraversal();
+		} else {
+			pending.traversal = false;
+		}
+		if (e.hasUAVisualTransition) {
+			pending.browserAnimated = true;
+		}
+	});
 };
 
 /**

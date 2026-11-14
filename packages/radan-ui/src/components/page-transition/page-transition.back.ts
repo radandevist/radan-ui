@@ -1,4 +1,4 @@
-import { clearMarks, markAppTraversal, markBackToParent } from './page-transition.core';
+import { clearBackToParent, clearMarks, markAppTraversal, markBackToParent } from './page-transition.core';
 
 /** What `goBack` needs of the app's router. */
 export type BackNavigation = {
@@ -6,7 +6,10 @@ export type BackNavigation = {
 	canGoBack: boolean;
 	/** Goes back one history entry. */
 	back: () => Promise<void> | void;
-	/** Replaces the current entry with the screen's parent (no new entry): the arrow never leaves the app. */
+	/**
+	 * Replaces the current entry with the screen's parent (no new entry): the arrow never leaves the app. It must
+	 * resolve only after the router's commit, where the page transition hook has run (TanStack's `navigate` does).
+	 */
 	toParent: () => Promise<void> | void;
 };
 
@@ -24,8 +27,9 @@ export const goBack = async ({ canGoBack, back, toParent }: BackNavigation): Pro
 		}
 		markBackToParent();
 		await toParent();
-		// Settled: the transition hook has run if there was one. A navigation that changed nothing keeps no mark.
-		clearMarks();
+		// Settled: the transition hook has run if there was one. Only this navigation's mark goes: a second back armed
+		// meanwhile keeps its own.
+		clearBackToParent();
 	} catch (error) {
 		// The navigation never happened: its marks must not reach the next one.
 		clearMarks();

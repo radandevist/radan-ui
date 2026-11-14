@@ -16,7 +16,9 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 	</section>
 );
 
-type Frame = { old: CSSProperties; next: CSSProperties; oldOnTop?: boolean };
+// `fade` is the layer's opacity, folded into its fill (the arriving page keeps an opaque background under it).
+type Layer = { translate?: string; filter?: string; fade?: number };
+type Frame = { old: Layer; next: Layer; oldOnTop?: boolean };
 const frames: { title: string; frame: Frame }[] = [
 	{
 		title: 'iPhone, push',
@@ -28,13 +30,13 @@ const frames: { title: string; frame: Frame }[] = [
 	},
 	{
 		title: 'Material, push',
-		frame: { old: { translate: '-15px 0', opacity: 0.4 }, next: { translate: '15px 0', opacity: 0.4 } },
+		frame: { old: { translate: '-15px 0', fade: 0.4 }, next: { translate: '15px 0', fade: 0.4 } },
 	},
 	{
 		title: 'Material, back',
-		frame: { old: { translate: '15px 0', opacity: 0.4 }, next: { translate: '-15px 0', opacity: 0.4 } },
+		frame: { old: { translate: '15px 0', fade: 0.4 }, next: { translate: '-15px 0', fade: 0.4 } },
 	},
-	{ title: 'Fade (sections)', frame: { old: { opacity: 0.5 }, next: { opacity: 0.5 } } },
+	{ title: 'Fade (sections)', frame: { old: { fade: 0.5 }, next: { fade: 0.5 } } },
 ];
 
 // The leaving page is striped, the arriving one solid: told apart by pattern, not only by tone (dark mode included).
@@ -44,14 +46,34 @@ const stripes: CSSProperties = {
 };
 const solid: CSSProperties = { backgroundColor: 'color-mix(in oklab, var(--color-foreground) 30%, transparent)' };
 
-const Screen = ({ look, style, top }: { look: CSSProperties; style: CSSProperties; top?: boolean }) => (
-	<div className="absolute inset-0" style={{ ...look, ...style, zIndex: top ? 2 : 1 }} />
+const Screen = ({
+	look,
+	layer,
+	top,
+	arriving,
+}: {
+	look: CSSProperties;
+	layer: Layer;
+	top?: boolean;
+	arriving?: boolean;
+}) => (
+	<div
+		className="absolute inset-0"
+		style={{
+			translate: layer.translate,
+			filter: layer.filter,
+			zIndex: top ? 2 : 1,
+			backgroundColor: arriving ? 'var(--color-background)' : undefined,
+		}}
+	>
+		<div className="absolute inset-0" style={{ ...look, opacity: layer.fade }} />
+	</div>
 );
 
 const Mock = ({ frame }: { frame: Frame }) => (
 	<div className="relative h-44 w-24 overflow-hidden rounded-lg border border-border bg-background">
-		<Screen look={stripes} style={frame.old} top={frame.oldOnTop} />
-		<Screen look={solid} style={frame.next} top={!frame.oldOnTop} />
+		<Screen look={stripes} layer={frame.old} top={frame.oldOnTop} />
+		<Screen look={solid} layer={frame.next} top={!frame.oldOnTop} arriving />
 	</div>
 );
 
@@ -78,8 +100,8 @@ const PageTransitionPage = () => (
 		<h1 className="mb-6 text-xl font-semibold">Page transitions</h1>
 		<Section title="Styles and directions, frozen halfway">
 			<p className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-				<span className="inline-block size-4 rounded-sm border border-border" style={stripes} /> striped: leaving page
-				<span className="ml-3 inline-block size-4 rounded-sm border border-border" style={solid} /> solid: arriving page
+				<span className="inline-block size-5 rounded-sm border border-border" style={stripes} /> striped: leaving page
+				<span className="ml-3 inline-block size-5 rounded-sm border border-border" style={solid} /> solid: arriving page
 			</p>
 			<div className="flex flex-wrap gap-4">
 				{frames.map(({ title, frame }) => (
