@@ -12,7 +12,7 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 
 - **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
-- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each); phase 2 adds the rest of the set.
+- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each) and `Toast` (web only for now); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
 - **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
@@ -39,7 +39,7 @@ CI installs the packed tarball with all of them. Only this repository uses pnpm 
 Component peers are optional, so install the ones for your platform. Web (the components use Base UI):
 
 ```sh
-pnpm add @base-ui/react
+pnpm add @base-ui/react   # and sonner, for Toast
 ```
 
 React Native / Expo (NativeWind v5, plus the `@rn-primitives/*` packages of the components you use; `slot` and
@@ -212,6 +212,42 @@ const canGoBack = useCanGoBack();
 />;
 ```
 
+#### Toast
+
+```tsx
+import { toast, Toaster } from '@radandevist/radan-ui/toast';
+
+// once, near the root: the words come from your i18n, the library has none
+<Toaster
+	theme={dark ? 'dark' : 'light'}
+	containerAriaLabel={t('toast.region')}
+	now={t('toast.now')}
+	labels={{
+		default: t('toast.default'),
+		success: t('toast.success'), // « TERMINÉ » in a French app
+		error: t('toast.error'),
+		warning: t('toast.warning'),
+		info: t('toast.info'),
+		loading: t('toast.loading'),
+	}}
+/>;
+
+toast.success('Order saved');
+toast.info('Notification dismissed', { action: { label: 'Undo', onClick: undo }, duration: 5000 });
+```
+
+Web only for now (native: [#47](https://github.com/radandevist/radan-ui/issues/47)). `toast` is [sonner](https://sonner.emilkowal.ski/)'s,
+re-exported, so ids, actions, `toast.promise` and `toast.dismiss` work as documented there; `sonner` is an optional peer
+dependency (`pnpm add sonner`). `Toaster` requires `labels` (the small uppercase word over the title, per type) and `containerAriaLabel` (the accessible
+name of the notifications region, in your language; sonner appends its hotkey hint). It also takes `now` (the time at the
+card's top right) and `theme` (the app's theme, never the OS's); every other sonner `<Toaster>` prop passes through
+(`duration`, `dir`, `hotkey`, `position`, `offset`, `expand`, `visibleToasts`, `className`, …) except `closeButton`, `icons`,
+`style` and `toastOptions`, which the card owns: there is no visible ✕, a toast closes by timeout, swipe or its action.
+The card is a raised rounded surface with a tinted 40 px icon tile (the tone is on the icon alone), the label, a bold
+title, an optional description and a neutral action chip. Below `md` it slides down over the header like an Android
+notification (top-center, under the status area); from `md` it sits bottom-right. `ToastSkeleton` (`label`, `className`) is exported beside it.
+Like `Button`, add the `@source` for `dist/web`.
+
 ### React Native / Expo
 
 Same tokens, NativeWind v5 (peer dependencies: `nativewind`, `react-native`, `react-native-css`). Import the **native**
@@ -253,6 +289,9 @@ yourself:
 	"extends": ["./node_modules/@radandevist/radan-ui/lint/oxlint.json"]
 }
 ```
+
+The `house` plugin includes `house/no-boolean-prop-soup`, the lint side of the composition rule (warns on `hasX` / `showY`
+boolean part-toggle props; [rule page](docs/rules/no-boolean-prop-soup.md)).
 
 #### Adding your own plugins and rules
 

@@ -51,6 +51,24 @@ test('import exposes generateThemeCss', { timeout: 120_000 }, () => {
 	expect(() => run('node', ['check-import.mjs'])).not.toThrow();
 });
 
+test(
+	'`./toast` needs its optional peer sonner: a clear error without it, a working Toaster with it',
+	{ timeout: 180_000 },
+	() => {
+		writeFileSync(
+			join(dir, 'check-toast.mjs'),
+			"const { Toaster, toast } = await import('@radandevist/radan-ui/toast');\n" +
+				"if (typeof Toaster !== 'function' || typeof toast !== 'function') throw new Error('toast exports missing');\n",
+		);
+		run('npm', ['install', '--no-audit', '--no-fund', 'react', 'react-dom']);
+		const without = spawnSync('node', ['check-toast.mjs'], { cwd: dir, encoding: 'utf8', env });
+		expect(without.status).not.toBe(0);
+		expect(without.stderr).toMatch(/Cannot find package 'sonner'/);
+		run('npm', ['install', '--no-audit', '--no-fund', 'sonner']);
+		expect(() => run('node', ['check-toast.mjs'])).not.toThrow();
+	},
+);
+
 test('the installed theme.css carries the prefixed variables', { timeout: 120_000 }, () => {
 	const css = readFileSync(join(dir, 'node_modules/@radandevist/radan-ui/dist/theme.css'), 'utf8');
 	expect(css).toContain('--radan-ui-primary');

@@ -51,6 +51,7 @@
 		"complexity": ["error", { "max": 60 }],
 		"house/arrow-function-components": "error",
 		"house/no-array-reduce": "error",
+		"house/no-boolean-prop-soup": "warn",
 		"house/no-console-in-source": "error",
 		"house/no-iife": "error",
 		"house/no-never-any-casts": "error",
