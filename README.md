@@ -190,6 +190,9 @@ yourself:
 }
 ```
 
+The `house` plugin includes `house/no-boolean-prop-soup`, the lint side of the composition rule (warns on `hasX` / `showY`
+boolean part-toggle props; [rule page](docs/rules/no-boolean-prop-soup.md)).
+
 #### Adding your own plugins and rules
 
 Keep the `extends` above and add your own `jsPlugins` and `rules` next to it: OxLint merges them with the shared ones, so

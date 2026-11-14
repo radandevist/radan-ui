@@ -6,7 +6,8 @@ holds the rule in full.
 - **Visual consistency: one language, no one-off looks** — tokens never raw values, one shared primitive per pattern,
   flat surfaces with hairline rings, overrides are named exceptions. [`visual-consistency.md`](./visual-consistency.md)
 - **Composition: parts through `children`, never config flags** — a component with parts is a compound component
-  (`Card.Header`, `Card.Body`); no boolean-prop soup. [`composition.md`](./composition.md)
+  (`Card.Header`, `Card.Body`); no boolean-prop soup. [`composition.md`](./composition.md) (lint:
+  [`no-boolean-prop-soup.md`](./no-boolean-prop-soup.md))
 - **Skeletons: one library, one bone per real element, never a grey block** — every component that can load exports
   its own skeleton, beside it. [`skeletons.md`](./skeletons.md)
 - **Mobile feels native** — below `md`: bottom sheets not popovers, no visible ✕, no bottom nav, page state in the
