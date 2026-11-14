@@ -1,1 +1,6 @@
-{}
+{
+	"page-transition": {
+		"reason": "Native uses the platform's own stack navigator; only PageBack and the style helpers could carry over",
+		"issue": "https://github.com/radandevist/radan-ui/issues/49"
+	}
+}

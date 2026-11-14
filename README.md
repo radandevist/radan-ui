@@ -148,6 +148,70 @@ are hidden from assistive tech. `Skeleton.Line` takes `size` (`xs` | `sm` | `md`
 class), `Skeleton.Pill` a `width`, `Skeleton.Text` `lines` and `size`; every part takes `className`. The bone is
 `bg-foreground/10` plus one pulse, fixed in the library.
 
+#### Page transitions (web)
+
+Native-feeling screen changes below `md` (iPhone cover, Material 3 shared axis, fade) on the browser's View Transitions
+API, plus the back arrow that goes with them (`docs/rules/native-navigation.md`). Router-agnostic: the library marks the
+direction and ships the CSS; your router only tells it where a navigation comes from and goes to.
+
+```css
+@import '@radandevist/radan-ui/page-transition.css';
+```
+
+```tsx
+import { PageBack, goBack, installPageTransitions } from '@radandevist/radan-ui/page-transition';
+
+installPageTransitions(); // once, at client boot
+
+<PageBack label={t('back')} onBack={() => goBack({ canGoBack, back: () => history.back(), toParent: () => navigate('/') })} />;
+```
+
+- `beginPageTransition(from, to, isTopLevel?)` takes two `Place`s (`{ path, index, overlay }`: `index` is the app's own
+  history position, `overlay` whether a full-screen sheet is open) and returns `'push' | 'back' | 'fade'` or `undefined`.
+  When a transition will play it sets `data-page-transition` (`ios` | `material`) and `data-page-direction` on `<html>`,
+  which the CSS reads, and removes them when the transition settles. Nothing plays with style `none`, from `md`, with
+  reduced motion, or without the API. `directionOf`, `transitionFor`, `platformStyle`, `isIOS` are the pieces.
+- The device's style (`auto` | `ios` | `material` | `none`) lives under `radan-ui:page-transition`:
+  `readStyle`, `writeStyle`, `subscribeStyle`, `TRANSITION_STYLES` (the settings screen and its labels stay in the app).
+- `PageBack` (`label`, `onBack`, `className`, optional icon as children) ignores a second tap within 800 ms
+  (`createTapGuard`) and swallows a rejected navigation; it carries `data-page-back` so your header can swap its menu
+  button for it. `goBack` goes back in history when the app has an earlier entry, else replaces with the parent.
+  `PageBackSkeleton` is its silhouette. Web only for now (native uses the platform's stack navigator).
+
+TanStack Router adapter (about ten lines, in your app, not in the library):
+
+```ts
+import { beginPageTransition, installPageTransitions, type Place } from '@radandevist/radan-ui/page-transition';
+
+type Loc = { pathname: string; search?: { notifications?: unknown } | null; state?: { __TSR_index?: number } | null };
+const placeOf = (loc: Loc): Place => ({
+	path: loc.pathname,
+	index: loc.state?.__TSR_index,
+	overlay: loc.search?.notifications === 1,
+});
+
+installPageTransitions();
+const router = createRouter({
+	routeTree,
+	defaultViewTransition: {
+		types: ({ fromLocation, toLocation }) => {
+			const direction = beginPageTransition(fromLocation && placeOf(fromLocation), placeOf(toLocation));
+			return direction ? [direction] : false;
+		},
+	},
+});
+```
+
+```tsx
+// The back arrow:
+const router = useRouter();
+const canGoBack = useCanGoBack();
+<PageBack
+	label={t('back')}
+	onBack={() => goBack({ canGoBack, back: () => router.history.back(), toParent: () => router.navigate({ to: '/', replace: true }) })}
+/>;
+```
+
 ### React Native / Expo
 
 Same tokens, NativeWind v5 (peer dependencies: `nativewind`, `react-native`, `react-native-css`). Import the **native**
