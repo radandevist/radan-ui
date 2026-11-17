@@ -14,15 +14,15 @@ export const Input = ({
 	...rest
 }: InputProps) => (
 	<InputPrimitive
+		aria-label={accessibilityLabel}
 		{...rest}
 		type={type}
 		disabled={disabled}
-		aria-invalid={invalid || undefined}
-		aria-label={accessibilityLabel}
+		aria-invalid={invalid || rest['aria-invalid']}
 		onValueChange={onValueChange ? (value) => onValueChange(value) : undefined}
 		className={cn(
 			inputField,
-			'outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground',
+			'outline-none forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-ring transition-[border-color,box-shadow] placeholder:text-muted-foreground',
 			'focus-visible:ring-2 focus-visible:ring-ring',
 			'aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive',
 			'disabled:cursor-not-allowed disabled:opacity-50',

@@ -119,8 +119,34 @@ test('closeButton is not offered: the type refuses it and no ✕ renders', async
 	expect(el.querySelector('[data-close-button]')).toBeNull();
 });
 
-test('the card and its action inherit the app font, the desktop stack sits 24 px in', async () => {
-	await open(() => toast('Saved', { action: { label: 'Undo', onClick: () => {} } }));
+test('the card, its action and the toaster list inherit the app font (sonner sets its own stack on the list)', async () => {
+	await open(() => toast('Saved', { action: { label: 'Undo', onClick: () => {} } }), { className: 'mine' });
 	expect(card().className).toContain('font-[inherit]!');
 	expect(document.querySelector('[data-button]')!.className).toContain('font-[inherit]!');
+	const list = document.querySelector<HTMLElement>('[data-sonner-toaster]')!;
+	expect(list.className).toContain('font-[inherit]!');
+	expect(list.className).toContain('mine');
+});
+
+test('the stack sits 24 px in on desktop and 12 px on a phone', async () => {
+	await open(() => toast('Saved'));
+	const style = document.querySelector<HTMLElement>('[data-sonner-toaster]')!.style;
+	// jsdom has no matchMedia, so useFromMd is false: the phone offsets apply
+	expect(style.getPropertyValue('--mobile-offset-left')).toBe('12px');
+	expect(style.getPropertyValue('--mobile-offset-right')).toBe('12px');
+	cleanup();
+	vi.stubGlobal('matchMedia', (q: string) => ({
+		matches: true,
+		media: q,
+		addEventListener() {},
+		removeEventListener() {},
+	}));
+	try {
+		await open(() => toast('Saved again'));
+		const desktop = document.querySelector<HTMLElement>('[data-sonner-toaster]')!.style;
+		expect(desktop.getPropertyValue('--offset-bottom')).toBe('24px');
+		expect(desktop.getPropertyValue('--offset-right')).toBe('24px');
+	} finally {
+		vi.unstubAllGlobals();
+	}
 });

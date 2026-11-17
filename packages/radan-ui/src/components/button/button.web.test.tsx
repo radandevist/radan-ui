@@ -34,6 +34,13 @@ test('every variant and size renders a button with its own classes', () => {
 		</Button>,
 	);
 	expect(screen.getByRole('button').className).toContain('size-6');
+	cleanup();
+	render(
+		<Button size="icon-xs" accessibilityLabel="x">
+			<svg data-testid="plain" />
+		</Button>,
+	);
+	expect(screen.getByRole('button').className).toContain('[&_svg:not([class*=size-])]:size-3');
 });
 
 test('onPress fires on click, not when disabled', () => {

@@ -34,7 +34,14 @@ const ButtonPage = () => (
 		<Row title="icon sizes (xs 24, sm 32, icon 36, lg 40)">
 			{(['icon-xs', 'icon-sm', 'icon', 'icon-lg'] as const).map((size) => (
 				<Button key={size} variant="outline" size={size} accessibilityLabel={size}>
-					<svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="size-4">
+					<svg
+						aria-hidden
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth={2}
+						className={size === 'icon-xs' ? undefined : 'size-4'}
+					>
 						<path d="M12 5v14M5 12h14" />
 					</svg>
 				</Button>

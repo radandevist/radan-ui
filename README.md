@@ -12,7 +12,7 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 
 - **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
-- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each) and `Toast` (web only for now); phase 2 adds the rest of the set.
+- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each) and `Toast` and `Input` (web only for now); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
 - **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
@@ -115,7 +115,7 @@ import { Button } from '@radandevist/radan-ui/button';
 
 The same import resolves to the web build (a `<button>`) or, under the `react-native` condition, to the native build.
 Props are identical on both: `variant` (`default` | `outline` | `secondary` | `ghost` | `destructive` | `link`),
-`size` (`default` | `xs` | `sm` | `lg` | `icon`), `disabled`, `loading`, `onPress`, `className` (the button itself),
+`size` (`default` | `xs` | `sm` | `lg` | `icon` | `icon-xs` | `icon-sm` | `icon-lg`), `disabled`, `loading`, `onPress`, `className` (the button itself),
 `labelClassName` (the label: on native `Text` does not inherit colour, so text utilities go here), `accessibilityLabel`
 (the accessible name, needed for `size="icon"`) and `children`. `ButtonSkeleton` (`size`, `className`) is exported
 beside it. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
@@ -125,6 +125,21 @@ beside it. On the web `onPress` is wired to the button's `onClick`. Tailwind ski
 ```css
 @source '../../node_modules/@radandevist/radan-ui/dist/web';
 ```
+
+#### Input (web)
+
+```tsx
+import { Input } from '@radandevist/radan-ui/input';
+
+<Input type="email" accessibilityLabel="Email" invalid={bad} aria-describedby="email-error" onValueChange={setEmail} />
+```
+
+A single-line field, controlled (`value` + `onValueChange`, which gets the text, not the event) or not (`defaultValue`).
+`type` is `text` | `email` | `password` | `search` | `tel` | `url` | `number`; `invalid` sets `aria-invalid` and the
+destructive border and ring. Every other native `<input>` and ARIA prop passes through (`ref`, `id`, `name`,
+`aria-describedby`, `required`, `onBlur`, ...); `accessibilityLabel` is a shorthand for `aria-label` when no `<label>`
+points at it. Text is 16 px below `md` (iOS does not zoom), 14 px from `md`. `InputSkeleton` (`className`) is exported
+beside it. Web only for now: [#58](https://github.com/radandevist/radan-ui/issues/58).
 
 #### Skeleton
 

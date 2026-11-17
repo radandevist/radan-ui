@@ -128,6 +128,8 @@ export const Toaster = ({ labels, now, theme = 'light', ...rest }: ToasterProps)
 			offset={{ top: TOP, right: DESKTOP, bottom: DESKTOP }}
 			mobileOffset={{ top: TOP, left: 12, right: 12 }}
 			{...rest}
+			// Sonner's own `[data-sonner-toaster]{font-family:…}` sits on the list, so the card can only inherit that: override it here.
+			className={cn('font-[inherit]!', rest.className)}
 			theme={theme}
 			icons={Object.fromEntries(types.map((type) => [type, <Tile key={type} type={type} />]))}
 			// SAFETY: CSSProperties has no index signature for custom properties; every value here is a string.
