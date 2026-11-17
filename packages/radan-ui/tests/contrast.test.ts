@@ -73,3 +73,11 @@ for (const theme of ['light', 'dark'] as const) {
 		}
 	}
 }
+
+// `muted` is the hover fill (`hover:bg-muted`): in light it must stand out from the page and from a card, or hover is invisible.
+for (const surface of ['background', 'card']) {
+	test(`light: muted hover fill is visibly distinct from ${surface} (>= 1.08:1)`, () => {
+		const get = (k: string) => hex(semantic.light[k], k);
+		expect(contrast(get('muted'), get(surface))).toBeGreaterThanOrEqual(1.08);
+	});
+}
