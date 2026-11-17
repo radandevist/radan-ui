@@ -15,7 +15,7 @@ colours, radii or copy of a component.
 - **One height and one radius per action cluster.** Header buttons, toolbar buttons and menu rows come from the same
   component and size variant — no ad-hoc heights, sizes or inline colours.
 - **Colour has one job.** Primary/accent for the selected or primary affordance, destructive for destruction,
-  status tones for status. Hover is muted (`bg-muted`), not accent-coloured; meaning is never colour-only (a status
+  status tones for status. Hover is muted (`bg-muted`, a light grey distinct from both page and card), not accent-coloured; meaning is never colour-only (a status
   carries a label).
 - **Destructive actions live in a dedicated section** of a detail view, never in its header; list row actions and
   bulk menus are exempt.
