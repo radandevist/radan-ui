@@ -6,5 +6,9 @@
 	"toast": {
 		"reason": "ShopKartOS has no native toast yet; the web card ships first",
 		"issue": "https://github.com/radandevist/radan-ui/issues/47"
+	},
+	"input": {
+		"reason": "The native field (TextInput) follows once the web one is used by the apps",
+		"issue": "https://github.com/radandevist/radan-ui/issues/58"
 	}
 }

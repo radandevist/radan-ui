@@ -118,3 +118,9 @@ test('closeButton is not offered: the type refuses it and no ✕ renders', async
 	const el = await open(() => toast.success('Saved'), { closeButton: undefined });
 	expect(el.querySelector('[data-close-button]')).toBeNull();
 });
+
+test('the card and its action inherit the app font, the desktop stack sits 24 px in', async () => {
+	await open(() => toast('Saved', { action: { label: 'Undo', onClick: () => {} } }));
+	expect(card().className).toContain('font-[inherit]!');
+	expect(document.querySelector('[data-button]')!.className).toContain('font-[inherit]!');
+});
