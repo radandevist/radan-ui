@@ -68,7 +68,7 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `popover` / `popover-foreground` | `#f2f2f2` / `ink` | `#1f1f23` / `paper` |
 | `popover-surface` | `#fff` | `#1f1f23` |
 | `secondary` / `secondary-foreground` | `#f2f2f2` / `#3f3f46` | `#222226` / `#d4d4d8` |
-| `muted` / `muted-foreground` | `#f7f7f7` / `#6b6b73` | `#1f1f23` / `#898989` |
+| `muted` / `muted-foreground` | `#e8e8e8` / `#64646c` | `#1f1f23` / `#898989` |
 | `sidebar` / `sidebar-foreground` | `#f6f6f6` / `#6b6b73` | `ink` / `#898989` |
 | `sidebar-accent` / `-foreground` | `#fff` / `ink` | `#27272a` / `#fff` |
 | `sidebar-ring` | `#71717a` | `#71717a` |
