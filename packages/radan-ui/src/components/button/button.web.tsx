@@ -4,6 +4,14 @@ import { cn } from '../../lib/cn';
 import type { ButtonProps, ButtonSize, ButtonVariant } from './button.contract';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
+/**
+ * The web Button takes the shared `ButtonProps` plus everything a native `<button>` takes (`type`, `aria-*`, `ref`,
+ * `onClick`, `form`, ...) and Base UI's `render` (a link or menu trigger: `render={<a href="/x" />}` with
+ * `nativeButton={false}`). `onPress` and `onClick` both fire.
+ */
+export type ButtonWebProps = ButtonProps &
+	Omit<ButtonPrimitive.Props, keyof ButtonProps | 'children' | 'className' | 'focusableWhenDisabled'>;
+
 // Hover per variant: web-only states live here, never in button.variants.ts (shared with native).
 const hover: Record<ButtonVariant, string> = {
 	default: 'hover:bg-primary/80',
@@ -43,13 +51,19 @@ export const Button = ({
 	labelClassName,
 	accessibilityLabel,
 	children,
-}: ButtonProps) => (
+	onClick,
+	...rest
+}: ButtonWebProps) => (
 	<ButtonPrimitive
+		aria-label={accessibilityLabel}
+		{...rest}
 		disabled={Boolean(disabled || loading)}
 		focusableWhenDisabled={Boolean(loading)}
-		aria-busy={loading || undefined}
-		aria-label={accessibilityLabel}
-		onClick={onPress}
+		aria-busy={loading || rest['aria-busy']}
+		onClick={(event) => {
+			onClick?.(event);
+			onPress?.();
+		}}
 		className={cn(
 			buttonVariants({ variant, size, disabled: Boolean(disabled || loading) }),
 			'inline-flex shrink-0 cursor-pointer select-none whitespace-nowrap outline-none transition-colors',

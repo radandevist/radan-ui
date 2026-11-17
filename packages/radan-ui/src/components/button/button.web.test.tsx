@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef, type FormEvent } from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import type { ButtonSize, ButtonVariant } from './button.contract';
@@ -96,4 +97,72 @@ test('the skeleton is one hidden bone with the button silhouette', () => {
 	expect(bone.getAttribute('aria-hidden')).toBe('true');
 	expect(bone.className).toContain('h-10');
 	expect(bone.className).toContain('bg-foreground/10');
+});
+
+test('native button props pass through: type, aria-*, ref, onClick, form', () => {
+	const ref = createRef<HTMLButtonElement>();
+	const onClick = vi.fn<() => void>();
+	const onPress = vi.fn<() => void>();
+	render(
+		<Button
+			ref={ref}
+			type="submit"
+			form="f"
+			aria-haspopup="menu"
+			aria-expanded={false}
+			onClick={onClick}
+			onPress={onPress}
+		>
+			Go
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(ref.current).toBe(button);
+	expect(button.getAttribute('type')).toBe('submit');
+	expect(button.getAttribute('form')).toBe('f');
+	expect(button.getAttribute('aria-haspopup')).toBe('menu');
+	expect(button.getAttribute('aria-expanded')).toBe('false');
+	fireEvent.click(button);
+	expect(onClick).toHaveBeenCalledTimes(1);
+	expect(onPress).toHaveBeenCalledTimes(1);
+});
+
+test('type defaults to button (never submits a form by accident) and submit submits', () => {
+	const onSubmit = vi.fn<(e: FormEvent) => void>((e) => e.preventDefault());
+	render(
+		<form onSubmit={onSubmit}>
+			<Button>Plain</Button>
+			<Button type="submit">Send</Button>
+		</form>,
+	);
+	fireEvent.click(screen.getByRole('button', { name: 'Plain' }));
+	expect(onSubmit).not.toHaveBeenCalled();
+	fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+	expect(onSubmit).toHaveBeenCalledTimes(1);
+});
+
+test('an explicit aria-label wins; loading keeps aria-busy', () => {
+	render(
+		<Button accessibilityLabel="a" aria-label="b" loading>
+			Go
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.getAttribute('aria-label')).toBe('b');
+	expect(button.getAttribute('aria-busy')).toBe('true');
+});
+
+test('render-as: a link keeps the button styling and onPress', () => {
+	const onPress = vi.fn<() => void>();
+	render(
+		<Button render={<a href="/x" />} nativeButton={false} variant="outline" onPress={onPress}>
+			Open
+		</Button>,
+	);
+	const link = screen.getByRole('button', { name: 'Open' });
+	expect(link.tagName).toBe('A');
+	expect(link.getAttribute('href')).toBe('/x');
+	expect(link.className).toContain('rounded-control');
+	fireEvent.click(link);
+	expect(onPress).toHaveBeenCalledTimes(1);
 });
