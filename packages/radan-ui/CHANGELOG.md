@@ -1,5 +1,15 @@
 # @radandevist/radan-ui
 
+## 0.9.0
+
+### Minor Changes
+
+- [#64](https://github.com/radandevist/radan-ui/pull/64) [`7f4912e`](https://github.com/radandevist/radan-ui/commit/7f4912e6bc77abf82b18333fbaf48601af0371cb) Thanks [@radandevist](https://github.com/radandevist)! - The web `Button` now takes native button props (`type="submit"`, `aria-*`, `ref`, `onClick`, `form`, ...) and Base UI's `render` (`<Button role="link" render={<a href="/x" />} nativeButton={false}>`) so it can replace an app's own button, link or menu trigger. `onPress` still works and the native `Button` is unchanged. New type `ButtonWebProps`.
+
+### Patch Changes
+
+- [#62](https://github.com/radandevist/radan-ui/pull/62) [`000ea62`](https://github.com/radandevist/radan-ui/commit/000ea624272a1d195d563aa4b0818a5b38910c98) Thanks [@radandevist](https://github.com/radandevist)! - Fix the invisible hover in light theme: `muted` is now `#e8e8e8` (was `#f7f7f7`, equal to `background`), so the hover of outline/ghost `Button` and `PageBack` shows on the page and on cards; `muted-foreground` goes to `#64646c` to keep 4.5:1 on it.
+
 ## 0.8.0
 
 ### Minor Changes
