@@ -22,7 +22,7 @@ export const Input = ({
 		onValueChange={onValueChange ? (value) => onValueChange(value) : undefined}
 		className={cn(
 			inputField,
-			'outline-none forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-ring transition-[border-color,box-shadow] placeholder:text-muted-foreground',
+			'outline-hidden forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-ring transition-[border-color,box-shadow] placeholder:text-muted-foreground',
 			'focus-visible:ring-2 focus-visible:ring-ring',
 			'aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive',
 			'disabled:cursor-not-allowed disabled:opacity-50',
