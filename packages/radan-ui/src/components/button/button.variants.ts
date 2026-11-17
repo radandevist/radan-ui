@@ -17,6 +17,9 @@ export const buttonVariants = cva('flex flex-row items-center justify-center rou
 			sm: 'h-8 gap-1 px-3',
 			lg: 'h-10 gap-1.5 px-4',
 			icon: 'size-9',
+			'icon-xs': 'size-6',
+			'icon-sm': 'size-8',
+			'icon-lg': 'size-10',
 		},
 		disabled: { true: 'opacity-50', false: '' },
 	},
@@ -34,13 +37,33 @@ export const buttonTextVariants = cva('font-medium', {
 			destructive: 'text-destructive',
 			link: 'text-foreground',
 		},
-		size: { default: 'text-sm', xs: 'text-xs', sm: 'text-sm', lg: 'text-sm', icon: 'text-sm' },
+		size: {
+			default: 'text-sm',
+			xs: 'text-xs',
+			sm: 'text-sm',
+			lg: 'text-sm',
+			icon: 'text-sm',
+			'icon-xs': 'text-xs',
+			'icon-sm': 'text-sm',
+			'icon-lg': 'text-sm',
+		},
 	},
 	defaultVariants: { variant: 'default', size: 'default' },
 });
 
 /** The skeleton bone shape (the fill + pulse come from the Skeleton library): the button's silhouette (same height and radius; the width stands for a short label). */
 export const buttonSkeletonVariants = cva('rounded-control', {
-	variants: { size: { default: 'h-9 w-20', xs: 'h-6 w-14', sm: 'h-8 w-16', lg: 'h-10 w-24', icon: 'size-9' } },
+	variants: {
+		size: {
+			default: 'h-9 w-20',
+			xs: 'h-6 w-14',
+			sm: 'h-8 w-16',
+			lg: 'h-10 w-24',
+			icon: 'size-9',
+			'icon-xs': 'size-6',
+			'icon-sm': 'size-8',
+			'icon-lg': 'size-10',
+		},
+	},
 	defaultVariants: { size: 'default' },
 });

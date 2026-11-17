@@ -8,7 +8,7 @@ import { Button, ButtonSkeleton } from './button.web';
 afterEach(cleanup);
 
 const variants: ButtonVariant[] = ['default', 'outline', 'secondary', 'ghost', 'destructive', 'link'];
-const sizes: ButtonSize[] = ['default', 'xs', 'sm', 'lg', 'icon'];
+const sizes: ButtonSize[] = ['default', 'xs', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg'];
 
 test('every variant and size renders a button with its own classes', () => {
 	for (const variant of variants) {
@@ -27,6 +27,20 @@ test('every variant and size renders a button with its own classes', () => {
 	cleanup();
 	render(<Button size="lg">Go</Button>);
 	expect(screen.getByRole('button').className).toContain('h-10');
+	cleanup();
+	render(
+		<Button size="icon-xs" accessibilityLabel="x">
+			+
+		</Button>,
+	);
+	expect(screen.getByRole('button').className).toContain('size-6');
+	cleanup();
+	render(
+		<Button size="icon-xs" accessibilityLabel="x">
+			<svg data-testid="plain" />
+		</Button>,
+	);
+	expect(screen.getByRole('button').className).toContain('[&_svg:not([class*=size-])]:size-3');
 });
 
 test('onPress fires on click, not when disabled', () => {

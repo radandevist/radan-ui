@@ -1,7 +1,7 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 
 import { cn } from '../../lib/cn';
-import type { ButtonProps, ButtonVariant } from './button.contract';
+import type { ButtonProps, ButtonSize, ButtonVariant } from './button.contract';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
 // Hover per variant: web-only states live here, never in button.variants.ts (shared with native).
@@ -13,6 +13,9 @@ const hover: Record<ButtonVariant, string> = {
 	destructive: 'hover:bg-destructive/20',
 	link: 'underline-offset-4 hover:underline',
 };
+
+// An icon-xs button holds a 12 px glyph; a glyph that sets its own size keeps it.
+const glyph: Partial<Record<ButtonSize, string>> = { 'icon-xs': '[&_svg:not([class*=size-])]:size-3' };
 
 const Spinner = () => (
 	<svg
@@ -52,6 +55,7 @@ export const Button = ({
 			'inline-flex shrink-0 cursor-pointer select-none whitespace-nowrap outline-none transition-colors',
 			'focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none',
 			hover[variant],
+			glyph[size ?? 'default'],
 			className,
 		)}
 	>

@@ -21,6 +21,8 @@ const useFromMd = () =>
 
 // Below md the toast slides down over the header like an Android notification: an 8 px gap under the status area.
 const TOP = 'calc(env(safe-area-inset-top) + 8px)';
+// From md the stack sits 24 px from the bottom-right corner (DESIGN §7).
+const DESKTOP = 24;
 
 const Svg = ({ children, className }: { children: ReactNode; className?: string }) => (
 	<svg
@@ -99,7 +101,7 @@ const content = cn(
 // `!` on the outline: sonner's own `[data-button]` / card rules reset it, a plain utility would lose.
 const ring = 'focus-visible:outline-2! focus-visible:outline-offset-2! focus-visible:outline-ring!';
 const toast = cn(
-	'group border-transparent! text-[13px]! text-foreground!',
+	'group border-transparent! font-[inherit]! text-[13px]! text-foreground!',
 	toastCard,
 	ring,
 	// An action chip sits at the bottom right under the time: 76 px tall so they never meet; a collapsed card behind the
@@ -108,7 +110,7 @@ const toast = cn(
 );
 // A 44 px target on a phone.
 const action = cn(
-	'h-8! self-end! rounded-md! bg-secondary! px-3! text-[13px]! font-medium! text-foreground! max-md:h-11!',
+	'h-8! self-end! rounded-md! bg-secondary! px-3! text-[13px]! font-medium! text-foreground! max-md:h-11! font-[inherit]!',
 	ring,
 );
 
@@ -123,9 +125,11 @@ export const Toaster = ({ labels, now, theme = 'light', ...rest }: ToasterProps)
 	return (
 		<Sonner
 			position={fromMd ? 'bottom-right' : 'top-center'}
-			offset={{ top: TOP }}
+			offset={{ top: TOP, right: DESKTOP, bottom: DESKTOP }}
 			mobileOffset={{ top: TOP, left: 12, right: 12 }}
 			{...rest}
+			// Sonner's own `[data-sonner-toaster]{font-family:…}` sits on the list, so the card can only inherit that: override it here.
+			className={cn('font-[inherit]!', rest.className)}
 			theme={theme}
 			icons={Object.fromEntries(types.map((type) => [type, <Tile key={type} type={type} />]))}
 			// SAFETY: CSSProperties has no index signature for custom properties; every value here is a string.

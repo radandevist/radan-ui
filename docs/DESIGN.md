@@ -156,6 +156,11 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 - Spacing is the Tailwind spacing scale (4px base): `gap-2`, `p-3`, `space-y-1`. No one-off pixel margins.
 - **Radius scales with control height** — a small control must not look pill-ish. The base radius is
   `--radan-ui-radius` (`0.625rem`); controls sit at `--radan-ui-control-radius`, cards at `--radan-ui-card-radius`.
+- Button heights: `xs` 24, `sm` 32, `default` 36, `lg` 40; square icon buttons `icon-xs` 24 (12 px glyph), `icon-sm` 32,
+  `icon` 36, `icon-lg` 40. Fields (`Input`) are 36 high, `rounded-control`, one pale 1 px `input` border and the
+  `input/50` surface; focus is the 2 px `ring`, not a second border.
+- The gap under the mobile top bar is page layout (an app decision), not a design-system value.
+- On desktop the toast stack sits 24 px from the bottom and right edges.
 - One button height and one radius inside a header action cluster; use the component's size variants, never ad-hoc
   heights.
 - `rounded-full` / `999px` is only for genuinely circular things (avatars, dots, spinners). Everything else goes
@@ -223,8 +228,14 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 
 ## 7. Typography
 
-- The library ships **no font tokens**: a project picks its family and registers it once. Use Tailwind's type
-  utilities; no bespoke type scale beyond them.
+- The family is **Geist** (SIL OFL 1.1). The library ships the latin woff2 files (sans 400/500/600, mono 400/500) and
+  their `@font-face` rules: `@import '@radandevist/radan-ui/fonts.css';`, then
+  `--font-sans: Geist, ui-sans-serif, system-ui, sans-serif` and `--font-mono: 'Geist Mono', ui-monospace, monospace`.
+  There is no font token in the theme; apps and prototypes load these same files, never a CDN copy (its metrics, hence
+  its line height, differ). Use Tailwind's type utilities; no bespoke type scale beyond them.
+- **Fields are 16 px below `md`, 14 px from `md`** (`text-base md:text-sm`): iOS zooms the page into a smaller field.
+  Every text field, prototypes included, follows it; the `Input` component does.
+- Inherit the family everywhere (`font-family: inherit` on portalled or third-party surfaces such as the toast).
 - Dense by default: body/UI text small and legible (`text-sm` / `text-[13px]` style), badges and eyebrows smaller,
   page titles `text-xl`/`text-2xl font-semibold`.
 - Weight ladder is three steps: 400 regular, 500 medium, 600 semibold. No 700+ on UI chrome.
