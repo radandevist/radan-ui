@@ -152,14 +152,14 @@ test('an explicit aria-label wins; loading keeps aria-busy', () => {
 	expect(button.getAttribute('aria-busy')).toBe('true');
 });
 
-test('render-as: a link keeps the button styling and onPress', () => {
+test('render-as: a link (role="link" wins over the default button role) keeps the button styling and onPress', () => {
 	const onPress = vi.fn<() => void>();
 	render(
-		<Button render={<a href="/x" />} nativeButton={false} variant="outline" onPress={onPress}>
+		<Button role="link" render={<a href="/x" />} nativeButton={false} variant="outline" onPress={onPress}>
 			Open
 		</Button>,
 	);
-	const link = screen.getByRole('button', { name: 'Open' });
+	const link = screen.getByRole('link', { name: 'Open' });
 	expect(link.tagName).toBe('A');
 	expect(link.getAttribute('href')).toBe('/x');
 	expect(link.className).toContain('rounded-control');

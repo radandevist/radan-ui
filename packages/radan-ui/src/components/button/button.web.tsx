@@ -7,7 +7,7 @@ import { buttonTextVariants, buttonVariants } from './button.variants';
 /**
  * The web Button takes the shared `ButtonProps` plus everything a native `<button>` takes (`type`, `aria-*`, `ref`,
  * `onClick`, `form`, ...) and Base UI's `render` (a link or menu trigger: `render={<a href="/x" />}` with
- * `nativeButton={false}`). `onPress` and `onClick` both fire.
+ * `nativeButton={false}` and `role="link"`: Base UI defaults a non-button element to `role="button"`, an explicit `role` wins). `onPress` and `onClick` both fire.
  */
 export type ButtonWebProps = ButtonProps &
 	Omit<ButtonPrimitive.Props, keyof ButtonProps | 'children' | 'className' | 'focusableWhenDisabled'>;
