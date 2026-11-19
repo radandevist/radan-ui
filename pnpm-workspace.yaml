@@ -1,0 +1,5 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  # npm-based Expo fixture (own package-lock.json, ~900 MB): installed by scripts/spike-native.sh, never by pnpm.
+  - '!apps/expo-consumer'

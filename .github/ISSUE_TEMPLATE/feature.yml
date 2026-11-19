@@ -1,0 +1,26 @@
+name: Feature request
+description: A new token, component, rule or generator option for the shared library.
+title: 'feat: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need?
+      description: The problem in a consuming app, and who hits it.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API
+      description: The prop, token name, export or CLI flag you would use, with a short code example.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What you tried instead, including a local override or an app-specific component.
+    validations:
+      required: false

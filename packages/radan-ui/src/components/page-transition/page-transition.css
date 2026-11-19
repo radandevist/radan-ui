@@ -1,0 +1,107 @@
+/* Page transitions below md (`@radandevist/radan-ui/page-transition`): View Transitions on the whole viewport (root), keyed by
+   `data-page-transition` (ios | material) and `data-page-direction` (push | back | fade) on <html>. CSS only; reduced motion, md and
+   up, style none and no API never start a transition, so nothing here needs a media query. */
+::view-transition-old(root),
+::view-transition-new(root) {
+	mix-blend-mode: normal;
+	animation-fill-mode: both;
+}
+
+/* iPhone: push = the new page covers from the right while the old one shifts 30 % left and dims; back = the reverse. */
+@keyframes nav-cover-in {
+	from {
+		translate: 100% 0;
+	}
+}
+@keyframes nav-cover-out {
+	to {
+		translate: 100% 0;
+	}
+}
+@keyframes nav-under-out {
+	to {
+		translate: -30% 0;
+		filter: brightness(0.9);
+	}
+}
+@keyframes nav-under-in {
+	from {
+		translate: -30% 0;
+		filter: brightness(0.9);
+	}
+}
+html[data-page-transition='ios'][data-page-direction='push']::view-transition-old(root) {
+	animation: nav-under-out 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+html[data-page-transition='ios'][data-page-direction='push']::view-transition-new(root) {
+	z-index: 2;
+	animation: nav-cover-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+html[data-page-transition='ios'][data-page-direction='back']::view-transition-old(root) {
+	z-index: 2;
+	animation: nav-cover-out 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+html[data-page-transition='ios'][data-page-direction='back']::view-transition-new(root) {
+	animation: nav-under-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Android, Material 3 shared axis X: both slide 30 px the same way, the outgoing page fades out first (90 ms), the
+   incoming one fades in after it (210 ms). */
+@keyframes nav-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+@keyframes nav-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes nav-x-left {
+	to {
+		translate: -30px 0;
+	}
+}
+@keyframes nav-x-right {
+	to {
+		translate: 30px 0;
+	}
+}
+@keyframes nav-x-from-right {
+	from {
+		translate: 30px 0;
+	}
+}
+@keyframes nav-x-from-left {
+	from {
+		translate: -30px 0;
+	}
+}
+html[data-page-transition='material'][data-page-direction='push']::view-transition-old(root) {
+	animation:
+		nav-x-left 300ms cubic-bezier(0.3, 0, 0.8, 0.15) both,
+		nav-fade-out 90ms linear both;
+}
+html[data-page-transition='material'][data-page-direction='push']::view-transition-new(root) {
+	animation:
+		nav-x-from-right 300ms cubic-bezier(0.05, 0.7, 0.1, 1) both,
+		nav-fade-in 210ms linear 90ms both;
+}
+html[data-page-transition='material'][data-page-direction='back']::view-transition-old(root) {
+	animation:
+		nav-x-right 300ms cubic-bezier(0.3, 0, 0.8, 0.15) both,
+		nav-fade-out 90ms linear both;
+}
+html[data-page-transition='material'][data-page-direction='back']::view-transition-new(root) {
+	animation:
+		nav-x-from-left 300ms cubic-bezier(0.05, 0.7, 0.1, 1) both,
+		nav-fade-in 210ms linear 90ms both;
+}
+
+/* A section change (both styles): a short cross-fade. */
+html[data-page-direction='fade']::view-transition-old(root) {
+	animation: nav-fade-out 150ms linear both;
+}
+html[data-page-direction='fade']::view-transition-new(root) {
+	animation: nav-fade-in 150ms linear both;
+}

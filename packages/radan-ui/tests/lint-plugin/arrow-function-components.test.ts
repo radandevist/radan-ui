@@ -1,0 +1,844 @@
+/**
+ * Harness test for `house/arrow-function-components` (dormant detector).
+ *
+ * Uses Oxlint's own `RuleTester` (from `oxlint/plugins-dev`) bridged into
+ * Node's built-in `node:test` runner — same approach as other house/* tests.
+ *
+ * What this proves:
+ * - Plugin wiring: `index.js` exposes `rules['arrow-function-components']`
+ *   pointing at the same rule object exported from the rule module.
+ * - `valid`: arrow components, PascalCase helpers that never return JSX,
+ *   camelCase hook functions, lowercase function declarations returning JSX,
+ *   and class declarations are all left un-flagged.
+ * - `invalid`: PascalCase function declarations that return JSX are flagged,
+ *   including context providers and JSX-fragment-returning layouts.
+ * - Ternary / logical JSX returns are caught (finding #1).
+ * - Null-only hook-calling PascalCase components are caught (finding #2).
+ * - memo/forwardRef-wrapped function expressions are caught (finding #3).
+ * - Anonymous default-exported function components are caught (finding #3).
+ * - Round-2: control-flow test expressions are scanned for hook calls.
+ * - Round-2: hook detection is import-binding-aware (locally-declared non-hook
+ *   `use*` utilities are not treated as React hooks).
+ * - Round-2: wrapper detection is import-binding-aware (locally-defined `memo`
+ *   functions do not trigger the wrapper check).
+ * - Round-2: expressionContainsJsx branches (parenthesized, TSAsExpression,
+ *   TSSatisfiesExpression, TSNonNullExpression) are exercised.
+ * - Round-3: alias-aware react imports for wrappers: `import { memo as m }` →
+ *   `m(fn)` IS flagged; `import { useMemo as memo }` → `memo(fn)` is NOT a wrapper.
+ * - Round-3: local arrow-function map: `const useThing = () => 42` is locally declared
+ *   so Helper calling useThing() is NOT flagged; but a local arrow `useThing` that
+ *   itself calls an imported hook DOES propagate hook-ness to the caller.
+ * - Round-4: expression-bodied local arrow hooks: `const useThing = () => useRef(null)`
+ *   has an expression body — analyseBody now scans it for hook calls (not early-return).
+ *   Helper calling useThing() is flagged; non-hook expression bodies stay clean.
+ * - Round-5: renderer-call detection: PascalCase functions returning `useRender(...)`,
+ *   `createElement(...)`, `jsx(...)`, or `jsxs(...)` (bare or `React.xxx` member form)
+ *   are flagged as components even though they do not return JSX directly.
+ *   Arrow-form equivalents are left un-flagged.
+ * - Round-6 (#1283): PascalCase declarations rendered through NON-allowlisted
+ *   local render helpers are flagged. A declaration whose body returns a call
+ *   to a top-level local helper that itself returns JSX (directly, through
+ *   further such helpers, or via a known renderer) is a component — the
+ *   declaration shape decides, not the render call-site (hoisted aliases and
+ *   default exports included). Imported or member-expression callees are not
+ *   resolved (documented boundary), and mutually recursive helpers must not
+ *   hang the analysis.
+ * - Round-7 (#1293): JSX routed through LOCAL VARIABLES is followed — a
+ *   `const el = <div/>; return el;` body yields JSX, directly or inside a
+ *   delegated local helper or object-literal member. MEMBER-EXPRESSION render
+ *   delegates are resolved too: `kit.customRender()` where `kit` is a
+ *   top-level local object whose member yields JSX flags the PascalCase
+ *   caller. Negative cases pin precision: local variables carrying non-JSX
+ *   values stay un-flagged even when a JSX-valued sibling variable exists,
+ *   member delegates that yield no JSX stay un-flagged, imported namespaces
+ *   and computed member accesses remain unresolvable boundaries, and cyclic
+ *   member delegates terminate.
+ * - Round-8 (#1322): JSX reaching a local only through an ASSIGNMENT statement
+ *   (`let el = null; el = <div {...p} />; return el;`) is followed in the same
+ *   statement-order map as initializers — bare/uninitialized `let`, ternary /
+ *   logical / TS-wrapped RHS, and the delegated-helper route included.
+ *   Precision: a non-JSX assigned value, assignments to OUTER/imported
+ *   bindings, and assignments inside a NESTED function (whose own body is a
+ *   separate analysis) stay un-flagged.
+ */
+import assert from 'node:assert/strict';
+
+import type { Rule } from '@oxlint/plugins';
+import { RuleTester } from 'oxlint/plugins-dev';
+import { describe, it } from 'vitest';
+
+import { arrowFunctionComponents } from '../../lint/plugins/house/arrow-function-components.ts';
+import plugin from '../../lint/plugins/house/index.ts';
+
+RuleTester.describe = describe;
+RuleTester.it = it;
+
+const RULE_NAME = 'arrow-function-components';
+
+// -- Plugin entrypoint wiring assertion ---------------------------------------
+describe('plugin entrypoint wiring (house)', () => {
+	it(`wires rules["${RULE_NAME}"] to the rule object`, () => {
+		assert.strictEqual(plugin.rules[RULE_NAME], arrowFunctionComponents);
+	});
+});
+
+// -- RuleTester cases ---------------------------------------------------------
+const ruleTester = new RuleTester();
+
+const runCases = (rule: Rule, label: string) => {
+	describe(`house/${RULE_NAME} (${label})`, () => {
+		ruleTester.run(RULE_NAME, rule, {
+			valid: [
+				// Arrow function component — the canonical form
+				{
+					code: 'const Foo = () => <div />;',
+					filename: 'src/components/foo.tsx',
+				},
+				// Arrow function component with block body
+				{
+					code: 'const Card = ({ title }) => { return <Box>{title}</Box>; };',
+					filename: 'src/components/card.tsx',
+				},
+				// PascalCase helper that never returns JSX — plain string return
+				{
+					code: 'function FormatLabel(value) { return value.toUpperCase(); }',
+					filename: 'src/utils/format.ts',
+				},
+				// PascalCase helper that returns a number
+				{
+					code: 'function ComputeTotal(items) { return items.length; }',
+					filename: 'src/utils/math.ts',
+				},
+				// camelCase hook — not a component by naming convention
+				{
+					code: 'function useMyHook() { return <div/>; }',
+					filename: 'src/hooks/use-my-hook.tsx',
+				},
+				// Lowercase function returning JSX — not a component by convention
+				{
+					code: 'function renderRow(item) { return <Box>{item.name}</Box>; }',
+					filename: 'src/components/table.tsx',
+				},
+				// Class declaration — out of scope for this rule
+				{
+					code: 'class MyComponent extends React.Component { render() { return <div />; } }',
+					filename: 'src/components/legacy.tsx',
+				},
+				// Generator function — always excluded
+				{
+					code: 'function* Counter() { yield <div/>; }',
+					filename: 'src/components/counter.tsx',
+				},
+				// PascalCase function with no return value at all
+				{
+					code: 'function SideEffect() { console.log("hello"); }',
+					filename: 'src/utils/side-effects.ts',
+				},
+				// PascalCase function returning null only, no hooks — NOT flagged
+				// (indistinguishable from a utility function without file-path heuristics)
+				{
+					code: 'function Placeholder() { return null; }',
+					filename: 'src/utils/placeholder.ts',
+				},
+				// Arrow-form component inside memo (imported from react) — valid (already arrow)
+				{
+					code: "import { memo } from 'react'; const Foo = memo(() => <div />);",
+					filename: 'src/components/foo.tsx',
+				},
+				// Arrow-form component inside forwardRef (imported from react) — valid
+				{
+					code: "import { forwardRef } from 'react'; const Input = forwardRef((props, ref) => <input ref={ref} {...props} />);",
+					filename: 'src/components/input.tsx',
+				},
+				// Arrow-form inside React.memo — valid
+				{
+					code: "import React from 'react'; const Foo = React.memo(() => <div />);",
+					filename: 'src/components/foo.tsx',
+				},
+				// Ternary JSX return in arrow function — valid
+				{
+					code: 'const Badge = ({ count }) => count > 0 ? <span>{count}</span> : null;',
+					filename: 'src/components/badge.tsx',
+				},
+				// PascalCase function with null-only return AND no hooks — NOT flagged
+				{
+					code: 'function EmptyState() { const x = 1; return null; }',
+					filename: 'src/utils/empty.ts',
+				},
+
+				// Round-2 valid: PascalCase helper calling a locally-declared non-hook
+				// `use*` utility (not imported from 'react' or any module).
+				// useThing() is declared locally and does NOT itself call any hooks,
+				// so PascalCase helper calling it + returning null must NOT be flagged.
+				{
+					code: [
+						'function useThing() { return 42; }',
+						'function Helper() { const val = useThing(); return null; }',
+					].join('\n'),
+					filename: 'src/utils/helper.ts',
+				},
+
+				// Round-2 valid: a locally-defined custom `memo` function that is NOT
+				// imported from 'react' must not trigger wrapper detection.
+				// The FunctionExpression argument `function() { return <span />; }` must
+				// NOT be flagged because the local `memo` is not React's memo.
+				{
+					code: ['function memo(fn) { return fn; }', 'const Wrapped = memo(function() { return <span />; });'].join(
+						'\n',
+					),
+					filename: 'src/utils/memo-util.tsx',
+				},
+
+				// Round-3 valid: `import { useMemo as memo }` — local 'memo' has imported
+				// name 'useMemo', NOT 'memo', so `memo(fn, [])` must NOT be treated as a
+				// React.memo wrapper call. The inner `function computeX()` is NOT flagged
+				// (because memo() is not a React wrapper here).
+				{
+					code: [
+						"import { useMemo as memo } from 'react';",
+						'const Comp = () => {',
+						'  const val = memo(function computeX() { return 42; }, []);',
+						'  return <div>{val}</div>;',
+						'};',
+					].join('\n'),
+					filename: 'src/components/comp.tsx',
+				},
+
+				// Round-3 valid: local arrow `useThing` is NOT a hook (returns a plain value,
+				// calls no hooks itself) → Helper calling it + returning null must NOT be flagged.
+				{
+					code: ['const useThing = () => 42;', 'function Helper() { const val = useThing(); return null; }'].join('\n'),
+					filename: 'src/utils/helper.ts',
+				},
+
+				// Round-3 valid: exported const arrow non-hook useThing → no diagnostic.
+				{
+					code: [
+						"export const useThing = () => 'label';",
+						'function Helper() { const val = useThing(); return null; }',
+					].join('\n'),
+					filename: 'src/utils/helper.ts',
+				},
+
+				// Round-4 valid: expression-bodied local arrow that returns a plain value
+				// (not a hook call) must NOT cause Helper2 to be flagged.
+				// This is the companion to the Round-4 invalid case above —
+				// confirms the expression-body scanner correctly rejects non-hook expressions.
+				{
+					code: ['const useThing = () => 42;', 'function Helper2() { useThing(); return null; }'].join('\n'),
+					filename: 'src/utils/helper2.ts',
+				},
+
+				// Round-5 valid: arrow component returning useRender(...) — already arrow form.
+				{
+					code: [
+						"import { useRender } from '@base-ui/react/use-render';",
+						'const Badge = (props) => useRender({ defaultTagName: "span", props });',
+					].join('\n'),
+					filename: 'src/components/badge.tsx',
+				},
+
+				// Round-5 valid: arrow component returning createElement(...) — already arrow form.
+				{
+					code: [
+						"import { createElement } from 'react';",
+						'const Widget = (props) => createElement("div", props);',
+					].join('\n'),
+					filename: 'src/components/widget.tsx',
+				},
+
+				// Round-6 valid: local helper returning a plain value — the PascalCase
+				// caller is NOT a component (delegation target produces no JSX).
+				{
+					code: [
+						'function computeLabel(value) { return String(value); }',
+						'function Count(props) { return computeLabel(props.n); }',
+					].join('\n'),
+					filename: 'src/utils/count.ts',
+				},
+
+				// Round-6 valid: imported (unresolvable) render helper — the rule cannot
+				// see the helper body, so no diagnostic (documented boundary).
+				{
+					code: [
+						"import { customRender } from './test-utils';",
+						'function Foo(props) { return customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/foo.tsx',
+				},
+
+				// Round-6 valid: member-expression helper call is not resolved.
+				{
+					code: ['const kit = { customRender: () => null };', 'function Foo() { return kit.customRender(); }'].join(
+						'\n',
+					),
+					filename: 'src/components/foo.tsx',
+				},
+
+				// Round-6 valid: mutually recursive local helpers with no JSX anywhere —
+				// the analysis must terminate (cycle guard) and stay un-flagged.
+				{
+					code: [
+						'function loopA() { return loopB(); }',
+						'function loopB() { return loopA(); }',
+						'function Widget() { return loopA(); }',
+					].join('\n'),
+					filename: 'src/utils/loops.ts',
+				},
+
+				// Round-7 valid: a local variable carrying a NON-JSX value and then
+				// returned must not flag the PascalCase function (no false positive).
+				{
+					code: ['function GetName(user) { const n = user.name; return n; }'].join('\n'),
+					filename: 'src/utils/get-name.ts',
+				},
+
+				// Round-7 valid: a JSX-valued local variable EXISTS but a different,
+				// non-JSX variable is what gets returned — precision probe.
+				{
+					code: ['function Choose({ useBig }) { const big = <Big />; const small = "small"; return small; }'].join(
+						'\n',
+					),
+					filename: 'src/components/choose.tsx',
+				},
+
+				// Round-7 valid: reading a PROPERTY off a JSX-valued local variable
+				// returns a non-element value — the identifier base of a member
+				// expression must not be mistaken for a JSX-variable return.
+				{
+					code: ['function FallbackKind() { const fallback = <Spinner />; return fallback.type; }'].join('\n'),
+					filename: 'src/components/fallback-kind.tsx',
+				},
+
+				// Round-7 valid: member-expression delegate that yields NO JSX —
+				// resolving `utils.format(...)` must not flag the caller.
+				{
+					code: [
+						'const utils = { format(v) { return String(v); } };',
+						'function Scale(props) { return utils.format(props.n); }',
+					].join('\n'),
+					filename: 'src/utils/scale.ts',
+				},
+
+				// Round-7 valid: imported namespace member access stays an unresolved
+				// boundary — the rule cannot see inside `./ui-kit`.
+				{
+					code: ["import * as ui from './ui-kit';", 'function Panel() { return ui.renderPanel(); }'].join('\n'),
+					filename: 'src/components/panel.tsx',
+				},
+
+				// Round-7 valid: COMPUTED member access stays an unresolved boundary
+				// (only static `obj.prop` delegates are followed).
+				{
+					code: [
+						'const kit = { customRender: () => <hr /> };',
+						'function Rule() { return kit["customRender"](); }',
+					].join('\n'),
+					filename: 'src/components/rule.tsx',
+				},
+
+				// Round-8 valid: the ASSIGNED value is not JSX — assignment routing
+				// alone must not invent component-ness (companion to #1322).
+				{
+					code: ['function GetName(user) { let n = null; n = user.name; return n; }'].join('\n'),
+					filename: 'src/utils/get-name.ts',
+				},
+
+				// Round-8 valid: the JSX lands on an OUTER binding (module-level
+				// variable), not on a local of this body — `el` stays null-valued.
+				{
+					code: ['let outerEl = null;', 'function Choose() { let el = null; outerEl = <div />; return el; }'].join(
+						'\n',
+					),
+					filename: 'src/components/choose.tsx',
+				},
+
+				// Round-8 valid: the JSX lands on an IMPORTED binding's member —
+				// member-expression assignment targets are never locals.
+				{
+					code: [
+						"import { kit } from './kit';",
+						'function Choose() { let el = null; kit.current = <div />; return el; }',
+					].join('\n'),
+					filename: 'src/components/choose.tsx',
+				},
+
+				// Round-8 valid: the assignment happens inside a NESTED function —
+				// each body resolves only its OWN locals, so the outer `el` stays
+				// null-valued even though the nested arrow assigns it.
+				{
+					code: ['function Foo() { let el = null; const setup = () => { el = <div />; }; setup(); return el; }'].join(
+						'\n',
+					),
+					filename: 'src/components/foo-setup.tsx',
+				},
+
+				// Round-7 valid: mutually recursive MEMBER delegates with no JSX —
+				// the cycle guard must terminate and stay un-flagged.
+				{
+					code: [
+						'const loop = { a() { return loop.b(); }, b() { return loop.a(); } };',
+						'function Cycle() { return loop.a(); }',
+					].join('\n'),
+					filename: 'src/utils/cycle.ts',
+				},
+			],
+			invalid: [
+				// Basic function declaration component
+				{
+					code: 'function Foo() { return <div />; }',
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Exported function declaration component
+				{
+					code: 'export function Card() { return <Box />; }',
+					filename: 'src/components/card.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Context provider — returns JSX so it IS a component
+				{
+					code: 'export function BrandProvider({ children }) { return <Ctx.Provider>{children}</Ctx.Provider>; }',
+					filename: 'src/components/brand-context.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// JSX fragment return
+				{
+					code: 'function Layout() { return <><div /></>; }',
+					filename: 'src/layouts/layout.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Component with props destructuring
+				{
+					code: 'export function NavItem({ href, label }) { return <a href={href}>{label}</a>; }',
+					filename: 'src/components/nav-item.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Component with conditional JSX return (non-JSX guard + JSX return)
+				{
+					code: 'export function ProgressBar({ value }) { if (value < 0) { return null; } return <div style={{ width: value + "%" }} />; }',
+					filename: 'src/components/progress-bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Finding #1: ternary JSX return — `return ok ? <Foo /> : null`
+				{
+					code: 'function Badge({ count }) { return count > 0 ? <span>{count}</span> : null; }',
+					filename: 'src/components/badge.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #1: logical-and JSX return — `return flag && <Foo />`
+				{
+					code: 'function Overlay({ visible }) { return visible && <div className="overlay" />; }',
+					filename: 'src/components/overlay.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #1: nullish-coalescing JSX return — `return value ?? <Fallback />`
+				{
+					code: 'function MaybeContent({ node }) { return node ?? <Fallback />; }',
+					filename: 'src/components/maybe-content.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Finding #2: null-only component that calls a hook (imported from react)
+				{
+					code: "import { useRef } from 'react'; function ProgressBar({ value }) { const x = useRef(null); return null; }",
+					filename: 'src/components/progress-bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #2: null-only with useEffect hook (imported from react)
+				{
+					code: "import { useEffect } from 'react'; function SyncEffect({ id }) { useEffect(() => { sync(id); }, [id]); return null; }",
+					filename: 'src/components/sync-effect.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Finding #3: memo(function Foo() {...}) — named function expression (memo imported from react)
+				{
+					code: "import { memo } from 'react'; const Foo = memo(function Foo() { return <div />; });",
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #3: memo(function() {...}) — anonymous function expression (memo imported from react)
+				{
+					code: "import { memo } from 'react'; const Bar = memo(function() { return <span />; });",
+					filename: 'src/components/bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #3: forwardRef(function Input() {...}) — imported from react
+				{
+					code: "import { forwardRef } from 'react'; const Input = forwardRef(function Input(props, ref) { return <input ref={ref} />; });",
+					filename: 'src/components/input.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #3: React.memo(function Foo() {...}) — default import
+				{
+					code: "import React from 'react'; const Foo = React.memo(function Foo() { return <div />; });",
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #3: React.forwardRef(function() {...}) — default import
+				{
+					code: "import React from 'react'; const Input = React.forwardRef(function(props, ref) { return <input ref={ref} />; });",
+					filename: 'src/components/input.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Finding #3: anonymous export default function
+				{
+					code: 'export default function() { return <div />; }',
+					filename: 'src/routes/page.tsx',
+					errors: [{ messageId: 'useArrowFunctionAnonymous' }],
+				},
+
+				// Round-2 finding #1: hook call in `if` condition test expression is scanned.
+				// `function Gate() { if (useFeatureFlag()) { return null; } return null; }`
+				// useFeatureFlag is imported, so it IS a hook → component must be flagged.
+				{
+					code: "import { useFeatureFlag } from '#app/hooks'; function Gate() { if (useFeatureFlag()) { return null; } return null; }",
+					filename: 'src/components/gate.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-2 finding #2: imported custom hook from non-react module counts as hook.
+				// Ensures PascalCase components calling imported use* helpers are correctly flagged.
+				{
+					code: "import { useStore } from '#app/store'; function StatusBar() { const state = useStore(); return null; }",
+					filename: 'src/components/status-bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-2 finding #4: parenthesized JSX return from function-declaration component.
+				{
+					code: 'function Card() { return (<div />); }',
+					filename: 'src/components/card.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Round-2 finding #4: TSAsExpression-wrapped JSX return.
+				{
+					code: 'function Widget() { return <span /> as unknown; }',
+					filename: 'src/components/widget.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Round-2 finding #4: TSSatisfiesExpression-wrapped JSX return.
+				{
+					code: 'function Panel() { return <div /> satisfies React.ReactElement; }',
+					filename: 'src/components/panel.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+				// Round-2 finding #4: TSNonNullExpression-wrapped JSX return.
+				// `(<span />)!` is TSNonNullExpression → ParenthesizedExpression → JSXElement,
+				// which exercises both the TSNonNullExpression and ParenthesizedExpression
+				// branches of expressionContainsJsx.
+				{
+					code: 'function Toast() { return (<span />)!; }',
+					filename: 'src/components/toast.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-3 finding #1 (invalid): aliased memo import IS treated as React.memo
+				// wrapper. `import { memo as m }` → imported name is 'memo' → m(fn) IS flagged.
+				{
+					code: ["import { memo as m } from 'react';", 'const Foo = m(function Foo() { return <div />; });'].join('\n'),
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-3 finding #2 (invalid): local arrow `useThing` that itself calls an
+				// imported hook propagates hook-ness → Helper is correctly flagged.
+				{
+					code: [
+						"import { useRef } from 'react';",
+						'const useThing = () => { const r = useRef(null); return r; };',
+						'function Helper() { useThing(); return null; }',
+					].join('\n'),
+					filename: 'src/components/helper.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-4 finding #1 (invalid): expression-bodied local arrow hook.
+				// `const useThing = () => useRef(null)` has an expression body (not a
+				// BlockStatement) — analyseBody must scan it for hook calls rather than
+				// returning early. Helper calls useThing() → useThing is a hook →
+				// Helper (PascalCase, returns only null) must be flagged.
+				{
+					code: [
+						"import { useRef } from 'react';",
+						'const useThing = () => useRef(null);',
+						'function Helper() { useThing(); return null; }',
+					].join('\n'),
+					filename: 'src/components/helper.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-5 finding #1 (invalid): PascalCase function returning
+				// useRender(...) — a known renderer — must be flagged even though
+				// it does not return JSX directly (Base UI pattern).
+				{
+					code: [
+						"import { useRender } from '@base-ui/react/use-render';",
+						'function Badge(props) { return useRender({ defaultTagName: "span", props }); }',
+					].join('\n'),
+					filename: 'src/components/badge.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-5 finding #2 (invalid): PascalCase function returning
+				// createElement(...) — a known renderer — must be flagged.
+				{
+					code: [
+						"import { createElement } from 'react';",
+						'function Widget(props) { return createElement("div", props); }',
+					].join('\n'),
+					filename: 'src/components/widget.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-5 finding #3 (invalid): PascalCase function returning
+				// React.createElement(...) — React namespace member form must also be detected.
+				{
+					code: [
+						"import React from 'react';",
+						'function Panel(props) { return React.createElement("section", props); }',
+					].join('\n'),
+					filename: 'src/components/panel.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-5 finding #4 (invalid): PascalCase function returning
+				// jsx(...) — JSX runtime renderer must be flagged.
+				{
+					code: ["import { jsx } from 'react/jsx-runtime';", 'function Card(props) { return jsx("div", props); }'].join(
+						'\n',
+					),
+					filename: 'src/components/card.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-6 finding #1 (#1283): PascalCase declaration rendered through a
+				// NON-allowlisted local render helper. The declaration shape is the
+				// signal, so this must be flagged even though `customRender` is not in
+				// the known-renderer list.
+				{
+					code: [
+						'function customRender(props) { return <div {...props} />; }',
+						'function Foo(props) { return customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-6 finding #2: flagging must not depend on the render call-site —
+				// Foo is aliased into `x` (hoisted reference) before anything renders.
+				{
+					code: [
+						'const x = Foo;',
+						'function customRender(props) { return <span>{props.label}</span>; }',
+						'function Foo(props) { return customRender(props); }',
+						'export { x };',
+					].join('\n'),
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-6 finding #3: named default-export declaration delegating to a
+				// local JSX-returning helper.
+				{
+					code: [
+						'function customRender() { return <section />; }',
+						'export default function Footer() { return customRender(); }',
+					].join('\n'),
+					filename: 'src/layouts/footer.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-6 finding #3b: anonymous default-export declaration delegating
+				// to a local JSX-returning helper.
+				{
+					code: [
+						'function customRender() { return <main />; }',
+						'export default function () { return customRender(); }',
+					].join('\n'),
+					filename: 'src/routes/page.tsx',
+					errors: [{ messageId: 'useArrowFunctionAnonymous' }],
+				},
+
+				// Round-6 finding #4: delegation chain — a local helper whose own body
+				// returns a KNOWN renderer call propagates component-ness to the caller.
+				{
+					code: [
+						"import { createElement } from 'react';",
+						'function makeElement(kind) { return createElement(kind); }',
+						'function Box(props) { return makeElement("div", props); }',
+					].join('\n'),
+					filename: 'src/components/box.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-6 finding #5: expression-bodied local arrow helper returning JSX.
+				{
+					code: [
+						'const customRender = (props) => <b>{props.text}</b>;',
+						'function Label(props) { return customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/label.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #1 (#1293): JSX routed through a local variable inside
+				// a delegated local helper — the issue's canonical shape.
+				{
+					code: ['function r(p) { const el = <div {...p} />; return el; }', 'function Foo(p) { return r(p); }'].join(
+						'\n',
+					),
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #2: JSX routed through a local variable in the
+				// component body ITSELF (`const node = ...; return node;`).
+				{
+					code: ['function Bar({ label }) { const node = <span>{label}</span>; return node; }'].join('\n'),
+					filename: 'src/components/bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #3: the local variable initializer carries JSX behind
+				// a ternary — expressionContainsJsx applies to initializers too.
+				{
+					code: ['function MaybeTag({ ok }) { const node = ok ? <i>{ok}</i> : null; return node; }'].join('\n'),
+					filename: 'src/components/maybe-tag.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #4: local-variable routing composes through a helper
+				// CHAIN — Foo -> m -> r, where only r's body holds the JSX variable.
+				{
+					code: [
+						'function r(p) { const el = <em>{p.t}</em>; return el; }',
+						'function m(p) { return r(p); }',
+						'function Quoted(props) { return m(props); }',
+					].join('\n'),
+					filename: 'src/components/quoted.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #5 (#1293): member-expression render delegate —
+				// object-literal METHOD shorthand whose body returns JSX.
+				{
+					code: [
+						'const kit = { customRender(props) { return <b>{props.bold}</b>; } };',
+						'function Strong(props) { return kit.customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/strong.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #6: member-expression render delegate — ARROW property.
+				{
+					code: [
+						'const kit = { customRender: (props) => <u>{props.t}</u> };',
+						'function Underline(props) { return kit.customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/underline.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #7: member-expression render delegate — FUNCTION
+				// EXPRESSION property.
+				{
+					code: [
+						'const kit = { customRender: function (props) { return <s>{props.t}</s>; } };',
+						'function Strike(props) { return kit.customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/strike.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #8: BOTH new resolutions compose — the member delegate
+				// routes its JSX through a local variable before returning it.
+				{
+					code: [
+						'const kit = { customRender(props) { const el = <code>{props.src}</code>; return el; } };',
+						'function Snippet(props) { return kit.customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/snippet.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-7 finding #9: exported top-level object literal member delegate.
+				{
+					code: [
+						'export const icons = { renderCheck() { return <Check />; } };',
+						'function CheckBadge() { return icons.renderCheck(); }',
+					].join('\n'),
+					filename: 'src/components/check-badge.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #1 (#1322): canonical issue shape — JSX reaches `el`
+				// only through an ASSIGNMENT; the initializer is null.
+				{
+					code: 'function Foo({ p }) { let el = null; el = <div {...p} />; return el; }',
+					filename: 'src/components/foo.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #2: bare uninitialized `let` — the declaration
+				// carries NO initializer at all.
+				{
+					code: 'function Bar({ p }) { let el; el = <span>{p.t}</span>; return el; }',
+					filename: 'src/components/bar.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #3: ternary RHS behind the assignment —
+				// expressionContainsJsx applies to assigned values too.
+				{
+					code: ['function MaybeTag({ ok }) { let node = null; node = ok ? <i>{ok}</i> : null; return node; }'].join(
+						'\n',
+					),
+					filename: 'src/components/maybe-tag.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #4: logical-and RHS behind the assignment.
+				{
+					code: [
+						'function Overlay({ visible }) { let el = null; el = visible && <div className="overlay" />; return el; }',
+					].join('\n'),
+					filename: 'src/components/overlay.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #5: TSAsExpression-wrapped RHS.
+				{
+					code: 'function Widget() { let el = null; el = <span /> as unknown; return el; }',
+					filename: 'src/components/widget.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #6: TSNonNullExpression-wrapped RHS.
+				{
+					code: 'function Toast() { let el = null; el = (<em />)!; return el; }',
+					filename: 'src/components/toast.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+
+				// Round-8 finding #7: the delegated-helper route — the HELPER routes
+				// its JSX through an assignment, so #1283 delegation must still
+				// propagate component-ness to the PascalCase caller.
+				{
+					code: [
+						'function customRender(p) { let el = null; el = <b>{p.t}</b>; return el; }',
+						'function Strong(props) { return customRender(props); }',
+					].join('\n'),
+					filename: 'src/components/strong.tsx',
+					errors: [{ messageId: 'useArrowFunction' }],
+				},
+			],
+		});
+	});
+};
+
+runCases(arrowFunctionComponents, 'via direct import');
+runCases(plugin.rules[RULE_NAME]!, 'via plugin index export');

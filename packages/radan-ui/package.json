@@ -1,0 +1,174 @@
+{
+	"name": "@radandevist/radan-ui",
+	"version": "0.9.0",
+	"description": "Theme, React components and lint rules shared by Radan's apps",
+	"license": "Apache-2.0 AND OFL-1.1",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/radandevist/radan-ui.git"
+	},
+	"homepage": "https://radandevist.github.io/radan-ui/",
+	"bugs": "https://github.com/radandevist/radan-ui/issues",
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "pnpm@10.13.1",
+	"files": [
+		"dist",
+		"metro.cjs",
+		"metro.d.cts",
+		"lint",
+		"fonts",
+		"docs",
+		"README.md",
+		"LICENSE",
+		"CHANGELOG.md",
+		"!docs/superpowers/spikes"
+	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"bin": {
+		"radan-ui": "./dist/cli.js"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./theme.css": "./dist/theme.css",
+		"./theme.native.css": "./dist/theme.native.css",
+		"./page-transition.css": "./dist/page-transition.css",
+		"./fonts.css": "./fonts/fonts.css",
+		"./fonts/*": "./fonts/*",
+		"./metro": {
+			"types": "./metro.d.cts",
+			"default": "./metro.cjs"
+		},
+		"./oxlint.json": "./lint/oxlint.json",
+		"./oxfmt.json": "./lint/oxfmt.json",
+		"./lint/*": "./lint/*",
+		"./package.json": "./package.json",
+		"./*": {
+			"react-native": {
+				"types": "./dist/native/*.d.ts",
+				"default": "./dist/native/*.js"
+			},
+			"default": {
+				"types": "./dist/web/*.d.ts",
+				"default": "./dist/web/*.js"
+			}
+		}
+	},
+	"sideEffects": [
+		"*.css"
+	],
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "pnpm build:lint-plugin && oxlint --quiet --ignore-pattern 'tests/fixtures/**' --ignore-pattern 'dist/**' .",
+		"test": "vitest run",
+		"build": "rm -rf dist && tsdown && pnpm build:theme",
+		"build:theme": "tsx scripts/build-theme.ts",
+		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
+		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css ./theme.native.css ./page-transition.css ./fonts.css",
+		"size": "size-limit",
+		"check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:package && pnpm size",
+		"prepack": "node scripts/prepack.mjs",
+		"postpack": "node scripts/prepack.mjs clean"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.18.5",
+		"@base-ui/react": "1.9.0",
+		"@oxlint/plugins": "^1.92.0",
+		"@size-limit/file": "^14.3.0",
+		"@testing-library/dom": "^10.4.2",
+		"@testing-library/react": "^16.3.3",
+		"@types/node": "^24.19.2",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"jsdom": "^31.0.0",
+		"oxlint": "^1.92.0",
+		"publint": "^0.3.25",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"size-limit": "^14.3.0",
+		"sonner": "^2.0.8",
+		"tailwindcss": "^4.3.5",
+		"tsdown": "^0.23.7",
+		"tsx": "^4.23.15",
+		"typescript": "^7.0.2",
+		"vitest": "^5.1.0"
+	},
+	"dependencies": {
+		"class-variance-authority": "^0.7.1",
+		"tailwind-merge": "^3.7.0"
+	},
+	"peerDependencies": {
+		"@base-ui/react": ">=1.8.0",
+		"@rn-primitives/checkbox": ">=1.5.0",
+		"@rn-primitives/collapsible": ">=1.5.0",
+		"@rn-primitives/dialog": ">=1.5.0",
+		"@rn-primitives/label": ">=1.5.0",
+		"@rn-primitives/portal": ">=1.5.0",
+		"@rn-primitives/select": ">=1.5.0",
+		"@rn-primitives/slot": ">=1.5.0",
+		"@rn-primitives/switch": ">=1.5.0",
+		"@rn-primitives/tabs": ">=1.5.0",
+		"nativewind": ">=5.0.0-rc.1",
+		"react": ">=19",
+		"react-native": ">=0.81",
+		"react-native-css": ">=3.1.0-rc.1",
+		"sonner": ">=2.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@base-ui/react": {
+			"optional": true
+		},
+		"@rn-primitives/checkbox": {
+			"optional": true
+		},
+		"@rn-primitives/collapsible": {
+			"optional": true
+		},
+		"@rn-primitives/dialog": {
+			"optional": true
+		},
+		"@rn-primitives/label": {
+			"optional": true
+		},
+		"@rn-primitives/portal": {
+			"optional": true
+		},
+		"@rn-primitives/select": {
+			"optional": true
+		},
+		"@rn-primitives/slot": {
+			"optional": true
+		},
+		"@rn-primitives/switch": {
+			"optional": true
+		},
+		"@rn-primitives/tabs": {
+			"optional": true
+		},
+		"nativewind": {
+			"optional": true
+		},
+		"react": {
+			"optional": true
+		},
+		"react-native": {
+			"optional": true
+		},
+		"react-native-css": {
+			"optional": true
+		},
+		"sonner": {
+			"optional": true
+		}
+	}
+}

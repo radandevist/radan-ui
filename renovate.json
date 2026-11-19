@@ -1,0 +1,11 @@
+{
+	"extends": ["config:recommended", ":semanticCommits"],
+	"rangeStrategy": "bump",
+	"packageRules": [
+		{
+			"matchUpdateTypes": ["minor", "patch"],
+			"matchDepTypes": ["devDependencies"],
+			"automerge": true
+		}
+	]
+}

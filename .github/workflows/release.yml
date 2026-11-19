@@ -1,0 +1,29 @@
+name: Release
+on:
+  push:
+    branches: [main]
+concurrency: release-${{ github.ref }}
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 24, cache: pnpm, registry-url: 'https://registry.npmjs.org' }
+      # npm 12 rejects the `--no-git-checks` flag changesets passes; 11.5.1+ has trusted publishing.
+      - run: npm i -g npm@11
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      # v2 reads the structured output of changesets CLI v3; v1 parsed its old "New tag:" lines and so never
+      # pushed the tag nor created the GitHub release (0.1.1 had to be released by hand).
+      - uses: changesets/action@v2
+        with:
+          publish-script: pnpm changeset publish
+          version-script: pnpm changeset version
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'

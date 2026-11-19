@@ -1,0 +1,51 @@
+name: Bug report
+description: A token, a component or the tooling does not behave as documented.
+title: 'fix: '
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of @radandevist/radan-ui are you using?
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw, including the exact error message if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: The behaviour described in the README or the docs.
+    validations:
+      required: true
+  - type: input
+    id: repro
+    attributes:
+      label: Reproduction link
+      description: A repository, a StackBlitz or a catalog page that reproduces the problem.
+    validations:
+      required: false
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Light or dark?
+      options:
+        - Light
+        - Dark
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 142 on macOS 15
+    validations:
+      required: true
