@@ -1,5 +1,11 @@
 # @radandevist/radan-ui
 
+## 0.10.0
+
+### Minor Changes
+
+- [#69](https://github.com/radandevist/radan-ui/pull/69) [`59169f5`](https://github.com/radandevist/radan-ui/commit/59169f52fc9b203df34b88740e15e57529195e3f) Thanks [@radandevist](https://github.com/radandevist)! - Breaking: `Input` takes back the ShopKartOS field look (fill `field`, 1 px border plus hairline, 12 px radius, `ring/30` halo on focus). New tokens `field`, `field-invalid`, `field-invalid-ring`, `--radan-ui-input-radius` and the `rounded-input` utility. The field text is now `foreground`.
+
 ## 0.9.0
 
 ### Minor Changes
