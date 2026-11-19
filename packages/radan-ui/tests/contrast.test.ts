@@ -58,6 +58,9 @@ const PAIRS: [string, string[], number][] = [
 	['sidebar-accent-foreground', ['sidebar-accent'], AA],
 	// `input-foreground` is the field's text colour (DESIGN.md §2), drawn on the page and the surfaces a field sits in.
 	['input-foreground', ['background', 'card', 'popover'], AA],
+	// The field fill (`field`): its text and placeholder.
+	['foreground', ['field'], AA],
+	['muted-foreground', ['field'], AA],
 	['ring', ['background', 'card', 'popover'], UI],
 ];
 

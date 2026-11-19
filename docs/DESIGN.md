@@ -83,12 +83,13 @@ Light values on `:root`, dark values on `.dark`. A value is either a CSS value o
 | `accent-foreground` | `ink` | `ink` |
 | `ring` | `var(--radan-ui-ink)` | `#d4d4d8` |
 | `border` | `#e3e3e3` | `#323234` |
-| `input` (field outline / fill, shadcn meaning) | `#e4e4e7` | `#27272a` |
+| `field` (field fill; `#f7f7f7` = `background` in light) | `#f7f7f7` | `#1f1f23` |
+| `field-invalid` / `field-invalid-ring` (invalid border / 3 px ring) | `#b91c1c` / `rgb(185 28 28 / 20%)` | `rgb(252 165 165 / 50%)` / `rgb(252 165 165 / 40%)` |
+| `input` (field outline) | `#e4e4e7` | `#27272a` |
 | `input-foreground` (field text) | `#414141` | `#808697` |
 | `destructive` / `destructive-surface` | `#b91c1c` / `#fef2f2` | `#fca5a5` / `#450909` |
 
-`input` is the field outline (`border-input`, `bg-input/50`), as in shadcn; the pale outline is the deliberate default. The field text colour is
-`input-foreground` (`text-input-foreground`). `--radan-ui-input-border` is kept as a component token that points at `input`.
+`input` is the field outline (`border-input`); the fill is `field` (`bg-field`, ShopKartOS's former `muted` fill: radan-ui's `muted` is the hover tone and must not be reused). The field text is `foreground`; `input-foreground` stays a public token but `Input` no longer reads it. `--radan-ui-input-border` is kept as a component token that points at `input`.
 
 **Effects**
 
@@ -112,6 +113,7 @@ Pointing at the semantic layer: override one and every instance of that componen
 | `--radan-ui-input-border` | `var(--radan-ui-input)` |
 | `--radan-ui-card-radius` | `14px` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
+| `--radan-ui-input-radius` | `12px` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
 | `--radan-ui-popover-radius` | `14px` |
 | `--radan-ui-toast-radius` | `20px` |
@@ -157,8 +159,9 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 - **Radius scales with control height** — a small control must not look pill-ish. The base radius is
   `--radan-ui-radius` (`0.625rem`); controls sit at `--radan-ui-control-radius`, cards at `--radan-ui-card-radius`.
 - Button heights: `xs` 24, `sm` 32, `default` 36, `lg` 40; square icon buttons `icon-xs` 24 (12 px glyph), `icon-sm` 32,
-  `icon` 36, `icon-lg` 40. Fields (`Input`) are 36 high, `rounded-control`, one pale 1 px `input` border and the
-  `input/50` surface; focus is the 2 px `ring`, not a second border.
+  `icon` 36, `icon-lg` 40. Fields (`Input`) are 36 high, `rounded-input` (`--radan-ui-input-radius`, 12 px), a 1 px `input` border
+  plus the `shadow-raised-control` hairline (the one deliberate exception to "ring or border", the owner's field look, 19/11), the `field`
+  fill; focus swaps the fill to `background`, the border to `ring` and adds a 3 px `ring/30` halo; invalid uses `field-invalid` / `field-invalid-ring`.
 - The gap under the mobile top bar is page layout (an app decision), not a design-system value.
 - On desktop the toast stack sits 24 px from the bottom and right edges.
 - One button height and one radius inside a header action cluster; use the component's size variants, never ad-hoc
@@ -177,7 +180,8 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 | `rounded-lg` | `0.625rem` | default (tabs) |
 | `rounded-xl` / `2xl` / `3xl` / `4xl` | `×1.4 / ×1.8 / ×2.2 / ×2.6` | menus, sheets, big panels |
 | `rounded-card` | `14px` | cards |
-| `rounded-control` | `calc(radius × 1.4)` | buttons, inputs |
+| `rounded-control` | `calc(radius × 1.4)` | buttons |
+| `rounded-input` | `12px` (`input-radius`) | inputs |
 | `rounded-popover` | `14px` | popovers, menus |
 | `rounded-toast` | `20px` | toasts |
 
