@@ -42,6 +42,7 @@ export const generateThemeCss = ({
 		`\t--radius-4xl: ${radius(2.6)};`,
 		`\t--radius-card: var(--${p}-card-radius);`,
 		`\t--radius-control: var(--${p}-control-radius);`,
+		`\t--radius-input: var(--${p}-input-radius);`,
 		`\t--radius-popover: var(--${p}-popover-radius);`,
 		`\t--radius-toast: var(--${p}-toast-radius);`,
 		`\t--shadow-raised-control: var(--${p}-effect-raised-control);`,

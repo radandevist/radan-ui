@@ -8,21 +8,26 @@ import { Input, InputSkeleton } from './input.web';
 
 afterEach(cleanup);
 
-test('one pale border, no second ring, 16 px below md and 14 px from md', () => {
+test("ShopKartOS's field: 1 px input line plus the hairline ring, field fill, 16 px below md and 14 px from md", () => {
 	render(<Input accessibilityLabel="Name" />);
 	const { className } = screen.getByRole('textbox', { name: 'Name' });
 	for (const token of [
-		'rounded-control',
+		'rounded-input',
 		'border-input',
-		'bg-input/50',
-		'text-input-foreground',
+		'bg-field',
+		'shadow-raised-control',
+		'text-foreground',
 		'text-base',
 		'md:text-sm',
+		'focus-visible:border-ring',
+		'focus-visible:bg-background',
+		'focus-visible:ring-3',
+		'focus-visible:ring-ring/30',
+		'aria-invalid:border-field-invalid',
+		'aria-invalid:ring-field-invalid-ring',
 	]) {
 		expect(className).toContain(token);
 	}
-	expect(className).not.toContain('shadow-raised-control');
-	expect(className).toContain('focus-visible:ring-2');
 });
 
 test('onValueChange gets the text, disabled and invalid reach the element', () => {
@@ -42,7 +47,7 @@ test('the skeleton renders the field height and radius', () => {
 	for (const token of inputField.split(' ').filter((t) => /^(h-|rounded-)/.test(t))) {
 		expect(bone).toContain(token);
 	}
-	expect(inputSkeletonBone.split(' ')).toEqual(expect.arrayContaining(['h-9', 'rounded-control']));
+	expect(inputSkeletonBone.split(' ')).toEqual(expect.arrayContaining(['h-9', 'rounded-input']));
 });
 
 test('native and ARIA props pass through: describedby, required, maxLength, ref, onBlur, aria-label', () => {

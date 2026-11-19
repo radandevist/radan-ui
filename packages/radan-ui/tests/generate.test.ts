@@ -80,6 +80,18 @@ test('input is the shadcn outline; input-border is a component alias; input-fore
 	expect(dark).toContain('--radan-ui-input-foreground: #808697;');
 });
 
+test('the field look: fill, invalid tints and 12 px radius are tokens (light and dark)', () => {
+	const css = generateThemeCss();
+	const dark = css.slice(css.indexOf('.dark {'), css.indexOf('@theme inline'));
+	const light = css.slice(0, css.indexOf('.dark {'));
+	expect(light).toContain('--radan-ui-field: #f7f7f7;');
+	expect(dark).toContain('--radan-ui-field: #1f1f23;');
+	expect(dark).toContain('--radan-ui-field-invalid: rgb(252 165 165 / 50%);');
+	expect(css).toContain('--radan-ui-input-radius: 12px;');
+	expect(css).toContain('--radius-input: var(--radan-ui-input-radius);');
+	expect(css).toContain('--color-field-invalid-ring: var(--radan-ui-field-invalid-ring);');
+});
+
 test('web output keeps .dark and never follows the OS theme', () => {
 	const css = generateThemeCss();
 	expect(css).toContain('.dark {');
