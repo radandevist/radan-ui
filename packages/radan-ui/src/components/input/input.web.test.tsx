@@ -25,6 +25,9 @@ test("ShopKartOS's field: 1 px input line plus the hairline ring, field fill, 16
 		'focus-visible:ring-ring/30',
 		'aria-invalid:border-field-invalid',
 		'aria-invalid:ring-field-invalid-ring',
+		// an invalid field still shows focus (the plain invalid utilities come later in the CSS and would win)
+		'aria-invalid:focus-visible:border-destructive',
+		'aria-invalid:focus-visible:ring-destructive',
 	]) {
 		expect(className).toContain(token);
 	}
