@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { cn } from '../../lib/cn';
 import type { ButtonProps } from './button.contract';
+import { ButtonSkeleton } from './button.skeleton.native';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
 /** Elements render as they are; each run of consecutive text children (`Save {count}`) shares one label Text. */
@@ -31,7 +32,7 @@ const labelRuns = (children: ReactNode, labelClass: string): ReactNode[] => {
 	return out;
 };
 
-export const Button = ({
+const ButtonRoot = ({
 	variant,
 	size,
 	disabled,
@@ -60,5 +61,7 @@ export const Button = ({
 	);
 };
 
-export { ButtonSkeleton } from './button.skeleton.native';
+/** `Button.Skeleton`: the button's silhouette, one hidden bone. */
+export const Button = Object.assign(ButtonRoot, { Skeleton: ButtonSkeleton });
+
 export type { ButtonProps, ButtonSize, ButtonSkeletonProps, ButtonVariant } from './button.contract';

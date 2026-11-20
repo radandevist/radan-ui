@@ -49,9 +49,9 @@ model: every file below exists there).
    - `<name>.variants.ts` — the shared `cva`; classes valid on both platforms. **No** `hover:`, `focus-visible:`,
      `group-hover:` or `color-mix(`: those go in the platform file.
    - `<name>.web.tsx` — Base UI (or a plain element when Base UI adds nothing); the entry of `dist/web/<name>.js`.
-     Re-export the types and the skeleton from it.
+     Re-export the types from it; the component carries its skeleton as `<Name>.Skeleton` (`Object.assign`).
    - `<name>.native.tsx` — React Native / `@rn-primitives/*`; the entry of `dist/native/<name>.js`. Same re-exports.
-   - `<name>.skeleton.web.tsx` and `<name>.skeleton.native.tsx` — the skeleton beside it ([skeletons rule](docs/rules/skeletons.md)).
+   - `<name>.skeleton.web.tsx` and `<name>.skeleton.native.tsx` — the skeleton beside it, exposed as `<Name>.Skeleton` ([skeletons rule](docs/rules/skeletons.md)); no top-level `<Name>Skeleton` export.
    - `<name>.web.test.tsx` — Vitest, `// @vitest-environment jsdom` on the first line, Testing Library: every variant,
      the states, a11y roles, `onPress`, the skeleton.
    - Web only for now? Skip the two native files and add `"<name>": { "reason": "…", "issue": "https://github.com/radandevist/radan-ui/issues/N" }`

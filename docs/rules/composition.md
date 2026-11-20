@@ -1,6 +1,6 @@
 # Composition: build UI from small parts through `children`, never config flags (HARD)
 
-A component with parts is a **compound component** (`Card.Header`, `Card.Body`, `Skeleton.Card.Body`) — the caller
+A component with parts is a **compound component** (`Card.Header`, `Card.Body`, `Card.Body.Skeleton`) — the caller
 composes the parts it needs — never a component with a growing list of boolean or config props.
 
 - **No boolean-prop soup.** `hasThumb`, `showPill`, `variant="card|row|tile"` flags mean several components are
@@ -10,7 +10,7 @@ composes the parts it needs — never a component with a growing list of boolean
 - **Shared state flows through context**: the parent owns it, the parts read it through the nearest provider — not
   prop-drilled into every part.
 - **Compose, don't fork.** A page assembles library parts; it never re-draws a component with its own markup (the
-  skeleton library is the reference example: [skeletons.md](./skeletons.md)).
+  skeletons are the reference example: [skeletons.md](./skeletons.md)).
 
 Short example — the shape is what you compose:
 

@@ -1,10 +1,4 @@
-import {
-	PageBack,
-	PageBackSkeleton,
-	directionOf,
-	type Direction,
-	type Place,
-} from '@radandevist/radan-ui/page-transition';
+import { PageBack, directionOf, type Direction, type Place } from '@radandevist/radan-ui/page-transition';
 import type { CSSProperties } from 'react';
 
 // A catalog page: the states shown statically (no animation, no clock, no router), so the screenshot is stable.
@@ -124,10 +118,10 @@ const PageTransitionPage = () => (
 				</tbody>
 			</table>
 		</Section>
-		<Section title="PageBack and PageBackSkeleton">
+		<Section title="PageBack and PageBack.Skeleton">
 			<div className="flex items-center gap-4">
 				<PageBack label="Back" onBack={() => {}} />
-				<PageBackSkeleton />
+				<PageBack.Skeleton />
 			</div>
 		</Section>
 	</main>

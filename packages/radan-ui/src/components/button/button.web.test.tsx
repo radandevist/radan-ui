@@ -4,7 +4,7 @@ import { createRef, type FormEvent } from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import type { ButtonSize, ButtonVariant } from './button.contract';
-import { Button, ButtonSkeleton } from './button.web';
+import { Button } from './button.web';
 
 afterEach(cleanup);
 
@@ -92,7 +92,7 @@ test('className lands on the button, labelClassName on the label, and they repla
 });
 
 test('the skeleton is one hidden bone with the button silhouette', () => {
-	const { container } = render(<ButtonSkeleton size="lg" />);
+	const { container } = render(<Button.Skeleton size="lg" />);
 	const bone = container.firstElementChild!;
 	expect(bone.getAttribute('aria-hidden')).toBe('true');
 	expect(bone.className).toContain('h-10');

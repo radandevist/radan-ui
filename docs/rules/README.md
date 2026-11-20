@@ -8,8 +8,8 @@ holds the rule in full.
 - **Composition: parts through `children`, never config flags** — a component with parts is a compound component
   (`Card.Header`, `Card.Body`); no boolean-prop soup. [`composition.md`](./composition.md) (lint:
   [`no-boolean-prop-soup.md`](./no-boolean-prop-soup.md))
-- **Skeletons: one library, one bone per real element, never a grey block** — every component that can load exports
-  its own skeleton, beside it. [`skeletons.md`](./skeletons.md)
+- **Skeletons: one bone per real element, never a grey block** — every component that can load carries its own
+  skeleton (`Card.Skeleton`, `Button.Skeleton`…), the generic bones are `BoneLine`, `BonePill`, `BoneText`. [`skeletons.md`](./skeletons.md)
 - **Mobile feels native** — below `md`: bottom sheets not popovers, no visible ✕, no bottom nav, page state in the
   URL. [`mobile-native.md`](./mobile-native.md)
 - **Native navigation on the mobile web** — below `md` a page change is a screen change of the whole viewport, top bar

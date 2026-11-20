@@ -5,5 +5,5 @@ export const pageBackVariants = cva(
 	'flex size-11 shrink-0 items-center justify-center rounded-control text-foreground',
 );
 
-/** The back arrow's silhouette (the fill + pulse come from the Skeleton library). */
+/** The back arrow's silhouette (the fill + pulse come from `Bone`). */
 export const pageBackSkeletonVariants = cva('size-11 shrink-0 rounded-control');

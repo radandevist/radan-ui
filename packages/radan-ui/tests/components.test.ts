@@ -23,12 +23,21 @@ const code = (source: string) => source.replaceAll(/\/\*[\s\S]*?\*\//g, '').repl
 const imports = (source: string) =>
 	[...code(source).matchAll(/(?:\bfrom|\bimport|\brequire)\s*\(?\s*['"]([^'"]+)['"]/g)].map((match) => match[1]!);
 
+// The bone family (`bone`, `bone-line`, …) is the one skeleton library: a bone has no skeleton of its own, its catalog
+// page and its tests are the `bone` ones.
+const isBone = (name: string) => name === 'bone' || name.startsWith('bone-');
+
 const conformance = (name: string) => {
 	const have = files(name);
 	const missing = (list: string[]) =>
 		list.filter((file) => !have.includes(file)).map((file) => `${name}: missing ${file}`);
-	const web = [`${name}.contract.ts`, `${name}.variants.ts`, `${name}.web.tsx`, `${name}.skeleton.web.tsx`];
-	const native = [`${name}.native.tsx`, `${name}.skeleton.native.tsx`];
+	const web = [
+		`${name}.contract.ts`,
+		`${name}.variants.ts`,
+		`${name}.web.tsx`,
+		...(isBone(name) ? [] : [`${name}.skeleton.web.tsx`]),
+	];
+	const native = [`${name}.native.tsx`, ...(isBone(name) ? [] : [`${name}.skeleton.native.tsx`])];
 	const listed = webOnlyList[name];
 	if (!listed) {
 		return [...missing(web), ...missing(native).map((message) => `${message} (or list ${name} in web-only.json)`)];
@@ -50,7 +59,7 @@ describe('conformance (decision 8)', () => {
 		expect(Object.keys(webOnlyList).filter((name) => !names.includes(name))).toEqual([]);
 	});
 
-	test.each(names)('%s has a catalog page and a test', (name) => {
+	test.each(names.filter((name) => !isBone(name) || name === 'bone'))('%s has a catalog page and a test', (name) => {
 		const page = `apps/catalog/pages/${name}.page.tsx`;
 		const problems = [
 			...(existsSync(join(root, '../..', page)) ? [] : [`missing ${page}`]),
@@ -120,5 +129,30 @@ describe('shared variants (decision 3)', () => {
 	test.each(names)('%s.variants.ts has no web-only state or color-mix()', (name) => {
 		const source = code(read(name, `${name}.variants.ts`));
 		expect(source.match(/hover:|focus-visible:|group-hover:|color-mix\(/g) ?? []).toEqual([]);
+	});
+});
+
+describe('skeletons are owned by their component (issue #66)', () => {
+	const skeletonFree = names.filter((name) => !isBone(name));
+
+	test('no root `Skeleton` namespace: no `skeleton` component, no `Skeleton` export that is not a static member', () => {
+		expect(names).not.toContain('skeleton');
+		const problems = skeletonFree.flatMap((name) =>
+			files(name)
+				.filter((file) => /\.(web|native)\.tsx$/.test(file) && !isTest(file) && !file.includes('.skeleton.'))
+				.filter((file) =>
+					/export\s+const\s+\w*Skeleton\b|export\s*\{[^}]*Skeleton\b[^}]*\}/.test(code(read(name, file))),
+				)
+				.map((file) => `${name}/${file} exports a skeleton at top level: make it \`<Component>.Skeleton\``),
+		);
+		expect(problems).toEqual([]);
+	});
+
+	test('a component with a skeleton file exposes it as `.Skeleton` (web)', () => {
+		const problems = skeletonFree
+			.filter((name) => files(name).includes(`${name}.skeleton.web.tsx`))
+			.filter((name) => !/Skeleton:\s*\w+Skeleton/.test(read(name, `${name}.web.tsx`)))
+			.map((name) => `${name}.web.tsx has a skeleton file but no \`Skeleton: …\` static member`);
+		expect(problems).toEqual([]);
 	});
 });

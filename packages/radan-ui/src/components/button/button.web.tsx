@@ -2,6 +2,7 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button';
 
 import { cn } from '../../lib/cn';
 import type { ButtonProps, ButtonSize, ButtonVariant } from './button.contract';
+import { ButtonSkeleton } from './button.skeleton.web';
 import { buttonTextVariants, buttonVariants } from './button.variants';
 
 /**
@@ -42,7 +43,7 @@ const Spinner = () => (
 
 // Base UI's Button gives native-button semantics and `focusableWhenDisabled`: while `loading` the button stays
 // focusable (aria-disabled), so focus is not lost and `aria-busy` is announced; a plain `disabled` leaves the tab order.
-export const Button = ({
+const ButtonRoot = ({
 	variant = 'default',
 	size,
 	disabled,
@@ -85,5 +86,7 @@ export const Button = ({
 	</ButtonPrimitive>
 );
 
-export { ButtonSkeleton } from './button.skeleton.web';
+/** `Button.Skeleton`: the button's silhouette, one hidden bone. */
+export const Button = Object.assign(ButtonRoot, { Skeleton: ButtonSkeleton });
+
 export type { ButtonProps, ButtonSize, ButtonSkeletonProps, ButtonVariant } from './button.contract';

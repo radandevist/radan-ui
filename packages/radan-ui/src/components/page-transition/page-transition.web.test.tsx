@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PageBack, PageBackSkeleton } from './page-transition.web';
+import { PageBack } from './page-transition.web';
 
 afterEach(cleanup);
 
@@ -52,9 +52,9 @@ describe('PageBack', () => {
 	});
 });
 
-describe('PageBackSkeleton', () => {
+describe('PageBack.Skeleton', () => {
 	it('is a hidden bone, no role', () => {
-		const { container } = render(<PageBackSkeleton className="extra" />);
+		const { container } = render(<PageBack.Skeleton className="extra" />);
 		const bone = container.firstElementChild!;
 		expect(bone.getAttribute('aria-hidden')).toBe('true');
 		expect(bone.className).toContain('extra');

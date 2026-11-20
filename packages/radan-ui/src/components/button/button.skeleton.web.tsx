@@ -1,5 +1,5 @@
 import { cn } from '../../lib/cn';
-import { Bone } from '../skeleton/skeleton.skeleton.web';
+import { Bone } from '../bone/bone.web';
 import type { ButtonSkeletonProps } from './button.contract';
 import { buttonSkeletonVariants } from './button.variants';
 
