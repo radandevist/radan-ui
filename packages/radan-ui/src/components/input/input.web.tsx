@@ -15,6 +15,7 @@ export const Input = ({
 }: InputProps) => (
 	<InputPrimitive
 		aria-label={accessibilityLabel}
+		data-slot="input"
 		{...rest}
 		type={type}
 		disabled={disabled}

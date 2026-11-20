@@ -26,6 +26,9 @@ const InputPage = () => (
 		<Row title="password">
 			<Input accessibilityLabel="Password" type="password" defaultValue="secret" />
 		</Row>
+		<Row title="date (native picker)">
+			<Input accessibilityLabel="Date" type="date" defaultValue="2026-11-20" />
+		</Row>
 		<Row title="InputSkeleton">
 			<InputSkeleton />
 		</Row>

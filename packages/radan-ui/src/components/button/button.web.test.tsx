@@ -166,3 +166,37 @@ test('render-as: a link (role="link" wins over the default button role) keeps th
 	fireEvent.click(link);
 	expect(onPress).toHaveBeenCalledTimes(1);
 });
+
+test('text utilities in className reach the label, icons in it get 16 px and the button gap', () => {
+	render(
+		<Button variant="ghost" className="text-destructive text-[13px]">
+			<svg data-testid="icon" />
+			Delete
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.className).toContain('text-destructive');
+	expect(button.className).not.toContain('text-foreground');
+	expect(button.className).toContain('text-[13px]');
+	expect(button.className).toContain('[&_svg:not([class*=size-])]:size-4');
+	const label = screen.getByText('Delete');
+	expect(label.className).toContain('inline-flex');
+	expect(label.className).toContain('gap-[inherit]');
+	expect(label.className).not.toContain('text-');
+});
+
+test('loading hides the label icons behind the spinner and takes no pointer events; data-slot is set', () => {
+	render(
+		<Button loading>
+			<svg data-testid="icon" />
+			Save
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.getAttribute('data-slot')).toBe('button');
+	expect(button.className).toContain('aria-busy:pointer-events-none');
+	expect(button.className).toContain('aria-busy:[&>span_svg]:hidden');
+	// the spinner is a direct child of the button, the icon lives in the label span
+	expect(button.querySelectorAll(':scope > svg')).toHaveLength(1);
+	expect(screen.getByTestId('icon').closest('span')).not.toBeNull();
+});

@@ -22,8 +22,9 @@ const hover: Record<ButtonVariant, string> = {
 	link: 'underline-offset-4 hover:underline',
 };
 
-// An icon-xs button holds a 12 px glyph; a glyph that sets its own size keeps it.
-const glyph: Partial<Record<ButtonSize, string>> = { 'icon-xs': '[&_svg:not([class*=size-])]:size-3' };
+// Icons in the label are 16 px (an icon-xs button holds a 12 px glyph); a glyph that sets its own size keeps it.
+const glyph = (size: ButtonSize = 'default') =>
+	size === 'icon-xs' ? '[&_svg:not([class*=size-])]:size-3' : '[&_svg:not([class*=size-])]:size-4';
 
 const Spinner = () => (
 	<svg
@@ -56,6 +57,7 @@ export const Button = ({
 }: ButtonWebProps) => (
 	<ButtonPrimitive
 		aria-label={accessibilityLabel}
+		data-slot="button"
 		{...rest}
 		disabled={Boolean(disabled || loading)}
 		focusableWhenDisabled={Boolean(loading)}
@@ -68,13 +70,18 @@ export const Button = ({
 			buttonVariants({ variant, size, disabled: Boolean(disabled || loading) }),
 			'inline-flex shrink-0 cursor-pointer select-none whitespace-nowrap outline-none transition-colors',
 			'focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none',
+			// Loading: the spinner replaces the label's icons and the button takes no pointer events.
+			'aria-busy:pointer-events-none aria-busy:[&>span_svg]:hidden',
 			hover[variant],
-			glyph[size ?? 'default'],
+			// The label's text (colour, size, weight) sits on the button and the span inherits it, so a `text-*` in
+			// `className` reaches the label; `labelClassName` still overrides on the span.
+			buttonTextVariants({ variant, size }),
+			glyph(size),
 			className,
 		)}
 	>
 		{loading && <Spinner />}
-		<span className={cn(buttonTextVariants({ variant, size }), labelClassName)}>{children}</span>
+		<span className={cn('inline-flex items-center gap-[inherit] [&_svg]:shrink-0', labelClassName)}>{children}</span>
 	</ButtonPrimitive>
 );
 
