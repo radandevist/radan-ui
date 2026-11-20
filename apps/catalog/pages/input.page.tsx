@@ -1,4 +1,4 @@
-import { Input, InputSkeleton } from '@radandevist/radan-ui/input';
+import { Input } from '@radandevist/radan-ui/input';
 
 // A catalog page: every state of the field, nothing random (the screenshot must be stable).
 const Row = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -29,8 +29,8 @@ const InputPage = () => (
 		<Row title="date (native picker)">
 			<Input accessibilityLabel="Date" type="date" defaultValue="2026-11-20" />
 		</Row>
-		<Row title="InputSkeleton">
-			<InputSkeleton />
+		<Row title="Input.Skeleton">
+			<Input.Skeleton />
 		</Row>
 	</main>
 );

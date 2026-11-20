@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { Button, ButtonSkeleton } from '@radandevist/radan-ui/button';
+import { Button } from '@radandevist/radan-ui/button';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { vars } from 'nativewind';
 import { View } from 'react-native';
@@ -132,7 +132,7 @@ test('consecutive text children share one label Text (no gap between "Save" and 
 });
 
 test('the skeleton is one hidden bone', async () => {
-	await render(<ButtonSkeleton size="lg" />);
+	await render(<Button.Skeleton size="lg" />);
 	expect(screen.queryByRole('button')).toBeNull();
 });
 

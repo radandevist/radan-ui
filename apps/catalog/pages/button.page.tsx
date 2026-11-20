@@ -47,6 +47,11 @@ const ButtonPage = () => (
 				</Button>
 			))}
 		</Row>
+		<Row title="Button.Skeleton, one per size">
+			{(['default', 'xs', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg'] as const).map((size) => (
+				<Button.Skeleton key={size} size={size} />
+			))}
+		</Row>
 		<Row title="disabled">
 			{variants.map((variant) => (
 				<Button key={variant} variant={variant} disabled>

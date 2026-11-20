@@ -1,15 +1,17 @@
 import { cn } from '../../lib/cn';
-import { Skeleton } from '../skeleton/skeleton.web';
+import { BoneLine } from '../bone-line/bone-line.web';
+import { BoneRegion } from '../bone-region/bone-region.web';
+import { Bone } from '../bone/bone.web';
 import type { ToastSkeletonProps } from './toast.contract';
 import { toastCard } from './toast.variants';
 
 /** The card's shape, one bone per element: the icon tile, the label, the title. */
 export const ToastSkeleton = ({ label, className }: ToastSkeletonProps) => (
-	<Skeleton label={label} className={cn(toastCard, 'w-full max-w-[400px] flex-row', className)}>
-		<Skeleton.Bone className="size-10 shrink-0 rounded-xl" />
+	<BoneRegion label={label} className={cn(toastCard, 'w-full max-w-[400px] flex-row', className)}>
+		<Bone className="size-10 shrink-0 rounded-xl" />
 		<div className="flex flex-1 flex-col gap-2">
-			<Skeleton.Line size="xs" width="w-16" />
-			<Skeleton.Line size="md" width="w-40" />
+			<BoneLine size="xs" width="w-16" />
+			<BoneLine size="md" width="w-40" />
 		</div>
-	</Skeleton>
+	</BoneRegion>
 );

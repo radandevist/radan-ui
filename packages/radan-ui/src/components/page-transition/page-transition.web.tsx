@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { cn } from '../../lib/cn';
 import { createTapGuard } from './page-transition.back';
 import type { PageBackProps } from './page-transition.contract';
+import { PageBackSkeleton } from './page-transition.skeleton.web';
 import { pageBackVariants } from './page-transition.variants';
 
 export * from './page-transition.back';
 export * from './page-transition.contract';
 export * from './page-transition.core';
-export { PageBackSkeleton } from './page-transition.skeleton.web';
 
 const Arrow = () => (
 	<svg
@@ -29,7 +29,7 @@ const Arrow = () => (
  * A screen's back arrow, in its top bar. Guarded: a second tap inside the window is ignored. It only calls `onBack`
  * (usually `goBack(...)` with the app's router); `data-page-back` lets the app's header swap its menu button for it.
  */
-export const PageBack = ({ label, onBack, className, children }: PageBackProps) => {
+const PageBackRoot = ({ label, onBack, className, children }: PageBackProps) => {
 	// Lazy init: one guard per mounted arrow, never re-created on render.
 	const [guard] = useState(() => createTapGuard());
 	return (
@@ -53,3 +53,6 @@ export const PageBack = ({ label, onBack, className, children }: PageBackProps) 
 		</button>
 	);
 };
+
+/** `PageBack.Skeleton`: the arrow's silhouette, one hidden bone. */
+export const PageBack = Object.assign(PageBackRoot, { Skeleton: PageBackSkeleton });

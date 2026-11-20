@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 
-import { ButtonSkeleton } from '@radandevist/radan-ui/button';
-import { Skeleton } from '@radandevist/radan-ui/skeleton';
+import { BoneLine } from '@radandevist/radan-ui/bone-line';
+import { BonePill } from '@radandevist/radan-ui/bone-pill';
+import { BoneRegion } from '@radandevist/radan-ui/bone-region';
+import { BoneText } from '@radandevist/radan-ui/bone-text';
+import { Button } from '@radandevist/radan-ui/button';
+import { Card } from '@radandevist/radan-ui/card';
 import { render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo, Platform, View } from 'react-native';
 import { registerCSS } from 'react-native-css/jest';
@@ -14,15 +18,15 @@ beforeEach(() => {
 const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 
 const card = (
-	<Skeleton.Card>
-		<Skeleton.Card.Header>
-			<Skeleton.Line size="sm" width="w-16" />
-			<Skeleton.Pill width="w-14" />
-		</Skeleton.Card.Header>
-		<Skeleton.Card.Body>
-			<Skeleton.Text lines={2} size="xs" />
-		</Skeleton.Card.Body>
-	</Skeleton.Card>
+	<Card.Skeleton>
+		<Card.Header.Skeleton>
+			<BoneLine size="sm" width="w-16" />
+			<BonePill width="w-14" />
+		</Card.Header.Skeleton>
+		<Card.Body.Skeleton>
+			<BoneText lines={2} size="xs" />
+		</Card.Body.Skeleton>
+	</Card.Skeleton>
 );
 
 test('the card is a busy region that reads Loading…, on the real card surface', async () => {
@@ -34,10 +38,10 @@ test('the card is a busy region that reads Loading…, on the real card surface'
 
 test('a nested card adds no second Loading… node', async () => {
 	await render(
-		<Skeleton label="Chargement…">
+		<BoneRegion label="Chargement…">
 			{card}
 			{card}
-		</Skeleton>,
+		</BoneRegion>,
 	);
 	expect(screen.getAllByLabelText('Chargement…', { hidden: true })).toHaveLength(1);
 	expect(screen.queryByLabelText('Loading…', { hidden: true })).toBeNull();
@@ -47,7 +51,7 @@ const withPlatform = async (os: 'ios' | 'android', label: string) => {
 	const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
 	const before = Platform.OS;
 	Platform.OS = os;
-	await render(<Skeleton.Card label={label}>{null}</Skeleton.Card>);
+	await render(<Card.Skeleton label={label}>{null}</Card.Skeleton>);
 	Platform.OS = before;
 	const calls = announce.mock.calls.filter(([text]) => text === label).length;
 	announce.mockRestore();
@@ -80,7 +84,7 @@ const pair = async (bone: React.ReactElement, reference: React.ReactElement) => 
 
 test('bones are hidden from assistive tech (both flags) and resolve to the shared token classes', async () => {
 	const { bone, reference } = await pair(
-		<Skeleton.Line size="sm" width="w-16" />,
+		<BoneLine size="sm" width="w-16" />,
 		<View className="animate-pulse bg-foreground/10 h-4 rounded-md w-16" />,
 	);
 	expect(bone.props.importantForAccessibility).toBe('no-hide-descendants');
@@ -89,9 +93,9 @@ test('bones are hidden from assistive tech (both flags) and resolve to the share
 	expect(flat(bone.props.style)).toEqual(flat(reference.props.style));
 });
 
-test('ButtonSkeleton keeps its classes (shared bone + button silhouette)', async () => {
+test('Button.Skeleton keeps its classes (shared bone + button silhouette)', async () => {
 	const { bone, reference } = await pair(
-		<ButtonSkeleton size="lg" />,
+		<Button.Skeleton size="lg" />,
 		<View className="animate-pulse bg-foreground/10 rounded-control h-10 w-24" />,
 	);
 	expect(flat(bone.props.style)).toEqual(flat(reference.props.style));

@@ -51,7 +51,7 @@ export const buttonTextVariants = cva('font-medium', {
 	defaultVariants: { variant: 'default', size: 'default' },
 });
 
-/** The skeleton bone shape (the fill + pulse come from the Skeleton library): the button's silhouette (same height and radius; the width stands for a short label). */
+/** The skeleton bone shape (the fill + pulse come from `Bone`): the button's silhouette (same height and radius; the width stands for a short label). */
 export const buttonSkeletonVariants = cva('rounded-control', {
 	variants: {
 		size: {

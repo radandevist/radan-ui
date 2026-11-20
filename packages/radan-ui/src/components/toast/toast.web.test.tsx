@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, expect, test, vi } from 'vitest';
 
 import type { ToasterLabels, ToasterProps } from './toast.contract';
-import { toast, Toaster, ToastSkeleton } from './toast.web';
+import { toast, Toast, Toaster } from './toast.web';
 
 const labels: ToasterLabels = {
 	default: 'Notice',
@@ -78,7 +78,7 @@ test('the theme comes from the app, and the narrow side is the top-center one', 
 });
 
 test('the skeleton is the card shape, hidden from assistive tech', () => {
-	const { container } = render(<ToastSkeleton />);
+	const { container } = render(<Toast.Skeleton />);
 	expect(container.querySelectorAll('[aria-hidden]').length).toBeGreaterThanOrEqual(3);
 	expect(container.querySelector('[aria-busy]')!.className).toContain('bg-popover-surface!');
 });
@@ -109,7 +109,7 @@ test('sonner props pass through: visibleToasts caps the stack, expand opens it',
 });
 
 test('the skeleton announces the app-supplied label', () => {
-	render(<ToastSkeleton label="Chargement" />);
+	render(<Toast.Skeleton label="Chargement" />);
 	expect(screen.getByRole('status').textContent).toBe('Chargement');
 });
 

@@ -3,6 +3,7 @@ import { Toaster as Sonner } from 'sonner';
 
 import { cn } from '../../lib/cn';
 import type { ToasterProps, ToastType } from './toast.contract';
+import { ToastSkeleton } from './toast.skeleton.web';
 import { toastCard, toastIconVariants } from './toast.variants';
 
 const MD = '(min-width: 768px)';
@@ -149,5 +150,6 @@ export const Toaster = ({ labels, now, theme = 'light', ...rest }: ToasterProps)
 };
 
 export { toast } from 'sonner';
-export { ToastSkeleton } from './toast.skeleton.web';
+/** `Toast.Skeleton`: the toast card's shape, one bone per element. */
+export const Toast = { Skeleton: ToastSkeleton };
 export type { ToasterLabels, ToasterProps, ToastSkeletonProps, ToastType } from './toast.contract';

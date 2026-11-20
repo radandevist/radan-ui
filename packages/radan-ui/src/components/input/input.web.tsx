@@ -2,9 +2,10 @@ import { Input as InputPrimitive } from '@base-ui/react/input';
 
 import { cn } from '../../lib/cn';
 import type { InputProps } from './input.contract';
+import { InputSkeleton } from './input.skeleton.web';
 import { inputField } from './input.variants';
 
-export const Input = ({
+const InputRoot = ({
 	type = 'text',
 	onValueChange,
 	invalid,
@@ -33,5 +34,7 @@ export const Input = ({
 	/>
 );
 
-export { InputSkeleton } from './input.skeleton.web';
+/** `Input.Skeleton`: the field's silhouette, one hidden bone. */
+export const Input = Object.assign(InputRoot, { Skeleton: InputSkeleton });
+
 export type { InputProps, InputSkeletonProps, InputType } from './input.contract';

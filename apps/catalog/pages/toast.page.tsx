@@ -1,4 +1,4 @@
-import { toast, Toaster, ToastSkeleton } from '@radandevist/radan-ui/toast';
+import { toast, Toast, Toaster } from '@radandevist/radan-ui/toast';
 import { useEffect } from 'react';
 
 // A catalog page: real toasts, opened on mount and kept open (`duration: Infinity`, `expand`), one fixed id per toast so
@@ -26,8 +26,8 @@ const ToastPage = () => {
 		<main className="mx-auto max-w-3xl p-6">
 			<h1 className="mb-6 text-xl font-semibold">Toast</h1>
 			<Toaster labels={labels} containerAriaLabel="Notifications" now="now" expand visibleToasts={6} />
-			<h2 className="mb-3 text-sm font-semibold text-muted-foreground">ToastSkeleton</h2>
-			<ToastSkeleton />
+			<h2 className="mb-3 text-sm font-semibold text-muted-foreground">Toast.Skeleton</h2>
+			<Toast.Skeleton />
 		</main>
 	);
 };

@@ -75,7 +75,7 @@
 		"build:theme": "tsx scripts/build-theme.ts",
 		"build:lint-plugin": "tsdown --config tsdown.lint.config.ts",
 		"check:package": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./theme.css ./theme.native.css ./page-transition.css ./fonts.css",
-		"size": "size-limit",
+		"size": "size-limit && node scripts/check-bones.mjs",
 		"check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm check:package && pnpm size",
 		"prepack": "node scripts/prepack.mjs",
 		"postpack": "node scripts/prepack.mjs clean"

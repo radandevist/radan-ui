@@ -4,7 +4,7 @@ import { createRef } from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import { inputField, inputSkeletonBone } from './input.variants';
-import { Input, InputSkeleton } from './input.web';
+import { Input } from './input.web';
 
 afterEach(cleanup);
 
@@ -45,7 +45,7 @@ test('onValueChange gets the text, disabled and invalid reach the element', () =
 });
 
 test('the skeleton renders the field height and radius', () => {
-	const { container } = render(<InputSkeleton />);
+	const { container } = render(<Input.Skeleton />);
 	const bone = container.firstElementChild!.className;
 	for (const token of inputField.split(' ').filter((t) => /^(h-|rounded-)/.test(t))) {
 		expect(bone).toContain(token);

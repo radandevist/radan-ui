@@ -16,7 +16,7 @@ the Tailwind utility mapped to it — never a raw `hex` / `rgb()` / ad-hoc value
    overrides, never by re-declaring colours locally.
 2. **Tokens, never raw values.** Three layers (palette → semantic → component). A component reads a token or a
    Tailwind utility; it never spells a colour or the prefix itself.
-3. **Consistency is non-negotiable.** One shared primitive per pattern (one card, one skeleton library, one state
+3. **Consistency is non-negotiable.** One shared primitive per pattern (one card, one bone, one state
    view, one drawer). An app adds to the library instead of forking a component.
 4. **Flat surfaces, crisp hairlines.** Cards and sections are outlined by a 1px shadow ring, not a drop shadow, and an
    element never carries both a real `border` and the ring (it would double the line).
@@ -276,7 +276,7 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
 - **Focus**: every interactive element shows a `focus-visible` ring built from `ring` (≥3:1 against its surface);
   the ring is part of the component, callers never remove it. `aria-invalid` adds a tint without replacing it.
 - **Loading**: a loading region is `aria-busy` with a visually hidden status line; every skeleton bone is
-  `aria-hidden` (the primitive does it — never pass text or roles to a bone).
+  `aria-hidden` (`Bone` does it — never pass text or roles to a bone).
 - **Touch**: below `md` on web (and at every size on native), controls and rows clear a 44px target; sheets close
   by swipe, backdrop or Escape.
 - Keyboard: menus, drawers and dialogs are operable and focus-trapped per their primitive; Escape closes, focus

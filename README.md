@@ -12,7 +12,7 @@ Theme, React components and lint rules shared by Radan's apps — one visual lan
 
 - **Theme** — the tokens, `generateThemeCss({ prefix })`, `theme.css` and `theme.native.css` (follows the system
   dark mode), and the `radan-ui theme [--prefix <p>] [--native]` CLI.
-- **Components** — `Button` and `Skeleton` (web and React Native, one `@radandevist/radan-ui/<name>` entry each) and `Toast` and `Input` (web only for now); phase 2 adds the rest of the set.
+- **Components** — `Button`, `Card` and the skeleton bones (`Bone`, `BoneLine`, `BonePill`, `BoneText`, `BoneRegion`; web and React Native, one `@radandevist/radan-ui/<name>` entry each) and `Toast`, `Input` and `PageBack` (web only for now); phase 2 adds the rest of the set.
 - **React Native / Expo** — `withRadanUi` for `metro.config.js`.
 - **Lint** — the shared `oxlint.json` / `oxfmt.json` configs and the `house` and `anti-slop` OxLint plugins.
 - **Docs** — `docs/DESIGN.md` (the visual language) and `docs/rules/` (the binding front-end rules), shipped inside the
@@ -117,8 +117,7 @@ The same import resolves to the web build (a `<button>`) or, under the `react-na
 Props are identical on both: `variant` (`default` | `outline` | `secondary` | `ghost` | `destructive` | `link`),
 `size` (`default` | `xs` | `sm` | `lg` | `icon` | `icon-xs` | `icon-sm` | `icon-lg`), `disabled`, `loading`, `onPress`, `className` (the button itself),
 `labelClassName` (the label: on native `Text` does not inherit colour, so text utilities go here), `accessibilityLabel`
-(the accessible name, needed for `size="icon"`) and `children`. `ButtonSkeleton` (`size`, `className`) is exported
-beside it. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
+(the accessible name, needed for `size="icon"`) and `children`. `Button.Skeleton` (`size`, `className`) is its silhouette. On the web `onPress` is wired to the button's `onClick`. Tailwind skips
 `node_modules`, so add a `@source` next to the theme import; the path is relative to that stylesheet (here
 `src/styles/app.css`):
 
@@ -138,30 +137,42 @@ A single-line field, controlled (`value` + `onValueChange`, which gets the text,
 `type` is `text` | `email` | `password` | `search` | `tel` | `url` | `number`; `invalid` sets `aria-invalid` and the
 destructive border and ring. Every other native `<input>` and ARIA prop passes through (`ref`, `id`, `name`,
 `aria-describedby`, `required`, `onBlur`, ...); `accessibilityLabel` is a shorthand for `aria-label` when no `<label>`
-points at it. Text is 16 px below `md` (iOS does not zoom), 14 px from `md`. `InputSkeleton` (`className`) is exported
-beside it. Web only for now: [#58](https://github.com/radandevist/radan-ui/issues/58).
+points at it. Text is 16 px below `md` (iOS does not zoom), 14 px from `md`. `Input.Skeleton` (`className`) is its silhouette. Web only for now: [#58](https://github.com/radandevist/radan-ui/issues/58).
 
-#### Skeleton
+#### Card and skeletons
+
+Every component carries its own skeleton as a static member, and the generic bones are components imported one by one
+(no root `Skeleton` object, so a bundler only ships what you import).
 
 ```tsx
-import { Skeleton } from '@radandevist/radan-ui/skeleton';
+import { BoneLine } from '@radandevist/radan-ui/bone-line';
+import { BonePill } from '@radandevist/radan-ui/bone-pill';
+import { BoneText } from '@radandevist/radan-ui/bone-text';
+import { Card } from '@radandevist/radan-ui/card';
 
-<Skeleton.Card>
-	<Skeleton.Card.Header>
-		<Skeleton.Line size="sm" width="w-16" />
-		<Skeleton.Pill width="w-14" />
-	</Skeleton.Card.Header>
-	<Skeleton.Card.Body>
-		<Skeleton.Text lines={2} size="xs" />
-	</Skeleton.Card.Body>
-</Skeleton.Card>
+<Card>
+	<Card.Header>…</Card.Header>
+	<Card.Body>…</Card.Body>
+</Card>
+
+<Card.Skeleton>
+	<Card.Header.Skeleton>
+		<BoneLine size="sm" width="w-16" />
+		<BonePill width="w-14" />
+	</Card.Header.Skeleton>
+	<Card.Body.Skeleton>
+		<BoneText lines={2} size="xs" />
+	</Card.Body.Skeleton>
+</Card.Skeleton>
 ```
 
-A compound component, one bone per real element (`docs/rules/skeletons.md`). `Skeleton` and `Skeleton.Card` are regions:
-`aria-busy` plus a visually hidden "Loading…" status (`label` translates it; a region nested in another adds none), bones
-are hidden from assistive tech. `Skeleton.Line` takes `size` (`xs` | `sm` | `md` | `lg`) and `width` (a Tailwind width
-class), `Skeleton.Pill` a `width`, `Skeleton.Text` `lines` and `size`; every part takes `className`. The bone is
-`bg-foreground/10` plus one pulse, fixed in the library.
+One bone per real element (`docs/rules/skeletons.md`). `Card.Skeleton` and `BoneRegion` are regions: `aria-busy` plus a
+visually hidden "Loading…" status (`label` translates it; a region nested in another adds none), bones are hidden from
+assistive tech. Component skeletons: `Button.Skeleton`, `Input.Skeleton`, `Toast.Skeleton`, `PageBack.Skeleton`,
+`Card.Skeleton`, `Card.Header.Skeleton`, `Card.Body.Skeleton`. Generic bones: `BoneLine` (`size` `xs` | `sm` | `md` | `lg`,
+`width` a Tailwind width class), `BonePill` (`width`), `BoneText` (`lines`, `size`), `BoneRegion` (`label`) and `Bone` for
+any other shape (`className`: size and radius); every one takes `className`. The bone is `bg-foreground/10` plus one
+pulse, fixed in the library.
 
 #### Page transitions (web)
 
@@ -191,7 +202,7 @@ installPageTransitions(); // once, at client boot
 - `PageBack` (`label`, `onBack`, `className`, optional icon as children) ignores a second tap within 800 ms
   (`createTapGuard`) and swallows a rejected navigation; it carries `data-page-back` so your header can swap its menu
   button for it. `goBack` goes back in history when the app has an earlier entry, else replaces with the parent.
-  `PageBackSkeleton` is its silhouette. Web only for now (native uses the platform's stack navigator).
+  `PageBack.Skeleton` is its silhouette. Web only for now (native uses the platform's stack navigator).
 
 TanStack Router adapter (about ten lines, in your app, not in the library):
 
@@ -260,7 +271,7 @@ card's top right) and `theme` (the app's theme, never the OS's); every other son
 `style` and `toastOptions`, which the card owns: there is no visible ✕, a toast closes by timeout, swipe or its action.
 The card is a raised rounded surface with a tinted 40 px icon tile (the tone is on the icon alone), the label, a bold
 title, an optional description and a neutral action chip. Below `md` it slides down over the header like an Android
-notification (top-center, under the status area); from `md` it sits bottom-right. `ToastSkeleton` (`label`, `className`) is exported beside it.
+notification (top-center, under the status area); from `md` it sits bottom-right. `Toast.Skeleton` (`label`, `className`) is the card's shape.
 Like `Button`, add the `@source` for `dist/web`.
 
 ### React Native / Expo
