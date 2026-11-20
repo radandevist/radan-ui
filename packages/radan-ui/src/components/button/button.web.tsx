@@ -57,6 +57,7 @@ export const Button = ({
 }: ButtonWebProps) => (
 	<ButtonPrimitive
 		aria-label={accessibilityLabel}
+		data-slot="button"
 		{...rest}
 		disabled={Boolean(disabled || loading)}
 		focusableWhenDisabled={Boolean(loading)}
@@ -69,6 +70,8 @@ export const Button = ({
 			buttonVariants({ variant, size, disabled: Boolean(disabled || loading) }),
 			'inline-flex shrink-0 cursor-pointer select-none whitespace-nowrap outline-none transition-colors',
 			'focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none',
+			// Loading: the spinner replaces the label's icons and the button takes no pointer events.
+			'aria-busy:pointer-events-none aria-busy:[&>span_svg]:hidden',
 			hover[variant],
 			// The label's text (colour, size, weight) sits on the button and the span inherits it, so a `text-*` in
 			// `className` reaches the label; `labelClassName` still overrides on the span.

@@ -75,6 +75,14 @@ const ButtonPage = () => (
 				Add
 			</Button>
 		</Row>
+		<Row title="loading with an icon (the spinner replaces it)">
+			<Button variant="outline" loading>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+					<path d="M12 5v14M5 12h14" />
+				</svg>
+				Add
+			</Button>
+		</Row>
 		<Row title="className / labelClassName">
 			<Button className="rounded-card" labelClassName="text-status-success" variant="outline">
 				rounded-card, success label

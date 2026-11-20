@@ -184,3 +184,19 @@ test('text utilities in className reach the label, icons in it get 16 px and the
 	expect(label.className).toContain('gap-[inherit]');
 	expect(label.className).not.toContain('text-');
 });
+
+test('loading hides the label icons behind the spinner and takes no pointer events; data-slot is set', () => {
+	render(
+		<Button loading>
+			<svg data-testid="icon" />
+			Save
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.getAttribute('data-slot')).toBe('button');
+	expect(button.className).toContain('aria-busy:pointer-events-none');
+	expect(button.className).toContain('aria-busy:[&>span_svg]:hidden');
+	// the spinner is a direct child of the button, the icon lives in the label span
+	expect(button.querySelectorAll(':scope > svg')).toHaveLength(1);
+	expect(screen.getByTestId('icon').closest('span')).not.toBeNull();
+});

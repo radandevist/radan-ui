@@ -95,3 +95,8 @@ test('type="date" renders a native date field in the same frame', () => {
 	fireEvent.change(input, { target: { value: '2026-11-20' } });
 	expect(onValueChange).toHaveBeenCalledWith('2026-11-20');
 });
+
+test('the field carries data-slot="input"', () => {
+	render(<Input accessibilityLabel="Name" />);
+	expect(screen.getByRole('textbox').getAttribute('data-slot')).toBe('input');
+});
