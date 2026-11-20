@@ -1,5 +1,11 @@
 # @radandevist/radan-ui
 
+## 0.11.0
+
+### Minor Changes
+
+- [#71](https://github.com/radandevist/radan-ui/pull/71) [`c129932`](https://github.com/radandevist/radan-ui/commit/c1299329bdb6129df89cbb7d8ab00bfe8dd5ef60) Thanks [@radandevist](https://github.com/radandevist)! - Button (web): `text-*` classes in `className` now reach the label, and icons in the label are 16 px with the button's gap. Loading replaces the label icons with the spinner and blocks pointer events. Button and Input set `data-slot`. `Input` accepts `type="date"`.
+
 ## 0.10.0
 
 ### Minor Changes
