@@ -19,7 +19,13 @@ Breaking: every skeleton is now owned by its component, and the root `Skeleton` 
 | `<InputSkeleton>` | `<Input.Skeleton>` |
 | `<ToastSkeleton>` | `<Toast.Skeleton>` (`Toast` from `@radandevist/radan-ui/toast`) |
 | `<PageBackSkeleton>` | `<PageBack.Skeleton>` |
-| `SkeletonLineSize` and the other `Skeleton*Props` types | `BoneLineSize`, `BoneLineProps`, `BonePillProps`, `BoneTextProps`, `BoneRegionProps`, `BoneProps`, `CardSkeletonProps` |
+| `SkeletonLineSize` | `BoneLineSize` |
+| `SkeletonLineProps` | `BoneLineProps` |
+| `SkeletonPillProps` | `BonePillProps` |
+| `SkeletonTextProps` | `BoneTextProps` |
+| `SkeletonBoneProps` | `BoneProps` |
+| `SkeletonRegionProps` | `BoneRegionProps` (a card skeleton: `CardSkeletonProps`) |
+| `SkeletonPartProps` | `CardPartProps` |
 
 ```diff
 - import { Skeleton } from '@radandevist/radan-ui/skeleton';
