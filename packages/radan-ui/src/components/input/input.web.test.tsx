@@ -84,3 +84,14 @@ test('the field keeps a forced-colors focus outline', () => {
 	render(<Input accessibilityLabel="Name" />);
 	expect(screen.getByRole('textbox').className).toContain('forced-colors:focus-visible:outline-2');
 });
+
+test('type="date" renders a native date field in the same frame', () => {
+	const onValueChange = vi.fn<(value: string) => void>();
+	render(<Input type="date" accessibilityLabel="Day" onValueChange={onValueChange} />);
+	const input = screen.getByLabelText('Day');
+	expect(input).toHaveProperty('type', 'date');
+	expect(input.className).toContain('rounded-input');
+	expect(input.className).toContain('bg-field');
+	fireEvent.change(input, { target: { value: '2026-11-20' } });
+	expect(onValueChange).toHaveBeenCalledWith('2026-11-20');
+});

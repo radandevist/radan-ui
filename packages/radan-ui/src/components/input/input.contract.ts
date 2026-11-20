@@ -1,6 +1,6 @@
 import type { ComponentPropsWithRef } from 'react';
 
-export type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number';
+export type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number' | 'date';
 
 /** The public API of the single-line field. Controlled (`value` + `onValueChange`) or not (`defaultValue`). */
 export type InputProps = Omit<

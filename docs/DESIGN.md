@@ -162,6 +162,9 @@ no `bg-status-open-background` utility — read them through arbitrary values on
   `icon` 36, `icon-lg` 40. Fields (`Input`) are 36 high, `rounded-input` (`--radan-ui-input-radius`, 12 px), a 1 px `input` border
   plus the `shadow-raised-control` hairline (the one deliberate exception to "ring or border", the owner's field look, 19/11), the `field`
   fill; focus swaps the fill to `background`, the border to `ring` and adds a 3 px `ring/30` halo; invalid uses `field-invalid` / `field-invalid-ring`.
+- Button label (web): the text colour, size and weight sit on the button, so a `text-*` / `font-*` in `className` (a red
+  ghost action: `text-destructive`) applies to the label; the label is an inline row, icons in it are 16 px (12 px in
+  `icon-xs`, unless they set their own `size-*`) and spaced by the button's `gap`. `Input` takes `type="date"` (native picker, same field look).
 - The gap under the mobile top bar is page layout (an app decision), not a design-system value.
 - On desktop the toast stack sits 24 px from the bottom and right edges.
 - One button height and one radius inside a header action cluster; use the component's size variants, never ad-hoc

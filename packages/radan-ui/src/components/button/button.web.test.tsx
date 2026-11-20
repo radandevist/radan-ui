@@ -166,3 +166,21 @@ test('render-as: a link (role="link" wins over the default button role) keeps th
 	fireEvent.click(link);
 	expect(onPress).toHaveBeenCalledTimes(1);
 });
+
+test('text utilities in className reach the label, icons in it get 16 px and the button gap', () => {
+	render(
+		<Button variant="ghost" className="text-destructive text-[13px]">
+			<svg data-testid="icon" />
+			Delete
+		</Button>,
+	);
+	const button = screen.getByRole('button');
+	expect(button.className).toContain('text-destructive');
+	expect(button.className).not.toContain('text-foreground');
+	expect(button.className).toContain('text-[13px]');
+	expect(button.className).toContain('[&_svg:not([class*=size-])]:size-4');
+	const label = screen.getByText('Delete');
+	expect(label.className).toContain('inline-flex');
+	expect(label.className).toContain('gap-[inherit]');
+	expect(label.className).not.toContain('text-');
+});
