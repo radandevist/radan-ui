@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 import packageJson from '../package.json' with { type: 'json' };
-import { componentsDir, entries, entryFile, listComponents, root, webOnly } from '../scripts/components';
+import { componentsDir, entries, entryFile, headless, listComponents, root, webOnly } from '../scripts/components';
 
 /**
  * The guards of the cross-platform spec (decisions 1, 3, 6, 8). They walk src/components/*, so a new component is
@@ -13,6 +13,10 @@ import { componentsDir, entries, entryFile, listComponents, root, webOnly } from
  */
 const names = listComponents();
 const webOnlyList = webOnly();
+const headlessList = headless();
+// A headless folder (a router adapter) exports no component: no contract, variants, skeleton, catalog page or native side.
+const isHeadless = (name: string) => name in headlessList;
+const componentNames = names.filter((name) => !isHeadless(name));
 const files = (name: string) => readdirSync(join(componentsDir, name));
 const read = (name: string, file: string) => readFileSync(join(componentsDir, name, file), 'utf8');
 const isTest = (file: string) => /\.test\.tsx?$/.test(file);
@@ -51,22 +55,43 @@ const conformance = (name: string) => {
 };
 
 describe('conformance (decision 8)', () => {
-	test.each(names)('%s has the contract, variants and both platforms, or is listed in web-only.json', (name) => {
-		expect(conformance(name)).toEqual([]);
-	});
+	test.each(componentNames)(
+		'%s has the contract, variants and both platforms, or is listed in web-only.json',
+		(name) => {
+			expect(conformance(name)).toEqual([]);
+		},
+	);
 
 	test('web-only.json lists only existing components', () => {
 		expect(Object.keys(webOnlyList).filter((name) => !names.includes(name))).toEqual([]);
 	});
 
-	test.each(names.filter((name) => !isBone(name) || name === 'bone'))('%s has a catalog page and a test', (name) => {
-		const page = `apps/catalog/pages/${name}.page.tsx`;
-		const problems = [
-			...(existsSync(join(root, '../..', page)) ? [] : [`missing ${page}`]),
-			...(files(name).some((file) => isTest(file)) ? [] : [`${name}: no *.test.tsx beside the component`]),
-		];
+	test('headless.json lists only existing folders, each with a reason, an issue, a web entry and a test', () => {
+		const problems = Object.entries(headlessList).flatMap(([name, listed]) => [
+			...(names.includes(name) ? [] : [`${name}: no such folder`]),
+			...(listed.reason ? [] : [`${name}: headless.json needs a reason`]),
+			...(listed.issue.startsWith('https://github.com/') ? [] : [`${name}: headless.json needs an issue URL`]),
+			...(names.includes(name) && !files(name).includes(`${name}.web.tsx`) ? [`${name}: missing ${name}.web.tsx`] : []),
+			...(names.includes(name) && !files(name).some((file) => isTest(file)) ? [`${name}: no test beside it`] : []),
+			...(webOnlyList[name] ? [`${name}: listed in both headless.json and web-only.json`] : []),
+			...(names.includes(name) && files(name).some((file) => /\.native\.tsx?$/.test(file))
+				? [`${name}: a headless folder has no native file`]
+				: []),
+		]);
 		expect(problems).toEqual([]);
 	});
+
+	test.each(componentNames.filter((name) => !isBone(name) || name === 'bone'))(
+		'%s has a catalog page and a test',
+		(name) => {
+			const page = `apps/catalog/pages/${name}.page.tsx`;
+			const problems = [
+				...(existsSync(join(root, '../..', page)) ? [] : [`missing ${page}`]),
+				...(files(name).some((file) => isTest(file)) ? [] : [`${name}: no *.test.tsx beside the component`]),
+			];
+			expect(problems).toEqual([]);
+		},
+	);
 });
 
 describe('export map (decision 1)', () => {
@@ -80,7 +105,7 @@ describe('export map (decision 1)', () => {
 	test('every component builds an entry per platform it implements, and every entry has its source', () => {
 		const expected = Object.fromEntries([
 			...names.map((name) => [`web/${name}`, entryFile(name, 'web')] as const),
-			...names
+			...componentNames
 				.filter((name) => !webOnlyList[name])
 				.map((name) => [`native/${name}`, entryFile(name, 'native')] as const),
 		]);
@@ -100,8 +125,8 @@ describe('platform imports (decision 6)', () => {
 		expect(imports(source)).toEqual([from]);
 	});
 
-	// The core and the load guard are router-free (spec §4.2): only a router adapter folder may import `@tanstack/*`.
-	test.each(names.filter((name) => name === 'page-transition' || name === 'load-guard'))(
+	// Every folder but the router adapter is router-free (spec §4.2): only `page-transition-tanstack-router/` may import `@tanstack/*`.
+	test.each(names.filter((name) => name !== 'page-transition-tanstack-router'))(
 		'%s imports no @tanstack/* package',
 		(name) => {
 			const problems = files(name)
@@ -114,6 +139,16 @@ describe('platform imports (decision 6)', () => {
 			expect(problems).toEqual([]);
 		},
 	);
+
+	// The router's private shape (`_tx`, `stores`) is read in ONE file of the adapter, with runtime shape checks (spec §7.1).
+	test("only the adapter's internals.ts reads the router's private `_tx` / `stores`", () => {
+		const adapter = 'page-transition-tanstack-router';
+		const problems = files(adapter)
+			.filter((file) => /\.tsx?$/.test(file) && !isTest(file) && file !== `${adapter}.internals.ts`)
+			.filter((file) => /\b_tx\b|\.stores\b|\bstores\./.test(code(read(adapter, file))))
+			.map((file) => `${adapter}/${file} reads the router's private state: move it to ${adapter}.internals.ts`);
+		expect(problems).toEqual([]);
+	});
 
 	const native = /^(react-native|nativewind|@rn-primitives\/)/;
 	const web = /^(@base-ui\/|react-dom)/;
@@ -141,7 +176,7 @@ describe('platform imports (decision 6)', () => {
 });
 
 describe('shared variants (decision 3)', () => {
-	test.each(names)('%s.variants.ts has no web-only state or color-mix()', (name) => {
+	test.each(componentNames)('%s.variants.ts has no web-only state or color-mix()', (name) => {
 		const source = code(read(name, `${name}.variants.ts`));
 		expect(source.match(/hover:|focus-visible:|group-hover:|color-mix\(/g) ?? []).toEqual([]);
 	});

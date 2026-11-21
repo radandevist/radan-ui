@@ -10,5 +10,9 @@
 	"input": {
 		"reason": "The native field (TextInput) follows once the web one is used by the apps",
 		"issue": "https://github.com/radandevist/radan-ui/issues/58"
+	},
+	"phone-top-bar": {
+		"reason": "Native has its own stack header; the bar mirrors ShopKartOS's phone header, a web shell piece",
+		"issue": "https://github.com/radandevist/radan-ui/issues/80"
 	}
 }
