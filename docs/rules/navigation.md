@@ -1,6 +1,6 @@
 # Navigation lessons: moving between screens without lying to the user (HARD, DRAFT)
 
-> **Status: DRAFT** (2026-11-21), written with [`../specs/2026-11-21-page-transitions-design.md`](../specs/2026-11-21-page-transitions-design.md)
+> **Status: DRAFT v2** (2026-11-21, after independent review), written with [`../specs/2026-11-21-page-transitions-design.md`](../specs/2026-11-21-page-transitions-design.md)
 > ([radan-ui#80](https://github.com/radandevist/radan-ui/issues/80)). It becomes binding, and gets its line in [`README.md`](./README.md), in the
 > PR that ships the shared system. Until then the enforcement column names where each check lives **today** (ShopKartOS tests) and where it lands.
 
@@ -24,14 +24,15 @@ still in flight ([#321](https://github.com/radandevist/shopkart-os/pull/321)).
 
 ## 2. The header follows the page on screen, never `location`
 
-**Rule.** Anything in the shell that says *which page this is* (title, actions, side panel, active drawer) reads `shownPath` / `useShownPath()` (the rendered
-matches), never `useLocation()` / `state.location`. Nothing may change in the shell before the body changes with it.
+**Rule.** Anything in the shell that **names the page** (title, page name, actions, the drawer's content) reads `shownPath` / `useShownPath()` (the rendered matches), never
+`useLocation()` / `state.location`. Nothing that names the page may change before the body changes with it. **Exception, deliberate:** instant click feedback — the rail's active item and
+the side panels — follows the *intent* (`useLocation`): it must answer the tap at once ([#315](https://github.com/radandevist/shopkart-os/pull/315), "voulu"). The line is: feedback to a tap may lead; a *name* may not.
 
 **Why.** `location` already holds the next page's path while it loads and the old page is still drawn. The bar announced the next title ~700 ms before its
 page ([#315](https://github.com/radandevist/shopkart-os/pull/315)).
 
 **Enforced by.** `shownPath` unit tests (old page while the successor loads; follows the matches once the skeleton is rendered; 404 falls back to the
-location). Not yet by lint: a `house` rule flagging `useLocation` in a shell file is a listed follow-up.
+location). Not by lint: a `house` rule flagging `useLocation` would have to exempt the intent-following rail and panels (an allow-list of named components), so it is parked until the shell block exists.
 
 ## 3. The skeleton enters inside the navigation's transition
 
@@ -58,16 +59,17 @@ with a `pending` match, nothing left to correct it, only a browser reload fixed 
 
 **Rule.** A page never rests on its skeleton. Three nets sit under the router: a loader call with no answer after 20 s fails with `load_timeout` (the page's
 error screen, with a retry); a load pending for 15 s, or a router idle with a page still pending, is revalidated once; the check also runs when the tab becomes
-visible and when the network returns. A fourth net, `onStuck`, covers a loader that hangs again after that revalidation. State the limit honestly: net 1
-covers only the calls the app declares as loaders (`isLoaderCall`).
+visible and when the network returns. State the limits honestly: the timeout covers only the calls the app declares as loaders (`isLoaderCall`, **no default** — an
+app whose root `beforeLoad` is a GET server function must decide whether that read is a loader), and the revalidation happens **once** (a fourth net is a parked issue). The timeout chains the caller's abort
+signal by hand (no `AbortSignal.any`: Safari < 17.4, old WebViews), keeps a caller's own abort error, lets an action that is a GET opt out with a header, and a query layer must not retry a `load_timeout`
+(`isLoadTimeout`) ([#320](https://github.com/radandevist/shopkart-os/pull/320)).
 
-**Why.** After the fix of lesson 4 there was still no net at all: a server that stopped answering meant a skeleton for good ([#320](https://github.com/radandevist/shopkart-os/pull/320)). The shipped nets also stop at one revalidation and
-recognise one transport only: hence `onStuck` and the injectable `isLoaderCall`.
+**Why.** After the fix of lesson 4 there was still no net at all: a server that stopped answering meant a skeleton for good ([#320](https://github.com/radandevist/shopkart-os/pull/320)). The nets recognise one transport only, hence the injectable `isLoaderCall`.
 
 **Enforced by.** `load-guard` tests (limits, once-only, visibility/online, hung call, caller's own abort kept, opt-out header, mutations untouched);
 `nav-stress` at rest. The error screen that renders `load_timeout` is the app's (or the error block's).
 
-## 6. The next page's skeleton shows from the click, never after the session read
+## 6. The next page's skeleton shows from the click, not after the session read (for a page that is not cached)
 
 **Rule.** Below `md`, from the click: the router offers the skeleton as soon as the page's load starts (`defaultPendingMs: 0`); the swap waits one task so a
 **cached page shows no skeleton at all**; if the root `beforeLoad` is slow, an early offer is built at ~80 ms. From `md`, 150 ms **counted from the
@@ -75,6 +77,8 @@ navigation's start**. `defaultPendingMs: 0` and the swap are one contract: setti
 
 **Why.** The router only offers a skeleton after the root route's `beforeLoad` (a network call on every navigation) and `pendingMs`: the old page stayed
 frozen 0.8–1 s on a slow link (3 s+ in dev), and the first fix flashed skeletons on cached pages ([#321](https://github.com/radandevist/shopkart-os/pull/321)).
+
+**Known limit.** A page that is **already cached** still freezes during the root `beforeLoad` (session read on every navigation): ~0.7 s at 600 ms latency ([#321](https://github.com/radandevist/shopkart-os/pull/321) limits). Fixing it means caching that read client-side, which changes how a session expiry is detected: a separate product decision, not part of this rule.
 
 **Enforced by.** `pending-swap` tests ("offers the next page skeleton 80 ms after the click, below md", "leaves md and wider to the router", "shows no
 skeleton for a page that commits within the same task", "from md keeps a 150 ms wait"); the **real-router** contract test (the fake-router tests cannot
@@ -89,8 +93,10 @@ silently** (dev warning + a `health()` the tools read), and is covered by a test
 **Why.** The early skeleton reads the router's load transaction; an upgrade that reorders it must not ship a quietly worse app ([#321](https://github.com/radandevist/shopkart-os/pull/321), which pinned the
 router exactly and isolated the read in `earlyOffer`). ShopKartOS's version fails safe but silently.
 
-**Enforced by.** The adapter's contract test (runs in `pnpm test`, so on every dependency bump, Renovate's included); the compile-time tuple assertion;
-`nav-stress` refuses to start when `health()` says the early offer is unavailable.
+**Enforced by.** The adapter's contract test (runs in `pnpm test`, so on every dependency bump, Renovate's included) — **with its limits**: it stubs `startViewTransition` and `CSS.supports` (jsdom has neither) and so proves the
+private-shape and call-count contract, **including that the swap's and the commit's `types` calls receive the same location object**; the browser's *deferred* callback is reproduced only by a deliberate deferring stub, so
+the staleness rules rest on `nav-stress` in real Chromium. Also: the compile-time tuple assertion; each app's test that its router satisfies radan-ui's peer window; `nav-stress` fails on a `shape-mismatch` published by the
+adapter on `window.__radanUiPageTransitions`.
 
 ## 8. A page never animates itself; a screen is declared
 
@@ -114,7 +120,9 @@ nothing for the next one.
 **Why.** Marks left on `<html>` restyle later transitions; an armed mark outliving its navigation made a later system gesture look app-started (double animation on iOS) ([#241](https://github.com/radandevist/shopkart-os/pull/241), then
 the review round that made the arrow "never stay dead").
 
-**Enforced by.** guard tests (finish, abort, throw, older settling under a newer transition), the marks and popstate tests of radan-ui's core; `nav-stress`
+**Status.** The expiring/rolling-back marks are the **target** (radan-ui's 0.7 core has them); the shared system first adopts ShopKartOS's simpler flags unchanged (S1) and brings the hardening back as an explicit, separately tested change (S2).
+
+**Enforced by.** guard tests (finish, abort, throw, older settling under a newer transition), marks tests on both the Navigation-API and the popstate-only paths; the transition walk; `nav-stress`
 ("view transition marks left on <html>").
 
 ## 10. One motion setting, one source: `html[data-motion]`
@@ -126,6 +134,8 @@ something waits for `transitionend`.
 
 **Why.** The setting only applied to pushed pages; drawers, sheets and the speed dial ignored it, a drawer opened by a row click had no entry animation at
 all, and the first paint had no attribute ([#311](https://github.com/radandevist/shopkart-os/pull/311)).
+
+**Scope.** The per-style duration/curve tokens apply **below `md`**; the `none` rule and reduced motion apply at **every width** ([#311](https://github.com/radandevist/shopkart-os/pull/311)).
 
 **Enforced by.** `motion-single-source` (every surface file free of hard-coded durations/curves, every style sets every shared duration, `none` is 1 ms);
 the script-equivalence test (built script vs `appliedStyle` over a user-agent × stored × reduced matrix).
@@ -166,7 +176,7 @@ rectangle.
 
 **Why.** The first `nav-stress` would have tapped nothing and passed without `window.__TSR_ROUTER__` ([#320](https://github.com/radandevist/shopkart-os/pull/320) review).
 
-**Enforced by.** `runNavStress` pre-flight (router handle, `health()`); exit 0 = clean, 1 = a defect, 2 = the run could not be made.
+**Enforced by.** `runNavStress` pre-flight (router handle) and post-check of the adapter's published state — the tool runs in Node against a **built** app, so the state is exposed on `window.__radanUiPageTransitions` (an in-app `health()` or a dev warning would be unreachable and the canary would never fire); exit 0 = clean, 1 = a defect, 2 = the run could not be made.
 
 ## 15. Any change to transitions, the swap or pending handling is replayed through `nav-stress`
 
@@ -177,7 +187,9 @@ numbers go in the PR. It is also run on a real phone before any change to the sw
 **Why.** [#320](https://github.com/radandevist/shopkart-os/pull/320) found 3 of 3 runs stuck on `main` and 0 after the fix; [#321](https://github.com/radandevist/shopkart-os/pull/321) re-ran it (0 stuck) after moving the logic. The bug had been **proven in desktop Chromium and not yet
 replayed on the phone** at merge.
 
-**Enforced by.** The tool itself (CI run against the catalog's real-router demo); the migration gates in the design spec.
+`nav-stress` asserts the **resting** state only: a change to a *direction* passes it. The transition walk (startViewTransition count + direction + style per navigation kind, old vs new build byte-identical) is the companion check for any refactor that must not change behaviour.
+
+**Enforced by.** The tools themselves (a short smoke in CI on every PR, the full run nightly and on adapter/core PRs — a full run is slow and timing-flaky as a required check); the migration gates in the design spec.
 
 ## 16. A fix lands with the test that fails without it
 
