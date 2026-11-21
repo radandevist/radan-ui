@@ -1,5 +1,51 @@
 # @radandevist/radan-ui
 
+## 0.14.0
+
+### Minor Changes
+
+- [#85](https://github.com/radandevist/radan-ui/pull/85) [`190b318`](https://github.com/radandevist/radan-ui/commit/190b3184135df58ab53dc5100507e050fb050117) Thanks [@radandevist](https://github.com/radandevist)! - New: the load guard, `@radandevist/radan-ui/load-guard` (web only, no router import, no new dependency). ShopKartOS's "a page never stays on its skeleton" nets, ported as they are.
+  
+  - **`watchLoad(router, now?)`**: a load pending for 15 s, or a router idle with a page still pending, is revalidated once (`router.invalidate()`); checked every 3 s, when the tab becomes visible and when the network returns. Returns what stops it.
+  - **`withLoadTimeout(inner, { isLoaderCall, limitMs? })`**: a call `isLoaderCall` accepts that gets no answer in 20 s fails with `Error('load_timeout')`. The caller's abort signals are chained by hand (no `AbortSignal.any`) and a caller's own abort keeps its own error. `isLoaderCall` has **no default**: which calls are loaders is the app's decision.
+  - **`isServerFnGet`**: ShopKartOS's test, a GET to `/_serverFn/` without the `x-no-load-timeout` header (`NO_LOAD_TIMEOUT`, for a GET that is an action). **`isLoadTimeout(error)`** for a query layer's retry policy. Constants `PENDING_LIMIT_MS`, `FETCH_LIMIT_MS`, `LOAD_TIMEOUT`.
+  - **`installLoadGuard(router, { isLoaderCall })`**: browser only, idempotent; wraps `window.fetch`, starts `watchLoad`, returns the undo of both. The library does not touch `import.meta.hot`: in dev call `import.meta.hot?.dispose(undo)`.
+  
+  Presenting `load_timeout` (French or English copy, the retry button) stays in the app.
+
+- [#84](https://github.com/radandevist/radan-ui/pull/84) [`5fc0557`](https://github.com/radandevist/radan-ui/commit/5fc05573864a4120fd52b36f8bc502989f4594d9) Thanks [@radandevist](https://github.com/radandevist)! - New: the TanStack Router adapter for the page transitions, `@radandevist/radan-ui/page-transition-tanstack-router` (web only; `@tanstack/react-router` is an optional peer, `>=1.170.45 <1.171.0`, tested on the exact 1.170.45), and the phone top bar block, `@radandevist/radan-ui/phone-top-bar`. ShopKartOS's behaviour, ported as it is.
+  
+  - **`createPageTransitions(options)`** returns `{ routerOptions, install(router), health() }`. Spread `routerOptions` into `createRouter` (`defaultViewTransition`, `defaultPendingMs: 0`, `defaultPendingMinMs: 300`: they travel together) and call `install(router)` after it (browser only, idempotent per router, returns what undoes it). It gives one view transition per navigation (the skeleton's swap is the navigation's transition), the skeleton from the click below `md`, and the rule that a deferred skeleton is never painted once its page committed or a newer navigation took over. State is per router, not module-level. Options: `isTopLevel`, `screenParams` (search params that make one pathname several phone screens), `overlay`.
+  - **`health()`** (also on `window.__radanUiPageTransitions`): `earlyOffer` is `untested | ok | no-pending-component | shape-mismatch`. The early skeleton reads the router's private load transaction in one file, with runtime shape checks; an unexpected shape turns it off, reports `shape-mismatch` and warns once in development. A contract test runs against the real pinned router.
+  - **`shownPath` / `useShownPath`, `useGoBack(fallback)`, `usePageTitle(title)`**: the page on screen (never the navigation's target), the back arrow's handler, the title a page publishes to the bar.
+  - **`PhoneTopBar`** (`.Menu`, `.Back`, `.Title`, `.Actions`, `.Action`, `.Skeleton`, plus `PageTitleProvider`): ShopKartOS's phone header class for class (a parity test compares its DOM with the reference). Define `--header-title-width`. `react-dom` becomes an optional peer (the portalled action slot).
+  
+  Migration: none for existing imports. To adopt, replace a hand-written adapter (see the README) with `createPageTransitions`.
+
+- [#82](https://github.com/radandevist/radan-ui/pull/82) [`31e235e`](https://github.com/radandevist/radan-ui/commit/31e235e94c5212e627845f01e3c0bfb2f35cb440) Thanks [@radandevist](https://github.com/radandevist)! - Breaking: the page-transition core (`@radandevist/radan-ui/page-transition`) takes ShopKartOS's behaviour verbatim, and gains the motion attribute. Nobody imported the 0.7 module; for a new adopter, the changes are:
+  
+  - **Marks**: `markAppTraversal`, `markBackToParent` and the browser listeners are ShopKartOS's. `popstate` is always listened to (and `navigate` too where the Navigation API exists, to unset a non-traversal and to learn the browser animated), a mark waits for the next transition with no expiry, and `goBack` is synchronous (it returns nothing for a back, and the parent navigation's promise as it is, with no rollback). `clearMarks` and `clearBackToParent` stay exported as no-ops; the hardened marks come back in a later release.
+  - **`directionOf`**: the same-path-and-same-screen check comes before the arrow's `toParent`, so the arrow onto an identical place is `undefined`, no longer `'back'`. `Place` has an optional `screen`, and a different `screen` on the same path is a screen change (index to section a push, section to index a back, section to section a push, replaced in place none). `isTopLevel` is `({ path, screen }) => boolean` (was `(path) => boolean`), and `defaultIsTopLevel` is that shape: at most one path segment and no screen.
+  - **`transitionFor('fade', …)`** is `undefined` on iPhone: switching between top-level pages is instant on iOS, and a Material fade-through (outgoing 90 ms, incoming 210 ms with a 0.92 → 1 scale) elsewhere. `page-transition.css` is ShopKartOS's file, with its durations and curves as `--radan-ui-page-*` tokens on `:root` (defaults unchanged).
+  - **`guardViewTransitions`**: when `startViewTransition` throws, the fallback object has the two settled fields `{ updateCallbackDone, finished }` only. `viewTransitionRunning()` is exported.
+  - **`installPageTransitions`** also applies the stored motion and follows `storage` events and the reduced-motion setting; `writeStyle` also writes the motion attribute.
+  - **New**: `<html data-motion>` (`ios | material | none`, `auto` resolved by the platform, reduced motion resolved to `none`) through `applyMotion`, `applyStoredMotion`, `MOTION_SCRIPT` (derived from a function, proven equal to `appliedStyle` on the built package) and `<MotionScript nonce />` (inline script with `suppressHydrationWarning` plus the re-apply after a document swap).
+  
+  Migration: `goBack({ canGoBack, back, toParent })` keeps its call shape but no longer returns a promise for a back; drop an `await` you relied on to clear a mark. A custom `isTopLevel(path)` becomes `isTopLevel({ path })`.
+
+- [#86](https://github.com/radandevist/radan-ui/pull/86) [`599b0b7`](https://github.com/radandevist/radan-ui/commit/599b0b70a8a7b04ec8a68de1584665050319c7b7) Thanks [@radandevist](https://github.com/radandevist)! - New: the QA tools, `@radandevist/radan-ui/qa` (Node only, never imported by web code). ShopKartOS's `nav-stress`, reusable, and the transition walk that makes a "no behaviour change" refactor provable. How to wire them in an app: `docs/guides/nav-stress.md`.
+  
+  - **`runNavStress(config)`**: fast taps (router navigate and history Back), every loader delayed, CPU 4x, then asserts what a resting app must never show: a visible skeleton, a router `idle` with a `pending` match, view-transition marks left on `<html>`, a live view transition. Config: `baseUrl`, `launch`, `login`, `routes`, `delayedRequests`, and a few knobs (`seeds`, `rounds`, `ignoreSelector`, `ua`, `taps`, `delayMs`, `screenshotDir`). Returns the runs (`stuck` rounds with a screenshot, the adapter's `earlyOffer` state); an app script maps them to exit 0 (clean) or 1 (stuck).
+  - **`QaSetupError`** (exit class 2: the run could not be made, never a green run): thrown when the page exposes no `window.__TSR_ROUTER__`, or when the page transitions adapter reports `shape-mismatch` on `window.__radanUiPageTransitions`.
+  - **`runTransitionWalk(config)`**: per scripted navigation (the app's `steps`), the `startViewTransition` count, direction and style, over Android/iOS user agent x Navigation API present/removed x loader delay 0/600 ms. Run it twice on the old build (identical), then on the new one (byte-identical).
+  - **`restingProblems(page, { ignoreSelector })`**: the invariants alone.
+  
+  `playwright-core` (`>=1.60`) is an **optional peer**, imported as types only: the app passes `launch: () => chromium.launch()`. No new runtime dependency.
+  
+  The catalog gets a real-router demo (`router-demo.html`: TanStack Router, the adapter, the load guard, the phone top bar); radan-ui's CI runs a short fixed smoke and the walk on every PR, the full run nightly and on adapter/core PRs.
+  
+  Migration: none (new subpath).
+
 ## 0.13.0
 
 ### Minor Changes
