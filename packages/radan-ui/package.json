@@ -85,6 +85,7 @@
 		"@base-ui/react": "1.9.0",
 		"@oxlint/plugins": "^1.92.0",
 		"@size-limit/file": "^14.3.0",
+		"@tanstack/react-router": "1.170.45",
 		"@testing-library/dom": "^10.4.2",
 		"@testing-library/react": "^16.3.3",
 		"@types/node": "^24.19.2",
@@ -118,8 +119,10 @@
 		"@rn-primitives/slot": ">=1.5.0",
 		"@rn-primitives/switch": ">=1.5.0",
 		"@rn-primitives/tabs": ">=1.5.0",
+		"@tanstack/react-router": ">=1.170.45 <1.171.0",
 		"nativewind": ">=5.0.0-rc.1",
 		"react": ">=19",
+		"react-dom": ">=19",
 		"react-native": ">=0.81",
 		"react-native-css": ">=3.1.0-rc.1",
 		"sonner": ">=2.0.0"
@@ -155,10 +158,16 @@
 		"@rn-primitives/tabs": {
 			"optional": true
 		},
+		"@tanstack/react-router": {
+			"optional": true
+		},
 		"nativewind": {
 			"optional": true
 		},
 		"react": {
+			"optional": true
+		},
+		"react-dom": {
 			"optional": true
 		},
 		"react-native": {

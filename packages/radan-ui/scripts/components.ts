@@ -12,6 +12,9 @@ export type WebOnly = Record<string, { reason: string; issue: string }>;
 /** Components that have no native side yet: `{ "<name>": { "reason": "…", "issue": "https://github.com/…" } }`. */
 export const webOnly = (): WebOnly => JSON.parse(readFileSync(join(componentsDir, 'web-only.json'), 'utf8'));
 
+/** Folders that export no component (a router adapter): exempt from the component conformance and the native requirement. Same shape as web-only.json. */
+export const headless = (): WebOnly => JSON.parse(readFileSync(join(componentsDir, 'headless.json'), 'utf8'));
+
 export const listComponents = () =>
 	readdirSync(componentsDir, { withFileTypes: true })
 		.filter((entry) => entry.isDirectory())

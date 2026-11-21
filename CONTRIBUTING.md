@@ -92,7 +92,7 @@ lines landed together: keep both.
 ## Code style
 
 Tabs, 120-column lines, single quotes, arrow functions, English code, files under 300 lines. `pnpm format` applies
-oxfmt; `pnpm lint` runs OxLint. The library has no i18n, no router and no data fetching: every visible string comes in
+oxfmt; `pnpm lint` runs OxLint. The library has no i18n and no data fetching, and no router (the one exception is the optional TanStack adapter, `page-transition-tanstack-router/`, an optional peer imported by that entry only; a guard forbids `@tanstack/*` anywhere else): every visible string comes in
 through props or children, so each app keeps its own translations.
 
 ## Changesets and releases

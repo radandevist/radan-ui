@@ -94,7 +94,7 @@ Two styles. Initial values below; the shared module's tokens are the source of t
 
 - The library ships it: `@radandevist/radan-ui/page-transition` (direction marking, style storage, `data-motion`,
   `MotionScript`, back arrow with its tap guard) and `@radandevist/radan-ui/page-transition.css`. The core is
-  router-free; until the router adapter ships, the app wires it (README). The marks are ShopKartOS's: a history
+  router-free; the TanStack Router adapter is `@radandevist/radan-ui/page-transition-tanstack-router` (README). The marks are ShopKartOS's: a history
   traversal (popstate), a traversal the app starts itself (the arrow, the sheet's close) and the arrow's fallback to the
   parent are read once by the next transition; nothing expires them and `goBack` is synchronous.
 
@@ -113,6 +113,6 @@ Two styles. Initial values below; the shared module's tokens are the source of t
   history (outside iOS), none on an iOS traversal the app did not start, back to parent, fade between sections, none
   on reload, none from `md`, none with reduced motion, none without the API, the style override, an overlay screen,
   and back revealing real content. The direction, style, marks, guard and `data-motion` cases are enforced by the
-  tests of the module (`src/components/page-transition/*.test.ts`); the router-bound ones by the adapter's tests once it ships.
+  tests of the module (`src/components/page-transition/*.test.ts`); the router-bound ones (one transition per navigation, the skeleton swap, the stale-offer rule, the early skeleton, `shownPath`, and the contract with the real pinned router) by `src/components/page-transition-tanstack-router/*.test.*`.
 
 Related: [mobile-native.md](./mobile-native.md), [motion.md](./motion.md), [skeletons.md](./skeletons.md).

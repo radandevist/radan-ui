@@ -225,39 +225,64 @@ installPageTransitions(); // once, at client boot
   synchronous (the parent navigation's promise is handed back, not awaited).
   `PageBack.Skeleton` is its silhouette. Web only for now (native uses the platform's stack navigator).
 
-TanStack Router adapter (about ten lines, in your app, not in the library):
+TanStack Router adapter, `@radandevist/radan-ui/page-transition-tanstack-router` (web only; `@tanstack/react-router` is an
+optional peer, `>=1.170.45 <1.171.0`, tested on the exact 1.170.45):
 
 ```ts
-import { beginPageTransition, installPageTransitions, type Place } from '@radandevist/radan-ui/page-transition';
+import { createPageTransitions } from '@radandevist/radan-ui/page-transition-tanstack-router';
 
-type Loc = { pathname: string; search?: { notifications?: unknown } | null; state?: { __TSR_index?: number } | null };
-const placeOf = (loc: Loc): Place => ({
-	path: loc.pathname,
-	index: loc.state?.__TSR_index,
-	overlay: loc.search?.notifications === 1,
-});
+// Once, at module level: stateless until `install`.
+const pageTransitions = createPageTransitions({ screenParams: ['section'], overlay: (search) => search.notifications === 1 });
 
-installPageTransitions();
-const router = createRouter({
-	routeTree,
-	defaultViewTransition: {
-		types: ({ fromLocation, toLocation }) => {
-			const direction = beginPageTransition(fromLocation && placeOf(fromLocation), placeOf(toLocation));
-			return direction ? [direction] : false;
-		},
-	},
-});
+export const getRouter = () => {
+	const router = createRouter({ routeTree, ...pageTransitions.routerOptions /* , … */ });
+	pageTransitions.install(router); // browser only, idempotent per router, returns what undoes it
+	return router;
+};
 ```
+
+- `routerOptions` is `{ defaultViewTransition, defaultPendingMs: 0, defaultPendingMinMs: 300 }`: the three travel together
+  (read when `createRouter` runs, never at module load). `install` adds one transition per navigation (the skeleton's swap
+  is the navigation's transition; the commit after it is a plain update), the skeleton from the click below `md`, and the
+  rule that a deferred skeleton is never painted once its page committed or a newer navigation took over. State is per
+  router. Options: `isTopLevel` (default `defaultIsTopLevel`), `screenParams` (search params that make one pathname
+  several phone screens), `overlay` (whether a search has a full-screen sheet open).
+- `health()` says whether the router's private shape (the early skeleton reads `_tx` and `stores`) still matches:
+  `earlyOffer` is `untested` | `ok` | `no-pending-component` (legitimate: no route has a `pendingComponent`) |
+  `shape-mismatch` (+ `reason`, warned once in development). It is also on `window.__radanUiPageTransitions` so a tool can read it.
+- `shownPath(state)` / `useShownPath()`: the path of the page on screen, never the navigation's target (the header must
+  follow the page, not the location). `useGoBack(fallback)`: the back arrow's handler (`goBack` fed by `useCanGoBack`,
+  `router.history.back` and `navigate({ to: fallback, replace: true })`). `usePageTitle(title)`: publishes the page's own
+  title to the phone top bar under the shown path.
 
 ```tsx
-// The back arrow:
-const router = useRouter();
-const canGoBack = useCanGoBack();
-<PageBack
-	label={t('back')}
-	onBack={() => goBack({ canGoBack, back: () => router.history.back(), toParent: () => router.navigate({ to: '/', replace: true }) })}
-/>;
+const back = useGoBack('/');
+<PageBack label={t('back')} onBack={back} />;
 ```
+
+#### Phone top bar (web)
+
+`@radandevist/radan-ui/phone-top-bar`: ShopKartOS's phone header, as a compound. Below `md` it is two layers (a backdrop
+carrying the background and the scrolled border, and the buttons above it); the app keeps its own controls in the same
+header from `md`. Define `--header-title-width` (the room the title has below `md`, e.g. `calc(100vw - 184px)`).
+
+```tsx
+const back = useGoBack('/'); // a page that goes back
+const path = useShownPath();
+
+<PageTitleProvider>
+	<PhoneTopBar>
+		<PhoneTopBar.Menu label={t('open-navigation')} onPress={openDrawer} expanded={drawerOpen} />
+		<PhoneTopBar.Back label={t('back')} onBack={back} /> {/* where the page declares a back: the menu hides */}
+		<PhoneTopBar.Title path={path} fallback={serverTitle} pageName={sectionName} />
+		<PhoneTopBar.Actions>{/* the app's right-hand controls; a page fills the slot before them with <PhoneTopBar.Action> */}</PhoneTopBar.Actions>
+	</PhoneTopBar>
+</PageTitleProvider>
+```
+
+`PhoneTopBar.Menu` and `.Back` take an icon as children (the defaults are Tabler's `align-left` and `arrow-left` as inline
+SVG). The title is the one the page published (`usePageTitle`, from the router adapter) for the path on screen, the
+`fallback` until then. One bar per document. Web only for now.
 
 #### Toast
 
