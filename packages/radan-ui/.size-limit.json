@@ -2,5 +2,6 @@
 	{ "path": "dist/index.js", "limit": "5 kB" },
 	{ "path": "dist/theme.css", "limit": "8 kB" },
 	{ "path": "dist/web/page-transition-tanstack-router.js", "limit": "4.7 kB" },
+	{ "path": "dist/web/load-guard.js", "limit": "1.7 kB" },
 	{ "path": "dist/web/phone-top-bar.js", "limit": "2.8 kB" }
 ]
