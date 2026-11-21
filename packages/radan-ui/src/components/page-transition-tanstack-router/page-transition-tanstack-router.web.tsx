@@ -31,15 +31,20 @@ const PENDING_MIN_MS = 300;
  */
 export const createPageTransitions = (options: PageTransitionsOptions = {}) => {
 	const health = createHealth();
-	// The state `routerOptions` handed to the router being built, claimed by its `install`.
-	let fresh: ReturnType<typeof createSwapState> | undefined;
+	// The state each `routerOptions` read created, keyed by the `defaultViewTransition` object it handed to a router: `install`
+	// finds its router's own through `router.options`, so two routers built before either installs, and dispose then
+	// install again (HMR), each keep their state. `last` is only for an app that wrapped that object.
+	const states = new WeakMap<object, ReturnType<typeof createSwapState>>();
+	let last: ReturnType<typeof createSwapState> | undefined;
 	const installed = new WeakMap<object, () => void>();
 	return {
 		/** Spread into `createRouter`; read at that call (lazy: the browser's view-transition API is looked at then, never at module load). */
 		get routerOptions() {
-			fresh = createSwapState();
+			const state = (last = createSwapState());
+			const defaultViewTransition = createViewTransition(state, options);
+			states.set(defaultViewTransition, state);
 			return {
-				defaultViewTransition: createViewTransition(fresh, options),
+				defaultViewTransition,
 				defaultPendingMs: 0 as const,
 				defaultPendingMinMs: PENDING_MIN_MS,
 			};
@@ -53,8 +58,8 @@ export const createPageTransitions = (options: PageTransitionsOptions = {}) => {
 			if (done) {
 				return done;
 			}
-			const state = fresh ?? createSwapState();
-			fresh = undefined;
+			const given = router.options.defaultViewTransition;
+			const state = (given instanceof Object ? states.get(given) : undefined) ?? last ?? createSwapState();
 			health.reset();
 			if (process.env.NODE_ENV !== 'production' && router.options.defaultPendingMs !== 0) {
 				// oxlint-disable-next-line house/no-console-in-source -- a dev-only diagnostic: the library has no logger

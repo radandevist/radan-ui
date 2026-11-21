@@ -43,6 +43,7 @@ const build = ({ rootDelay = 0, skeleton = true } = {}) => {
 	const transitions = createPageTransitions();
 	const options = transitions.routerOptions;
 	const types = vi.fn<typeof options.defaultViewTransition.types>(options.defaultViewTransition.types);
+	options.defaultViewTransition.types = types;
 	const root = createRootRoute({ beforeLoad: () => (rootDelay ? sleep(rootDelay) : undefined) });
 	const index = createRoute({ getParentRoute: () => root, path: '/', component: Page });
 	const slow = createRoute({
@@ -57,7 +58,6 @@ const build = ({ rootDelay = 0, skeleton = true } = {}) => {
 		routeTree: root.addChildren([index, slow, cached]),
 		history: createMemoryHistory({ initialEntries: ['/'] }),
 		...options,
-		defaultViewTransition: { types },
 	});
 	return { router, transitions, types, dispose: transitions.install(router) };
 };
@@ -137,6 +137,64 @@ describe('the adapter on the real router', () => {
 		const { router, transitions, dispose } = build();
 		expect(transitions.install(router)).toBe(dispose);
 		dispose();
+	});
+});
+
+/** A router on a fresh instance of the adapter, NOT installed yet. */
+const unInstalled = (transitions: ReturnType<typeof createPageTransitions>) => {
+	const root = createRootRoute();
+	const index = createRoute({ getParentRoute: () => root, path: '/', component: Page });
+	const slow = createRoute({
+		getParentRoute: () => root,
+		path: '/slow',
+		component: Page,
+		pendingComponent: Skeleton,
+		loader: () => sleep(100),
+	});
+	return createRouter({
+		routeTree: root.addChildren([index, slow]),
+		history: createMemoryHistory({ initialEntries: ['/'] }),
+		...transitions.routerOptions,
+	});
+};
+
+/** One slow navigation: how many view transitions the document saw. */
+const slowNavigation = async (router: ReturnType<typeof unInstalled>) => {
+	started.length = 0;
+	await router.navigate({ to: '/slow' });
+	await sleep(50);
+	const count = started.length;
+	await router.navigate({ to: '/' });
+	await sleep(50);
+	return count;
+};
+
+describe('per-router state', () => {
+	it('two routers built before either installs each play one view transition per navigation', async () => {
+		const transitions = createPageTransitions();
+		const first = unInstalled(transitions);
+		const second = unInstalled(transitions);
+		// Installed in the order that a "last routerOptions read" would get wrong.
+		const undoFirst = transitions.install(first);
+		const undoSecond = transitions.install(second);
+		await first.load();
+		await second.load();
+		expect(await slowNavigation(first)).toBe(1);
+		expect(await slowNavigation(second)).toBe(1);
+		undoFirst();
+		undoSecond();
+	});
+
+	it('dispose then install again on the same router (HMR) still plays one view transition per navigation', async () => {
+		const transitions = createPageTransitions();
+		const router = unInstalled(transitions);
+		transitions.install(router)();
+		// Another router read `routerOptions` meanwhile: the re-install must still find its own state.
+		unInstalled(transitions);
+		const undo = transitions.install(router);
+		await router.load();
+		expect(await slowNavigation(router)).toBe(1);
+		undo();
 	});
 });
 
