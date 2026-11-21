@@ -20,7 +20,10 @@ const flat = (style: unknown) => Object.assign({}, ...[style].flat(Infinity).fil
 const card = (
 	<Card.Skeleton>
 		<Card.Header.Skeleton>
-			<BoneLine size="sm" width="w-16" />
+			<Card.Header.Heading.Skeleton>
+				<Card.Header.Icon.Skeleton />
+				<Card.Header.Label.Skeleton />
+			</Card.Header.Heading.Skeleton>
 			<BonePill width="w-14" />
 		</Card.Header.Skeleton>
 		<Card.Body.Skeleton>

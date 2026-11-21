@@ -126,6 +126,7 @@ export const component: Record<string, TokenValue> = {
 	'card-fg': { semantic: 'card-foreground' },
 	'input-border': { semantic: 'input' },
 	'card-radius': '14px',
+	'card-body-radius': 'calc(var(--{p}-card-radius) - 2px)',
 	'card-shadow': { semantic: 'effect-raised-control' },
 	'input-radius': '12px',
 	'control-radius': 'calc(var(--{p}-radius) * 1.4)',

@@ -7,7 +7,7 @@ const twMerge = extendTailwindMerge<'radan-shadow'>({
 	extend: {
 		theme: {
 			color: [...tailwindColors],
-			radius: ['card', 'control', 'popover', 'toast'],
+			radius: ['card', 'card-body', 'control', 'popover', 'toast'],
 		},
 		// `shadow-popover` is also a colour name: a group of its own, defined after the built-ins, so the shadow reading wins.
 		classGroups: { 'radan-shadow': [{ shadow: ['raised-control', 'primary-raised', 'popover'] }] },

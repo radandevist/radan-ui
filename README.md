@@ -151,13 +151,22 @@ import { BoneText } from '@radandevist/radan-ui/bone-text';
 import { Card } from '@radandevist/radan-ui/card';
 
 <Card>
-	<Card.Header>…</Card.Header>
+	<Card.Header>
+		<Card.Header.Heading>
+			<Card.Header.Icon><IconTruck /></Card.Header.Icon>
+			<Card.Header.Label>Transport modes</Card.Header.Label>
+		</Card.Header.Heading>
+		<Pill>2 to confirm</Pill>
+	</Card.Header>
 	<Card.Body>…</Card.Body>
 </Card>
 
 <Card.Skeleton>
 	<Card.Header.Skeleton>
-		<BoneLine size="sm" width="w-16" />
+		<Card.Header.Heading.Skeleton>
+			<Card.Header.Icon.Skeleton />
+			<Card.Header.Label.Skeleton width="w-24" />
+		</Card.Header.Heading.Skeleton>
 		<BonePill width="w-14" />
 	</Card.Header.Skeleton>
 	<Card.Body.Skeleton>
@@ -166,10 +175,14 @@ import { Card } from '@radandevist/radan-ui/card';
 </Card.Skeleton>
 ```
 
+`Card` is ShopKartOS's double-wall card: a `bg-card` frame (4 px inset, ring) holding the header row (an icon and a
+label in 12 px capitals at the left, anything else you put after the heading at the right), and a bordered
+`bg-background` panel (`Card.Body`, `rounded-card-body`) holding the content.
+
 One bone per real element (`docs/rules/skeletons.md`). `Card.Skeleton` and `BoneRegion` are regions: `aria-busy` plus a
 visually hidden "Loading…" status (`label` translates it; a region nested in another adds none), bones are hidden from
 assistive tech. Component skeletons: `Button.Skeleton`, `Input.Skeleton`, `Toast.Skeleton`, `PageBack.Skeleton`,
-`Card.Skeleton`, `Card.Header.Skeleton`, `Card.Body.Skeleton`. Generic bones: `BoneLine` (`size` `xs` | `sm` | `md` | `lg`,
+`Card.Skeleton`, `Card.Header.Skeleton` (with `.Heading`, `.Icon`, `.Label` skeletons), `Card.Body.Skeleton`. Generic bones: `BoneLine` (`size` `xs` | `sm` | `md` | `lg`,
 `width` a Tailwind width class), `BonePill` (`width`), `BoneText` (`lines`, `size`), `BoneRegion` (`label`) and `Bone` for
 any other shape (`className`: size and radius); every one takes `className`. The bone is `bg-foreground/10` plus one
 pulse, fixed in the library.
