@@ -22,8 +22,10 @@ const CardHeading = ({ className, children }: CardPartProps) => (
 const CardIcon = ({ className, children }: CardPartProps) => (
 	<View className={cn(cardIcon, className)}>{children}</View>
 );
-const CardLabel = ({ className, children }: CardPartProps) => (
-	<Text numberOfLines={1} className={cn(cardLabel, 'shrink', className)}>
+/** `accessibilityRole="header"` announces the label as a heading (the native counterpart of the web `render={<h2 />}`). */
+export type CardLabelNativeProps = CardPartProps & { accessibilityRole?: 'header' };
+const CardLabel = ({ className, children, accessibilityRole }: CardLabelNativeProps) => (
+	<Text accessibilityRole={accessibilityRole} numberOfLines={1} className={cn(cardLabel, 'shrink', className)}>
 		{children}
 	</Text>
 );

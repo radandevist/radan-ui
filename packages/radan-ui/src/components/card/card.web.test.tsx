@@ -51,6 +51,21 @@ test('the real card is the double wall: a bg-card frame with a header row, and a
 	expect(body!.className).toContain('border');
 });
 
+test('the label is a span, or a real heading with the same classes through render', () => {
+	render(
+		<>
+			<Card.Header.Label>plain</Card.Header.Label>
+			<Card.Header.Label render={<h2 />}>titre</Card.Header.Label>
+		</>,
+	);
+	const span = screen.getByText('plain');
+	const heading = screen.getByRole('heading', { level: 2, name: 'titre' });
+	expect(span.tagName).toBe('SPAN');
+	expect(heading.tagName).toBe('H2');
+	expect(heading.className).toBe(span.className);
+	expect(heading.className).toContain('uppercase');
+});
+
 test('the skeleton is the real surface with one bone per element, no grey block', () => {
 	const { container } = render(skeleton);
 	const surface = container.querySelector('[aria-busy]')!;

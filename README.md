@@ -177,7 +177,7 @@ import { Card } from '@radandevist/radan-ui/card';
 
 `Card` is ShopKartOS's double-wall card: a `bg-card` frame (4 px inset, ring) holding the header row (an icon and a
 label in 12 px capitals at the left, anything else you put after the heading at the right), and a bordered
-`bg-background` panel (`Card.Body`, `rounded-card-body`) holding the content.
+`bg-background` panel (`Card.Body`, `rounded-card-body`) holding the content. `Card.Header.Label` is a `span`; on web `render={<h2 />}` (Base UI's `render`, as on `Button`) makes it a real heading with the same look, on native `accessibilityRole="header"` announces it as one. On native an icon takes its own colour (a `View` does not pass one down).
 
 One bone per real element (`docs/rules/skeletons.md`). `Card.Skeleton` and `BoneRegion` are regions: `aria-busy` plus a
 visually hidden "Loading…" status (`label` translates it; a region nested in another adds none), bones are hidden from

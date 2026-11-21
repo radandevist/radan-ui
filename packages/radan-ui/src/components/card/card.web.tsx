@@ -1,3 +1,5 @@
+import { useRender } from '@base-ui/react/use-render';
+
 import { cn } from '../../lib/cn';
 import type { CardPartProps, CardProps } from './card.contract';
 import {
@@ -21,9 +23,10 @@ const CardHeading = ({ className, children }: CardPartProps) => (
 const CardIcon = ({ className, children }: CardPartProps) => (
 	<span className={cn(cardIcon, 'flex [&_svg]:size-full', className)}>{children}</span>
 );
-const CardLabel = ({ className, children }: CardPartProps) => (
-	<span className={cn(cardLabel, 'truncate', className)}>{children}</span>
-);
+/** A `span`; `render={<h2 />}` makes it a real heading with the same look (Base UI's `render`, as on `Button`). */
+export type CardLabelWebProps = CardPartProps & { render?: useRender.ComponentProps<'span'>['render'] };
+const CardLabel = ({ className, children, render }: CardLabelWebProps) =>
+	useRender({ defaultTagName: 'span', render, props: { className: cn(cardLabel, 'truncate', className), children } });
 const CardBody = ({ className, children }: CardPartProps) => <div className={cn(cardBody, className)}>{children}</div>;
 
 /**
