@@ -107,7 +107,7 @@ real-phone pass. This also corrects the owner's premise in one more place: "copy
 | `lib/page-transitions.ts` (263) — style storage, `platformStyle`, `appliedStyle`, `transitionFor`, `directionOf`, marks, `installPageTransitions` | **core** `page-transition` | merged onto radan-ui's hardened core; `Place.screen` and the iOS-fade rule added |
 | same — `applyMotion`, `applyStoredMotion`, `MOTION_SCRIPT`, storage/matchMedia listeners | **core** | script derived from a function, not hand-duplicated (§8) |
 | same — `placeOf`, `screenOf`, `SCREEN_PARAMS`, `pageViewTransition`, `swapState`, `swappedFor`, `decide` | **adapter** | `SCREEN_PARAMS` and `notifications === 1` become options |
-| `lib/view-transition-guard.ts` (46) | **core** (already there as `guardViewTransitions`) | keep radan-ui's version (complete `ViewTransition` fallback object) |
+| `lib/view-transition-guard.ts` (46) | **core** (replaces radan-ui's `guardViewTransitions`) | **ShopKartOS's version verbatim in S1**, incl. the `viewTransitionRunning` export and its two-field throw-fallback `{ updateCallbackDone, finished }`; radan-ui's fuller fallback (`ready`, `skipTransition`, `types`) is an S2 item |
 | `lib/pending-swap.ts` (136) — `animatePendingSwap`, `earlyOffer`, `offerFromClick` | **adapter** | the ONE file reading `_tx`/`stores`; per-router state, not module state |
 | `lib/swap-offer.ts` (15) — `staleOffer` | **adapter** | pure, only public `router.state` |
 | `lib/load-guard.ts` (129) | **`load-guard`** (own subpath) | not transition-specific; `isLoaderCall` is the app's call (§5.4) |
@@ -192,7 +192,7 @@ export const installPageTransitions: () => void;           // now also: applySto
 Marks (S1): the implementation of `markAppTraversal`, `markBackToParent`, `goBack`, `installPageTransitions`' listeners becomes **ShopKartOS's**, with the exported names kept (`clearMarks`/`clearBackToParent` stay
 exported as no-ops until S2 so the surface does not churn twice). Behaviour changes inside `directionOf` / `transitionFor`, each with the ported test:
 
-1. Same path **and same `screen`** → overlay rule (open = push, close = back), else none (#303). `via.toParent` stays checked first (radan-ui's order).
+1. Same path **and same `screen`** → overlay rule (open = push, close = back), else none (#303). The order is **ShopKartOS's** (`page-transitions.ts` `directionOf`): the same-path-and-screen check (overlay rule / none) comes **first**, then `via.toParent`; radan-ui's 0.7 order (`toParent` first) is replaced. They differ only for a `toParent` navigation onto an identical place, which the walk records.
 2. A different `screen` on the same path is a screen change (index → section push, section → index back, section → section push, in-place replace none).
 3. `transitionFor('fade', env)` is `undefined` when `env.style === 'ios'` (iPhone tab switches are instant, #311); Material keeps it.
 
@@ -244,7 +244,7 @@ export const createPageTransitions: (options?: PageTransitionsOptions) => PageTr
 export const shownPath: (state: ShownState) => string;
 export const useShownPath: () => string;                          // useRouterState({ select: shownPath })
 /** The back arrow's handler (replaces ShopKartOS's `BackLink` glue): `goBack` fed by `useCanGoBack`, `router.history.back`, and `navigate({ to: fallback, replace: true })`. */
-export const useGoBack: (fallback: ToOptions['to']) => () => Promise<void>;
+export const useGoBack: (fallback: ToOptions['to']) => () => Promise<void> | undefined;  // wraps ShopKartOS's synchronous `goBack` WITHOUT awaiting: same observable behaviour
 ```
 
 `routerOptions.defaultViewTransition` is the **ShopKartOS object, ungated in S1** (verbatim); the types-support gate of §7.3 is an S2 item. Evaluate it lazily (`getRouter` time, client): a module-load
@@ -522,8 +522,10 @@ export const runTransitionWalk: (config: { baseUrl; launch; login; steps: WalkSt
 An init script wraps `document.startViewTransition` and, at each call, snapshots `dataset.pageDirection` / `dataset.pageTransition`. The app supplies the steps (ShopKartOS: rail link, drawer link, back arrow with
 history, back arrow with no history (to parent), history Back, history Forward, notification-sheet open and close, Settings section push/back, `navigate({ viewTransition: false })`, a first load, a
 same-page filter change). Every step is run at 0 ms and at 600 ms loader delay (the swap path and the plain-commit path), with the Navigation API present and removed (`navigationApi: false`: the popstate-only
-path), under an Android and an iOS user agent (and in Playwright's WebKit where it installs). The output is JSON; **S1's gate is that the walk on the old build and on the new build are byte-identical**
-(`diff`), recorded in the PR. It is also the regression test for S2: each S2 item is allowed to change exactly the records it claims to.
+path), under an Android and an iOS user agent; `navigationApi: false` is done by an init script that deletes `window.navigation` before the page loads. The step list is **checked in once, as the baseline** (a file in the app repo), and is not
+edited between the old and the new build. Delays are fixed far from the code's thresholds (0 and 600 ms vs the 80/150 ms timers). **Determinism first: the walk runs twice on the OLD build and `old == old` is required before `old` is
+compared with `new`**; a diff between old and new is investigated, never retried away. Playwright's WebKit on Linux has no view transitions / Navigation API, so its records would be empty and trivially equal: it is **best-effort, not a gate**; the iOS code
+paths are covered by the iOS-UA and `navigationApi: false` Chromium variants only. The output is JSON; **S1's gate is that the walk on the old build and on the new build are byte-identical** (`diff`), recorded in the PR. It is also the regression test for S2: each S2 item is allowed to change exactly the records it claims to.
 
 ### 9.3 `layout-check`
 
@@ -564,21 +566,24 @@ layer carrying the background and the scrolled border, 65 px, and the buttons ab
 44 px target, `PageBack`), the page's **own title** (published by the page into the shell, never guessed from the path; the server's fallback until the page mounts), and a **portalled action slot** before
 the bell (`TopBarAction`). The page's `<h1>` is screen-reader-only below `md` (one visible title, in the bar).
 
-Proposed block (composition rule: parts through `children`, no flag soup), subpath `@radandevist/radan-ui/phone-top-bar`, web-only:
+**Ported as it is** (owner: "ShopKartOS as it is", no design pass): `TopBar`'s phone parts, `TopBarAction` (the portalled slot), `BackLink` (→ `PageBack`) and `page-title.ts` (`PageTitleContext`, `usePageTitle`, `shownPageTitle`, with `shownPath`) are
+moved with their classes, structure and behaviour unchanged. The one thing that is *not* verbatim is the **shape of the API**, which is a deliberate choice, not a redesign: radan-ui's rule is compound components with `children`
+composition everywhere, so the pieces are exposed as a compound whose parts render exactly what ShopKartOS's current bar renders —
 
 ```tsx
-<PhoneTopBar>                      {/* the sticky two-layer header, below md only */}
-	<PhoneTopBar.Menu label onPress />   {/* hidden while a [data-page-back] is mounted */}
-	<PhoneTopBar.Back label onBack />    {/* = PageBack, fixed over the bar */}
-	<PhoneTopBar.Title />                {/* reads the published title for the shown path */}
-	<PhoneTopBar.Actions>…</PhoneTopBar.Actions>  {/* the portalled slot + right-hand controls the app passes */}
+<PhoneTopBar>                              {/* the two-layer sticky header, below md only */}
+	<PhoneTopBar.Menu label onPress />       {/* hidden while a [data-page-back] is mounted */}
+	<PhoneTopBar.Back label onBack />        {/* = PageBack, fixed over the bar */}
+	<PhoneTopBar.Title />                    {/* the published title for the shown path */}
+	<PhoneTopBar.Actions>…</PhoneTopBar.Actions>   {/* the portalled slot + the app's right-hand controls */}
 </PhoneTopBar>
-usePageTitle(title)                  // published under the page's own path
 ```
 
-It moves with the title slot of §3 (`PageTitleContext`, `usePageTitle`, `shownPageTitle`) — which therefore leaves the §2 non-goals — and uses `shownPath` from the adapter. **Not designed here**: the exact
-parts, props and the PublyApp breadcrumb/desktop interplay are designed with the owner in the design artifact first (the design-first workflow) before any code; this section fixes only the scope
-(*what the block is made of*) and that it ships in the same release train as R2. PublyApp's desktop breadcrumb bar is untouched from `md`.
+— subpath `@radandevist/radan-ui/phone-top-bar`, web-only. **Parity check (a gate for the ShopKartOS adoption of the block):** ShopKartOS renders its phone bar through the block and a comparison of the rendered DOM (classes, structure,
+attributes) and of the layout-check/filmstrip captures at 390 px, light and dark, with and without a back arrow, scrolled and not, shows no difference from today's bar. The block's release rides R2.
+
+**PublyApp's breadcrumbs below `md`** are replaced by this bar (already decided: "bar + transitions together"); from `md` its breadcrumb bar is untouched. The title below `md` is the page's published title, so each PublyApp page
+calls `usePageTitle` (the h1 stays screen-reader-only below `md`, as in ShopKartOS).
 
 ---
 
@@ -590,19 +595,19 @@ The owner asked to be corrected where "ShopKartOS as it is today" is the wrong r
    no traversal leaves it armed, and a later Safari edge-swipe traversal then reads as app-started (double animation). radan-ui's version (TTL 1.5 s
    unconfirmed / 15 s confirmed, `clearMarks`, `goBack` rolling back on failure) is the one to end up with — **after** S1, as an explicit S2 change with its own marks tests on both the Navigation-API and popstate-only paths, because it changes behaviour (e.g. the notification-sheet close in `use-inbox-url.ts` calls `markAppTraversal()` directly: a close after an unconfirmed window, or two quick closes, would play a different direction). Likewise SK's `goBack` is synchronous and leaks `toParent`
    on a failed `navigate`.
-2. **App decisions hard-coded in the module.** `SCREEN_PARAMS = ['section']`, the `notifications === 1` overlay, `isTopLevel` = ≤ 1 path segment. → options.
-3. **Module-level singletons**: `pending`, `swapState`, `swappedFor`, `commits`, `navStartedAt`, `installed`. Two routers (tests, HMR, a second app on the page)
+2. **App decisions hard-coded in the module** *(S1: options, walk-proven neutral).* `SCREEN_PARAMS = ['section']`, the `notifications === 1` overlay, `isTopLevel` = ≤ 1 path segment. → options.
+3. **Module-level singletons** *(S1: structural, walk-proven neutral)*: `pending`, `swapState`, `swappedFor`, `commits`, `navStartedAt`, `installed`. Two routers (tests, HMR, a second app on the page)
    share them. → per-router closure; only the browser-event marks stay document-wide (one document, one history), with a test reset.
 4. **No `types`-support gate** (§7.3): default UA cross-fade on browsers without view-transition types. S2.
-5. **Silent failure of the early offer** (`earlyOffer` returns `undefined` with no trace). A bump that breaks the tuple silently degrades UX and nothing
+5. **Silent failure of the early offer** *(S1: dev warning + published state, no behaviour change)* (`earlyOffer` returns `undefined` with no trace). A bump that breaks the tuple silently degrades UX and nothing
    tells anyone. → dev warning + `health()` + a contract test on the real router.
 6. **`installLoadGuard` patches `window.fetch` globally and puts `import.meta.hot` in library code.** Another wrapper (analytics, MSW, an error tracker)
    composes by accident in whichever order; Vite's HMR API is not a library's to call. → Start's `createStart({ serverFns: { fetch } })` seam in S2 (the review confirmed the URL reaching a `CustomFetch` is the `/_serverFn/…` string, so `isServerFnGet` still matches, and that the header opt-out survives; documented precedence: a call-site or middleware `fetch` overrides it). S1 keeps the `window.fetch` wrap, minus `import.meta.hot`.
 7. **The load guard stops after one revalidation.** A loader that hangs twice leaves the skeleton forever. Not fixed here (an issue, §17). The 20 s timeout covers only the calls `isLoaderCall` matches, and **PublyApp's root session read is one** (§5.4): the default must not be applied to it silently.
-8. **`MOTION_SCRIPT` hand-duplicates `appliedStyle`** (§8).
+8. **`MOTION_SCRIPT` hand-duplicates `appliedStyle`** *(S1: structural, proven by the script-equivalence test)* (§8).
 9. **The global `none` 1 ms rule and its exemption list** are ShopKartOS vocabulary (`pending-reveal`, `navigation-progress`, `motion-rise`…) and apply to `*`.
    Putting it in a shared stylesheet would restyle PublyApp's Base UI surfaces behind its back. Stays app-side; the shared module only sets the attribute.
-10. **`48rem` written four times** (`MD` in `pending-swap.ts`, `browserEnvironment`, the CSS `@media`, Tailwind `md`). → one constant in the adapter, documented to
+10. **`48rem` written four times** *(S1: one constant)* (`MD` in `pending-swap.ts`, `browserEnvironment`, the CSS `@media`, Tailwind `md`). → one constant in the adapter, documented to
     equal the app's `md`.
 11. **The early-offer timer is not cancelled or keyed to its navigation**: each click schedules a timer that reads the *newest* load transaction, so under
     taps faster than 80 ms the newest navigation can be offered a skeleton earlier than 80 ms after *its own* start (a cached page could flash). Low impact;
@@ -634,9 +639,11 @@ instead of the module-level `swapState`/`commits` some tests read). The honest s
    `styles/page-transitions.css`; import the shared ones; `router.tsx` → §5.2 wiring; `__root.tsx` → `MotionScript`; `shownPath`/`BackLink` from the adapter/`PageBack`; the scripts → `runNavStress`/`runTransitionWalk`.
    SK keeps thin integration tests and its app guards (`no-page-level-animation`, the surface parts of `motion-single-source`).
    **Gate, all required:** (a) the transition walk on the old and the new build is **byte-identical** (including the popstate-only and iOS-UA variants); (b) `nav-stress` 0 stuck on both UAs, before and after; (c) layout-check
-   unchanged; (d) filmstrips compared; (e) **the real Android phone pass** (push/back/fade by arrow, system back, menu, sheet close, slow network, a style switch from another tab); (f) **iOS: see §17 Q1** —
-   an iPhone pass or an explicit owner waiver; the automated iOS-UA walk and WebKit run cover the code paths, not Safari's own edge-swipe.
-6. **S2 — separate PRs, each an announced behaviour change with its own walk diff showing exactly the records it claims to change:** (i) hardened marks (the swap back from §11.1); (ii) the types-support gate; (iii) the `createStart`
+   unchanged; (d) filmstrips compared; (e) **the real Android phone pass** (push/back/fade by arrow, system back, menu, sheet close, slow network, a style switch from another tab); (f) **iOS: the recorded waiver, §17** — written waiver for S1; the automated iOS-UA / `navigationApi: false` walk covers the code paths, not Safari's own edge-swipe.
+   **What S1 allows, and what proves it neutral.** S1 may carry structural refactors that change no observable behaviour: state held per router instead of module-level, `MOTION_SCRIPT` derived from a function instead of
+   hand-minified, the adapter's `health()` published on `window.__radanUiPageTransitions`, `import.meta.hot` moved out of the library, the file split. Each is covered by the walk (old vs new byte-identical), the script-equivalence test and the
+   ported tests; **nothing observable changes in S1**. Everything else in §11 that changes behaviour is S2.
+6. **S2 — separate PRs, each an announced behaviour change with its own walk diff showing exactly the records it claims to change:** (i) hardened marks (the swap back from §11.1) — **prerequisite: a real iPhone** (owner has none today, so the iOS-affecting S2 items stay blocked until one is available); (ii) the types-support gate; (v) radan-ui's fuller `ViewTransition` fallback object; (iii) the `createStart`
    fetch seam (+ `start.ts` already exists in SK); (iv) the early-offer timer keyed to its navigation.
 
 ### 12.2 PublyApp — what it needs (read from its current setup)
@@ -653,7 +660,7 @@ below `md` a menu button and **breadcrumbs**, no per-screen title, no back arrow
 | P3 | `createPageTransitions()` in `router.tsx` | module-level instance; `install` is client-only so the per-request server router is untouched. `defaultPendingMs: 0` arrives with `routerOptions`: **acceptance item** — `_authed-layout` is `ssr: false` with a `pendingComponent`, so its skeleton will now show at the first client render instead of after the default wait, and must not flash for cached routes. |
 | P4 | `pendingComponent` on leaf routes | Only the layout route and one leaf (`roles/$roleId`, `RoleDetailsLoading`) have one — the early offer would fire there first. Without leaf `pendingComponent`s the early skeleton finds nothing to offer (`health()` reports `no-pending-component`) — the transitions still work. Staged: transitions first, skeletons per route family later. |
 | P5 | Load guard | PublyApp **does** have GET server functions (`getServerSessionAction` in the root `beforeLoad`, on every navigation; `loadI18nForRequest`) and **no `start.ts`**. Net 3 is **off at first**; nets 1–2 on (§5.4). Enabling it later = a new `start.ts` + the explicit decision about the session read. |
-| P6 | **The phone top bar block** (§10b) | Title + `PageBack` + menu + action slot, together with the transitions (owner, 21/11). Designed with the owner in the design artifact first; its release rides R2. |
+| P6 | **The phone top bar block** (§10b) | Title + `PageBack` + menu + action slot, together with the transitions (owner, 21/11). Ported as-is from ShopKartOS behind the compound shape above, parity-checked; its release rides R2. No design pass. |
 | P7 | Preload interplay | `defaultPreload: 'intent'`, `defaultPreloadStaleTime: 0`: preloads do not start view transitions; the contract test covers `status !== 'pending'` for them. |
 | P8 | `nav-stress` | needs `window.__TSR_ROUTER__` (client router: fine), its own login and a delay pattern for its API base; it already has Playwright (1.64.1) and a proofs system to hang it on. |
 
@@ -675,7 +682,7 @@ server-function loaders in the root route, per-request server router, client-onl
 | Transition walk | `runTransitionWalk`: startViewTransition count + direction + style per navigation kind, old vs new build identical | §9.2; the S1 gate |
 | End to end | `runNavStress` against the catalog's real-router demo: **short smoke on every PR (1 seed × 5 rounds, fixed delay), full run nightly and on adapter/core PRs** | §9.4 |
 | End to end, apps | `nav-stress` + `layout-check` on the built app before/after every migration PR | per §12 |
-| Real phone | on a real Android Chrome (`adb`) and an iPhone **or an explicit waiver (§17 Q1)**: push/back/fade by arrow, by system back, by menu; slow-network skeleton; a style switch from another tab. **Mandatory** before S1 is merged and before any change to the swap or the early offer: the stuck-skeleton bug ([#320](https://github.com/radandevist/shopkart-os/pull/320)) was *proven in desktop Chromium and not yet replayed on the phone* at merge. |
+| Real phone | on a real Android Chrome (`adb`) and an iPhone **or the recorded waiver (§17, decided)** for S1: push/back/fade by arrow, by system back, by menu; slow-network skeleton; a style switch from another tab. **Mandatory** before S1 is merged and before any change to the swap or the early offer: the stuck-skeleton bug ([#320](https://github.com/radandevist/shopkart-os/pull/320)) was *proven in desktop Chromium and not yet replayed on the phone* at merge. |
 | Visual | the catalog page (`page-transition.page.tsx`) gets the Material fade-through frame; baselines from CI only (`CONTRIBUTING.md`) |
 
 ---
@@ -703,7 +710,7 @@ server-function loaders in the root route, per-request server router, client-onl
 | Breaking the shipped 0.x API | low / low | no known consumer; minor + migration note per `CONTRIBUTING.md` |
 | PublyApp enables transitions on a breadcrumb shell and it "looks odd" | resolved | adopted together with the phone top bar (§10b) |
 | Hung loader outside `isLoaderCall` outlives nets 1–2 | medium / medium | documented limit (§6.4); issue for a fourth net |
-| iOS paths (`skipsTraversal`, Safari edge-swipe, mark confirmation) have no real-device gate | medium / medium | S1 is verbatim; automated iOS-UA + no-Navigation-API walk + WebKit; waiver or iPhone pass (§17 Q1) |
+| iOS paths (`skipsTraversal`, Safari edge-swipe, mark confirmation) have no real-device gate | medium / medium | S1 is verbatim; automated iOS-UA + no-Navigation-API walk; **written owner waiver for S1**; a real iPhone is a prerequisite of S2's iOS items |
 | S1 changes a behaviour nobody notices | medium / high | the byte-identical transition walk (§9.2) |
 | Direction under chained fast navigations (resolved vs shown location) | unknown / low | not changed; **verify** with a filmstrip of A→B→C taps; candidate follow-up |
 | Browsers without view-transition types | low / low | §7.3 gate; **verify** on an old device |
@@ -713,16 +720,17 @@ server-function loaders in the root route, per-request server router, client-onl
 
 ## 16. Rollout summary
 
-radan-ui: **R0** this docs branch → **R1** core (ShopKartOS semantics, file split) → **R2** adapter (+ the phone-top-bar block's design, then its code) → **R3** load-guard → **R4** `qa` (+ catalog demo, CI smoke + nightly).
+radan-ui: **R0** this docs branch → **R1** core (ShopKartOS semantics, file split) → **R2** adapter (+ the phone-top-bar block) → **R3** load-guard → **R4** `qa` (+ catalog demo, CI smoke + nightly).
 ShopKartOS: baseline → **S1** (no change, walk-identical) → **S2** items. PublyApp: **P0** radan-ui bump → **P1–P5** → **P6** top bar, released together. Bump order everywhere: radan-ui first, apps second (§7.2-5).
 Each radan-ui PR carries its changeset, its catalog captures (CI baselines) and `Refs #80`. `layout-check` waits until PublyApp asks.
 
-## 17. Open questions for the owner (3 left; the others were settled by the 21/11 decisions)
+## 17. Decisions recorded, open questions
 
-1. **iOS gate for S1.** Only an Android phone is available. The iOS-only paths (`skipsTraversal`, Safari's edge-swipe, the marks' confirmation) are copied verbatim and covered by the automated iOS-UA /
-   no-Navigation-API walk (+ WebKit if it installs), but not by Safari itself. *Recommended: accept a written waiver for S1 (verbatim code, byte-identical walk), and do an iPhone pass when one is lent, before S2's hardened marks, which is where iOS risk is real.*
-2. **PublyApp load timeout (net 3).** Leave it off at first (no `start.ts`), because the root session read is a GET server function that a 20 s timeout would turn into a root error screen; nets 1–2 on. *Recommended: yes; revisit with
-   a `start.ts` once the top bar and transitions are in, deciding explicitly that the session read is a loader.*
-3. **Phone top bar block: design before code.** §10b fixes the scope only. *Recommended: design it with you in the design artifact (parts, props, the `h1`/title slot, the action slot, PublyApp's breadcrumb interplay) before R2's code starts.*
+**No open question remains.** Owner decisions of 21/11, recorded:
+
+1. **iOS gate for S1 — written waiver.** No iPhone is available today. S1's iOS-affecting code is verbatim and the iOS-UA / `navigationApi: false` walk must be identical; that is accepted in writing. **A real iPhone is a prerequisite of
+   S2's hardened marks (and any iOS-affecting S2 item): until one is available those items stay blocked.**
+2. **PublyApp load timeout (net 3) — off at first.** No `start.ts`, no `withLoadTimeout`; nets 1–2 on. Revisit with a `start.ts` and an explicit decision that the root session read is a loader.
+3. **Phone top bar — ported as it is, no design pass;** compound shape chosen deliberately (§10b), with a parity check; PublyApp's breadcrumbs are replaced below `md`.
 
 Parked as issues, not in this effort: a fourth net (`onStuck`) for a hung loader outside `isLoaderCall`; `layout-check` in `qa`; a `house` lint rule `no-page-level-animation`.
