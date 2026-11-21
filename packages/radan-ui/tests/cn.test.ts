@@ -4,6 +4,8 @@ import { cn } from '../src/lib/cn';
 
 test('cn: the later utility wins, including the library theme names', () => {
 	expect(cn('rounded-control', 'rounded-card')).toBe('rounded-card');
+	expect(cn('rounded-card', 'rounded-card-body')).toBe('rounded-card-body');
+	expect(cn('rounded-card-body', 'rounded-card')).toBe('rounded-card');
 	expect(cn('rounded-control', 'rounded-4xl')).toBe('rounded-4xl');
 	expect(cn('shadow-raised-control', 'shadow-popover')).toBe('shadow-popover');
 	expect(cn('bg-primary', 'bg-card')).toBe('bg-card');

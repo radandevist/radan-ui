@@ -112,6 +112,7 @@ Pointing at the semantic layer: override one and every instance of that componen
 | `--radan-ui-card-fg` | `var(--radan-ui-card-foreground)` |
 | `--radan-ui-input-border` | `var(--radan-ui-input)` |
 | `--radan-ui-card-radius` | `14px` |
+| `--radan-ui-card-body-radius` | `calc(var(--radan-ui-card-radius) - 2px)` |
 | `--radan-ui-card-shadow` | `var(--radan-ui-effect-raised-control)` |
 | `--radan-ui-input-radius` | `12px` |
 | `--radan-ui-control-radius` | `calc(var(--radan-ui-radius) * 1.4)` |
@@ -130,7 +131,7 @@ Components and screens use Tailwind names; the `@theme inline` block maps each t
 | --- | --- |
 | `bg-background`, `text-foreground`, `bg-card`, `bg-primary`, `text-muted-foreground`, `border-border`, `ring-ring`, … | the semantic colour of the same name (only bridged names; see below) |
 | `rounded-sm` … `rounded-4xl` | `radius × 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6` |
-| `rounded-card`, `rounded-control`, `rounded-popover`, `rounded-toast` | the component radius tokens |
+| `rounded-card`, `rounded-card-body`, `rounded-control`, `rounded-popover`, `rounded-toast` | the component radius tokens |
 | `shadow-raised-control`, `shadow-primary-raised`, `shadow-popover` | the `effect-*` tokens |
 
 Only the semantic names listed in `tailwindColors` (29, including `status-success` / `status-warning`) get colour
@@ -183,6 +184,7 @@ no `bg-status-open-background` utility — read them through arbitrary values on
 | `rounded-lg` | `0.625rem` | default (tabs) |
 | `rounded-xl` / `2xl` / `3xl` / `4xl` | `×1.4 / ×1.8 / ×2.2 / ×2.6` | menus, sheets, big panels |
 | `rounded-card` | `14px` | cards |
+| `rounded-card-body` | `12px` (`card-body-radius`) | a card's inner panel |
 | `rounded-control` | `calc(radius × 1.4)` | buttons |
 | `rounded-input` | `12px` (`input-radius`) | inputs |
 | `rounded-popover` | `14px` | popovers, menus |

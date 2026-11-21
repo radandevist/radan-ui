@@ -16,7 +16,12 @@ test('the real card is the card surface, with its header and body, and no busy s
 	await render(
 		<Card>
 			<Card.Header>
-				<Text>head</Text>
+				<Card.Header.Heading>
+					<Card.Header.Icon>
+						<View />
+					</Card.Header.Icon>
+					<Card.Header.Label>head</Card.Header.Label>
+				</Card.Header.Heading>
 			</Card.Header>
 			<Card.Body>
 				<Text>body</Text>
@@ -26,6 +31,34 @@ test('the real card is the card surface, with its header and body, and no busy s
 	expect(screen.getByText('head')).toBeTruthy();
 	expect(screen.getByText('body')).toBeTruthy();
 	expect(screen.queryByLabelText('Loading…', { hidden: true })).toBeNull();
+});
+
+test('the label is 12 px capitals and can be announced as a heading', async () => {
+	await render(<Card.Header.Label accessibilityRole="header">head</Card.Header.Label>);
+	const label = screen.getByRole('header', { name: 'head' });
+	expect(flat(label.props.style)).toMatchObject({ fontSize: 12, textTransform: 'uppercase' });
+});
+
+test('the double wall: bg-card frame with a 4 px inset, bordered bg-background panel with the 12 px radius', async () => {
+	await render(
+		<View testID="wall">
+			<Card>
+				<Card.Body />
+			</Card>
+		</View>,
+	);
+	const frame = screen.getByTestId('wall').children[0] as unknown as {
+		props: Record<string, unknown>;
+		children: unknown[];
+	};
+	expect(flat(frame.props.style)).toMatchObject({ backgroundColor: '#f2f2f2', borderRadius: 14, padding: 4 });
+	const body = frame.children[0] as unknown as { props: Record<string, unknown> };
+	expect(flat(body.props.style)).toMatchObject({
+		backgroundColor: '#f7f7f7',
+		borderRadius: 12,
+		borderWidth: 1,
+		padding: 16,
+	});
 });
 
 test('the real card and its skeleton resolve to the same surface style', async () => {
@@ -39,6 +72,6 @@ test('the real card and its skeleton resolve to the same surface style', async (
 	);
 	const real = screen.getByTestId('real').children[0] as unknown as { props: Record<string, unknown> };
 	const skeleton = screen.getByLabelText('Load', { hidden: true });
-	expect(flat(real.props.style)).toMatchObject({ backgroundColor: '#f2f2f2', borderRadius: 14 });
+	expect(flat(real.props.style)).toMatchObject({ backgroundColor: '#f2f2f2', borderRadius: 14, padding: 4 });
 	expect(flat(skeleton.props.style)).toEqual(flat(real.props.style));
 });

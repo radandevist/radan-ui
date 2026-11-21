@@ -36,6 +36,7 @@ test('@theme inline maps Tailwind names to the prefixed tokens', () => {
 	expect(css).toContain('--color-primary: var(--x-primary);');
 	expect(css).toContain('--radius-lg: var(--x-radius);');
 	expect(css).toContain('--radius-card: var(--x-card-radius);');
+	expect(css).toContain('--radius-card-body: var(--x-card-body-radius);');
 	expect(css).toContain('--shadow-raised-control: var(--x-effect-raised-control);');
 });
 

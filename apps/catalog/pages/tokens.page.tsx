@@ -37,7 +37,20 @@ const Swatch = ({ name, value }: { name: string; value: string }) => (
 
 const colorNames = Object.keys(semantic.light).filter((k) => k !== 'radius' && !k.startsWith('effect-'));
 const effectNames = Object.keys(semantic.light).filter((k) => k.startsWith('effect-'));
-const radii = ['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', 'card', 'control', 'popover', 'toast'] as const;
+const radii = [
+	'sm',
+	'md',
+	'lg',
+	'xl',
+	'2xl',
+	'3xl',
+	'4xl',
+	'card',
+	'card-body',
+	'control',
+	'popover',
+	'toast',
+] as const;
 const radiusClass: Record<(typeof radii)[number], string> = {
 	sm: 'rounded-sm',
 	md: 'rounded-md',
@@ -47,6 +60,7 @@ const radiusClass: Record<(typeof radii)[number], string> = {
 	'3xl': 'rounded-3xl',
 	'4xl': 'rounded-4xl',
 	card: 'rounded-card',
+	'card-body': 'rounded-card-body',
 	control: 'rounded-control',
 	popover: 'rounded-popover',
 	toast: 'rounded-toast',
