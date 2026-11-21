@@ -5,8 +5,15 @@ export type TransitionStyle = 'auto' | 'ios' | 'material' | 'none';
 export type AppliedStyle = Exclude<TransitionStyle, 'auto'>;
 export type Direction = 'push' | 'back' | 'fade';
 
-/** One side of a location change: its path, its position in the history stack and whether an overlay sheet is open. */
-export type Place = { path: string; index: number | undefined; overlay: boolean };
+/**
+ * One side of a location change: its path, its position in the history stack, whether an overlay sheet is open and,
+ * optionally, `screen`: an opaque label for « same pathname, another phone screen » (a `?section=` that opens a screen
+ * of its own below md). Two places with the same path and the same `screen` are one screen.
+ */
+export type Place = { path: string; index: number | undefined; overlay: boolean; screen?: string };
+
+/** What a top-level screen is (a section of the menu). It gets the whole place, so a screen label can make it deeper. */
+export type TopLevel = (place: Pick<Place, 'path' | 'screen'>) => boolean;
 
 /** How the navigation happened: a history traversal (back/forward button, `history.back()`), or the arrow's fallback to the parent. */
 export type Via = { traversal?: boolean; toParent?: boolean };

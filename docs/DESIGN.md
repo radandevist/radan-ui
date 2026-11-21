@@ -267,6 +267,11 @@ Map a domain status to one tone in **one place** (a `status → tone` map); a pi
   `motion-reduce:animate-none`.
 - `prefers-reduced-motion`: entrances become plain fades, morphs stop moving entirely — enforced inside the
   primitives, not by each caller.
+- **`html[data-motion]` is the one source of how a surface moves**: `ios | material | none` (`auto` resolved by the
+  platform, reduced motion resolved to `none`). `@radandevist/radan-ui/page-transition` owns and writes it
+  (`MotionScript` before the first paint, `installPageTransitions` afterwards, even across tabs); nobody else writes
+  it, every shared or app surface reads it. Page transitions are the one exception to the paths above
+  ([`native-navigation.md`](./rules/native-navigation.md)).
 
 ## 9. Accessibility
 

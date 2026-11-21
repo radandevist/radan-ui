@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PageBack } from './page-transition.web';
+import { MOTION_SCRIPT, MotionScript, PageBack } from './page-transition.web';
 
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	delete document.documentElement.dataset.motion;
+});
 
 describe('PageBack', () => {
 	it('is a named button the app header can find', () => {
@@ -58,5 +62,37 @@ describe('PageBack.Skeleton', () => {
 		const bone = container.firstElementChild!;
 		expect(bone.getAttribute('aria-hidden')).toBe('true');
 		expect(bone.className).toContain('extra');
+	});
+});
+
+describe('MotionScript', () => {
+	it('is the inline pre-paint script, with the request nonce', () => {
+		const html = renderToString(<MotionScript nonce="n0nce" />);
+		expect(html).toContain('<script nonce="n0nce">');
+		expect(html).toContain(MOTION_SCRIPT);
+	});
+
+	it('renders no nonce attribute without one', () => {
+		expect(renderToString(<MotionScript />)).not.toContain('nonce');
+	});
+
+	it('writes <html data-motion> again once mounted (a swapped document emptied it)', () => {
+		localStorage.setItem('radan-ui:page-transition', 'material');
+		render(<MotionScript />);
+		expect(document.documentElement.dataset.motion).toBe('material');
+		localStorage.removeItem('radan-ui:page-transition');
+	});
+
+	// The browser strips `nonce` from the DOM after parsing, so hydration would see a mismatch without the flag.
+	it('hydrates over a nonce-stripped script without a mismatch warning', async () => {
+		const { hydrateRoot } = await import('react-dom/client');
+		const { act } = await import('react');
+		const html = renderToString(<MotionScript nonce="n0nce" />);
+		const host = document.createElement('div');
+		host.innerHTML = html.replace(' nonce="n0nce"', '');
+		const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+		await act(async () => void hydrateRoot(host, <MotionScript nonce="n0nce" />));
+		expect(errors).not.toHaveBeenCalled();
+		errors.mockRestore();
 	});
 });

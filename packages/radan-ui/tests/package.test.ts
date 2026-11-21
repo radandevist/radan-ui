@@ -2,6 +2,8 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { runInNewContext } from 'node:vm';
 
 import { afterAll, beforeAll, expect, test } from 'vitest';
 
@@ -110,3 +112,33 @@ test(
 		expect(result.stdout).toContain('anti-slop(no-reflect-apply)');
 	},
 );
+
+test('the BUILT MOTION_SCRIPT is the same rule as the built appliedStyle (stored x user agent x reduced motion)', async () => {
+	// The script is `resolveMotion.toString()`: a bundler or minifier that injects a helper into it breaks it here.
+	const built = await import(pathToFileURL(join(process.cwd(), 'dist/web/page-transition.js')).href);
+	const stored = [null, 'auto', 'ios', 'material', 'none', 'wobble'];
+	const agents: [string, string | undefined][] = [
+		['Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/126 Mobile', undefined],
+		['Mozilla/5.0 (X11; Linux x86_64)', 'Android'],
+		['Mozilla/5.0 (X11; Linux x86_64)', 'Linux'],
+		['Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', undefined],
+		['', undefined],
+	];
+	for (const value of stored) {
+		for (const [userAgent, platform] of agents) {
+			for (const reduced of [false, true]) {
+				const dataset: Record<string, string> = {};
+				runInNewContext(built.MOTION_SCRIPT, {
+					localStorage: { getItem: () => value },
+					navigator: { userAgent, userAgentData: platform ? { platform } : undefined },
+					document: { documentElement: { dataset } },
+					matchMedia: () => ({ matches: reduced }),
+				});
+				const style = value === 'ios' || value === 'material' || value === 'none' ? value : 'auto';
+				const nav = { userAgent, userAgentData: platform ? { platform } : undefined };
+				const expected = reduced ? 'none' : built.appliedStyle(style, nav);
+				expect(dataset.motion, `${value} ${userAgent} ${platform} ${reduced}`).toBe(expected);
+			}
+		}
+	}
+});

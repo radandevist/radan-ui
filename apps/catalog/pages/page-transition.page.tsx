@@ -1,4 +1,10 @@
-import { PageBack, directionOf, type Direction, type Place } from '@radandevist/radan-ui/page-transition';
+import {
+	PageBack,
+	directionOf,
+	transitionFor,
+	type Direction,
+	type Place,
+} from '@radandevist/radan-ui/page-transition';
 import type { CSSProperties } from 'react';
 
 // A catalog page: the states shown statically (no animation, no clock, no router), so the screenshot is stable.
@@ -11,7 +17,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 // `fade` is the layer's opacity, folded into its fill (the arriving page keeps an opaque background under it).
-type Layer = { translate?: string; filter?: string; fade?: number };
+type Layer = { translate?: string; filter?: string; scale?: string; fade?: number };
 type Frame = { old: Layer; next: Layer; oldOnTop?: boolean };
 const frames: { title: string; frame: Frame }[] = [
 	{
@@ -30,7 +36,8 @@ const frames: { title: string; frame: Frame }[] = [
 		title: 'Material, back',
 		frame: { old: { translate: '15px 0', fade: 0.4 }, next: { translate: '-15px 0', fade: 0.4 } },
 	},
-	{ title: 'Fade (sections)', frame: { old: { fade: 0.5 }, next: { fade: 0.5 } } },
+	// Material 3 fade through: the outgoing page is gone after 90 ms, the incoming one fades in and scales 0.92 -> 1 over 210 ms.
+	{ title: 'Material, fade through (sections)', frame: { old: { fade: 0 }, next: { fade: 0.5, scale: '0.96' } } },
 ];
 
 // The leaving page is striped, the arriving one solid: told apart by pattern, not only by tone (dark mode included).
@@ -55,6 +62,7 @@ const Screen = ({
 		className="absolute inset-0"
 		style={{
 			translate: layer.translate,
+			scale: layer.scale,
 			filter: layer.filter,
 			zIndex: top ? 2 : 1,
 			backgroundColor: arriving ? 'var(--color-background)' : undefined,
@@ -71,10 +79,19 @@ const Mock = ({ frame }: { frame: Frame }) => (
 	</div>
 );
 
-const at = (path: string, index: number, overlay = false): Place => ({ path, index, overlay });
+const at = (path: string, index: number, overlay = false, screen?: string): Place => ({ path, index, overlay, screen });
+const IOS = { style: 'ios', fromMd: false, reducedMotion: false, supported: true } as const;
 const rules: { navigation: string; direction: Direction | undefined }[] = [
 	{ navigation: 'first load', direction: directionOf(undefined, at('/pickups', 0)) },
-	{ navigation: 'section to section', direction: directionOf(at('/pickups', 1), at('/forwarders', 2)) },
+	{ navigation: 'section to section, Material', direction: directionOf(at('/pickups', 1), at('/forwarders', 2)) },
+	{
+		navigation: 'section to section, iPhone (instant)',
+		direction: transitionFor(directionOf(at('/pickups', 1), at('/forwarders', 2)), IOS),
+	},
+	{
+		navigation: 'page to one of its screens (?section=)',
+		direction: directionOf(at('/settings', 1), at('/settings', 2, false, 'section=ai')),
+	},
 	{ navigation: 'list to detail', direction: directionOf(at('/pickups', 1), at('/pickups/P-4', 2)) },
 	{ navigation: 'detail to list, earlier entry', direction: directionOf(at('/pickups/P-4', 2), at('/pickups', 1)) },
 	{

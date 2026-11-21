@@ -9,6 +9,7 @@ import { pageBackVariants } from './page-transition.variants';
 export * from './page-transition.back';
 export * from './page-transition.contract';
 export * from './page-transition.core';
+export * from './page-transition.motion-script.web';
 
 const Arrow = () => (
 	<svg
