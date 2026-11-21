@@ -122,7 +122,7 @@ nothing for the next one.
 **Why.** Marks left on `<html>` restyle later transitions; an armed mark outliving its navigation made a later system gesture look app-started (double animation on iOS) ([#241](https://github.com/radandevist/shopkart-os/pull/241), then
 the review round that made the arrow "never stay dead").
 
-**Status.** The expiring/rolling-back marks are the **target** (radan-ui's 0.7 core has them); the shared system first adopts ShopKartOS's simpler flags unchanged (S1) and brings the hardening back as an explicit, separately tested change (S2).
+**Status.** Detected, not yet fixed: `runTransitionWalk` (`@radandevist/radan-ui/qa`) records the marks' effect per navigation and `runNavStress` fails on marks left on `<html>`. The expiring/rolling-back marks are the **target** (radan-ui's 0.7 core has them); the shared system first adopts ShopKartOS's simpler flags unchanged (S1) and brings the hardening back as an explicit, separately tested change (S2).
 
 **Enforced by.** guard tests (finish, abort, throw, older settling under a newer transition), marks tests on both the Navigation-API and the popstate-only paths; the transition walk; `nav-stress`
 ("view transition marks left on <html>").
@@ -178,6 +178,8 @@ rectangle.
 
 **Why.** The first `nav-stress` would have tapped nothing and passed without `window.__TSR_ROUTER__` ([#320](https://github.com/radandevist/shopkart-os/pull/320) review).
 
+**Status.** Shipped (`@radandevist/radan-ui/qa`: `QaSetupError` is the exit-class-2 signal; the catalog's router demo exercises both checks in CI).
+
 **Enforced by.** `runNavStress` pre-flight (router handle) and post-check of the adapter's published state — the tool runs in Node against a **built** app, so the state is exposed on `window.__radanUiPageTransitions` (an in-app `health()` or a dev warning would be unreachable and the canary would never fire); exit 0 = clean, 1 = a defect, 2 = the run could not be made.
 
 ## 15. Any change to transitions, the swap or pending handling is replayed through `nav-stress`
@@ -190,6 +192,8 @@ numbers go in the PR. It is also run on a real phone before any change to the sw
 replayed on the phone** at merge.
 
 `nav-stress` asserts the **resting** state only: a change to a *direction* passes it. The transition walk (startViewTransition count + direction + style per navigation kind, old vs new build byte-identical) is the companion check for any refactor that must not change behaviour.
+
+**Status.** Shipped: `runNavStress` and `runTransitionWalk`, how-to in [`../guides/nav-stress.md`](../guides/nav-stress.md); radan-ui runs them against its own real-router demo (`ci.yml` smoke on every PR, `nav-stress-nightly.yml` full, also on adapter/core PRs).
 
 **Enforced by.** The tools themselves (a short smoke in CI on every PR, the full run nightly and on adapter/core PRs — a full run is slow and timing-flaky as a required check); the migration gates in the design spec.
 

@@ -1,0 +1,562 @@
+[
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "link: top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "history back",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "history forward",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/0ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "link: top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "history back",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "history forward",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/navigation-api/600ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "link: top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "history back",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "history forward",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/0ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "link: top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "history back",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "history forward",
+		"startViewTransition": 1,
+		"direction": "fade",
+		"style": "material"
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "android/popstate-only/600ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "material"
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "link: top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "history back",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "history forward",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/0ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "link: top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "history back",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "history forward",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/navigation-api/600ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "link: top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "history back",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "history forward",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/0ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "first load",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "link: top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "navigate: top level to top level",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "link: push a detail page",
+		"startViewTransition": 1,
+		"direction": "push",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "back arrow, with history",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "history back",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "history forward",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "navigate: viewTransition false",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "first load, detail page",
+		"startViewTransition": 0,
+		"direction": null,
+		"style": null
+	},
+	{
+		"variant": "ios/popstate-only/600ms",
+		"step": "back arrow, no history (to parent)",
+		"startViewTransition": 1,
+		"direction": "back",
+		"style": "ios"
+	}
+]

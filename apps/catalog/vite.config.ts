@@ -8,6 +8,11 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	root: fileURLToPath(new URL('.', import.meta.url)),
 	plugins: [react(), tailwindcss()],
-	build: { outDir: 'dist', emptyOutDir: true },
+	// Two pages: the catalog and the real-router demo that nav-stress and the transition walk run against (spec §9.4).
+	build: {
+		outDir: 'dist',
+		emptyOutDir: true,
+		rollupOptions: { input: { main: 'index.html', 'router-demo': 'router-demo.html' } },
+	},
 	preview: { port: 4173, strictPort: true },
 });

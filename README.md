@@ -284,6 +284,10 @@ const path = useShownPath();
 SVG). The title is the one the page published (`usePageTitle`, from the router adapter) for the path on screen, the
 `fallback` until then. One bar per document. Web only for now.
 
+#### QA tools (Node only)
+
+`@radandevist/radan-ui/qa` has `runNavStress` (fast taps under delayed loaders and a throttled CPU, then "no skeleton, no pending match, no marks left at rest") and `runTransitionWalk` (per navigation kind: `startViewTransition` count, direction, style, so a refactor that must not change behaviour can be proved by a byte-identical diff). The app keeps a ~25-line script; `playwright-core` (`>=1.60`) is an optional peer, types only. See `docs/guides/nav-stress.md`.
+
 #### Toast
 
 ```tsx

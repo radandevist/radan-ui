@@ -29,6 +29,9 @@ importers:
       '@radandevist/radan-ui':
         specifier: workspace:*
         version: link:../../packages/radan-ui
+      '@tanstack/react-router':
+        specifier: 1.170.45
+        version: 1.170.45(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -148,6 +151,9 @@ importers:
       oxlint:
         specifier: ^1.92.0
         version: 1.92.0
+      playwright-core:
+        specifier: 1.65.0
+        version: 1.65.0
       publint:
         specifier: ^0.3.25
         version: 0.3.25
