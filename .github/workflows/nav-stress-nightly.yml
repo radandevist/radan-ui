@@ -1,0 +1,44 @@
+name: Nav stress (full)
+# The full run (3 seeds x 25 rounds, random 0-900 ms loader delays, CPU 4x, about 10 minutes) is timing-flaky as a required
+# check, so it is not in ci.yml (there: a short smoke). It runs every night, on any PR touching the page transitions,
+# the load guard or the QA tools, and on demand. Exit 0 clean, 1 a stuck page, 2 the run could not be made.
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/radan-ui/src/components/page-transition*/**'
+      - 'packages/radan-ui/src/components/load-guard/**'
+      - 'packages/radan-ui/src/components/phone-top-bar/**'
+      - 'packages/radan-ui/src/qa/**'
+      - 'apps/catalog/router-demo/**'
+      - 'apps/catalog/scripts/**'
+permissions:
+  contents: read
+jobs:
+  nav-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - id: pw
+        run: echo "version=$(pnpm --filter catalog exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - run: pnpm --filter catalog exec playwright install --with-deps chromium
+      - run: pnpm catalog:build
+      - run: pnpm --filter catalog qa:nav-stress
+      - run: pnpm --filter catalog qa:walk --check
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: nav-stress-shots
+          path: /tmp/nav-stress-*
+          retention-days: 7

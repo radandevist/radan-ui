@@ -53,6 +53,10 @@
 		"./oxfmt.json": "./lint/oxfmt.json",
 		"./lint/*": "./lint/*",
 		"./package.json": "./package.json",
+		"./qa": {
+			"types": "./dist/qa.d.ts",
+			"import": "./dist/qa.js"
+		},
 		"./*": {
 			"react-native": {
 				"types": "./dist/native/*.d.ts",
@@ -93,6 +97,7 @@
 		"@types/react-dom": "^19.3.0",
 		"jsdom": "^31.0.0",
 		"oxlint": "^1.92.0",
+		"playwright-core": "1.65.0",
 		"publint": "^0.3.25",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",
@@ -121,6 +126,7 @@
 		"@rn-primitives/tabs": ">=1.5.0",
 		"@tanstack/react-router": ">=1.170.45 <1.171.0",
 		"nativewind": ">=5.0.0-rc.1",
+		"playwright-core": ">=1.60",
 		"react": ">=19",
 		"react-dom": ">=19",
 		"react-native": ">=0.81",
@@ -162,6 +168,9 @@
 			"optional": true
 		},
 		"nativewind": {
+			"optional": true
+		},
+		"playwright-core": {
 			"optional": true
 		},
 		"react": {

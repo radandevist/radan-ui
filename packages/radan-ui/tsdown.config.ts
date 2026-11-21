@@ -7,6 +7,8 @@ const base = { format: 'esm', dts: true, clean: false, fixedExtension: false } a
 
 export default defineConfig([
 	{ entry: ['src/index.ts', 'src/cli.ts'], ...base },
+	// `./qa` (spec §9): Node-only, Playwright types only; an explicit export, not the web/native `./*` pattern.
+	{ entry: { qa: 'src/qa/index.ts' }, ...base, platform: 'node' },
 	// One build per platform (cross-platform spec, decision 7): `./button` resolves to dist/web or dist/native through the
 	// `./*` pattern in package.json. Every src/components/<name>/ is picked up here; nothing to register.
 	{ entry: entries('web'), ...base },
