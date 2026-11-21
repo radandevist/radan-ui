@@ -205,16 +205,24 @@ installPageTransitions(); // once, at client boot
 <PageBack label={t('back')} onBack={() => goBack({ canGoBack, back: () => history.back(), toParent: () => navigate('/') })} />;
 ```
 
-- `beginPageTransition(from, to, isTopLevel?)` takes two `Place`s (`{ path, index, overlay }`: `index` is the app's own
-  history position, `overlay` whether a full-screen sheet is open) and returns `'push' | 'back' | 'fade'` or `undefined`.
+- `beginPageTransition(from, to, isTopLevel?)` takes two `Place`s (`{ path, index, overlay, screen? }`: `index` is the
+  app's own history position, `overlay` whether a full-screen sheet is open, `screen` an opaque label for « same
+  pathname, another phone screen », e.g. `section=ai` for a `?section=` that opens a screen of its own) and returns `'push' | 'back' | 'fade'` or `undefined`.
   When a transition will play it sets `data-page-transition` (`ios` | `material`) and `data-page-direction` on `<html>`,
   which the CSS reads, and removes them when the transition settles. Nothing plays with style `none`, from `md`, with
-  reduced motion, or without the API. `directionOf`, `transitionFor`, `platformStyle`, `isIOS` are the pieces.
+  reduced motion, or without the API; between two top-level pages Material fades through and iPhone is instant.
+  `isTopLevel` receives the whole place (`({ path, screen }) => boolean`); the default is « at most one path segment and
+  no screen ». `directionOf`, `transitionFor`, `platformStyle`, `isIOS` are the pieces.
 - The device's style (`auto` | `ios` | `material` | `none`) lives under `radan-ui:page-transition`:
   `readStyle`, `writeStyle`, `subscribeStyle`, `TRANSITION_STYLES` (the settings screen and its labels stay in the app).
+  `writeStyle` also writes `<html data-motion>` (`ios` | `material` | `none`, `auto` resolved by the platform, reduced
+  motion resolved to `none`), the one attribute every surface reads to decide how it moves. Put `<MotionScript nonce={…} />`
+  in the document head (and `suppressHydrationWarning` on `<html>`): it sets the attribute before the first paint and
+  again after a document swap. `installPageTransitions()` keeps it right across tabs and with the OS setting.
 - `PageBack` (`label`, `onBack`, `className`, optional icon as children) ignores a second tap within 800 ms
   (`createTapGuard`) and swallows a rejected navigation; it carries `data-page-back` so your header can swap its menu
-  button for it. `goBack` goes back in history when the app has an earlier entry, else replaces with the parent.
+  button for it. `goBack` goes back in history when the app has an earlier entry, else replaces with the parent; it is
+  synchronous (the parent navigation's promise is handed back, not awaited).
   `PageBack.Skeleton` is its silhouette. Web only for now (native uses the platform's stack navigator).
 
 TanStack Router adapter (about ten lines, in your app, not in the library):

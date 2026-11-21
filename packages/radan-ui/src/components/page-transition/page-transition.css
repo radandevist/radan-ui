@@ -1,6 +1,17 @@
 /* Page transitions below md (`@radandevist/radan-ui/page-transition`): View Transitions on the whole viewport (root), keyed by
    `data-page-transition` (ios | material) and `data-page-direction` (push | back | fade) on <html>. CSS only; reduced motion, md and
    up, style none and no API never start a transition, so nothing here needs a media query. */
+/* Page tokens: the defaults are the shipped look, an app overrides them on :root. A static file cannot follow `generateThemeCss({ prefix })`: the prefix is fixed. */
+:root {
+	--radan-ui-page-ios-duration: 350ms;
+	--radan-ui-page-ios-ease: cubic-bezier(0.32, 0.72, 0, 1);
+	--radan-ui-page-material-duration: 300ms;
+	--radan-ui-page-material-ease-in: cubic-bezier(0.05, 0.7, 0.1, 1);
+	--radan-ui-page-material-ease-out: cubic-bezier(0.3, 0, 0.8, 0.15);
+	--radan-ui-page-fade-out: 90ms;
+	--radan-ui-page-fade-in: 210ms;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	mix-blend-mode: normal;
@@ -31,18 +42,18 @@
 	}
 }
 html[data-page-transition='ios'][data-page-direction='push']::view-transition-old(root) {
-	animation: nav-under-out 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+	animation: nav-under-out var(--radan-ui-page-ios-duration) var(--radan-ui-page-ios-ease) both;
 }
 html[data-page-transition='ios'][data-page-direction='push']::view-transition-new(root) {
 	z-index: 2;
-	animation: nav-cover-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+	animation: nav-cover-in var(--radan-ui-page-ios-duration) var(--radan-ui-page-ios-ease) both;
 }
 html[data-page-transition='ios'][data-page-direction='back']::view-transition-old(root) {
 	z-index: 2;
-	animation: nav-cover-out 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+	animation: nav-cover-out var(--radan-ui-page-ios-duration) var(--radan-ui-page-ios-ease) both;
 }
 html[data-page-transition='ios'][data-page-direction='back']::view-transition-new(root) {
-	animation: nav-under-in 350ms cubic-bezier(0.32, 0.72, 0, 1) both;
+	animation: nav-under-in var(--radan-ui-page-ios-duration) var(--radan-ui-page-ios-ease) both;
 }
 
 /* Android, Material 3 shared axis X: both slide 30 px the same way, the outgoing page fades out first (90 ms), the
@@ -79,29 +90,37 @@ html[data-page-transition='ios'][data-page-direction='back']::view-transition-ne
 }
 html[data-page-transition='material'][data-page-direction='push']::view-transition-old(root) {
 	animation:
-		nav-x-left 300ms cubic-bezier(0.3, 0, 0.8, 0.15) both,
-		nav-fade-out 90ms linear both;
+		nav-x-left var(--radan-ui-page-material-duration) var(--radan-ui-page-material-ease-out) both,
+		nav-fade-out var(--radan-ui-page-fade-out) linear both;
 }
 html[data-page-transition='material'][data-page-direction='push']::view-transition-new(root) {
 	animation:
-		nav-x-from-right 300ms cubic-bezier(0.05, 0.7, 0.1, 1) both,
-		nav-fade-in 210ms linear 90ms both;
+		nav-x-from-right var(--radan-ui-page-material-duration) var(--radan-ui-page-material-ease-in) both,
+		nav-fade-in var(--radan-ui-page-fade-in) linear var(--radan-ui-page-fade-out) both;
 }
 html[data-page-transition='material'][data-page-direction='back']::view-transition-old(root) {
 	animation:
-		nav-x-right 300ms cubic-bezier(0.3, 0, 0.8, 0.15) both,
-		nav-fade-out 90ms linear both;
+		nav-x-right var(--radan-ui-page-material-duration) var(--radan-ui-page-material-ease-out) both,
+		nav-fade-out var(--radan-ui-page-fade-out) linear both;
 }
 html[data-page-transition='material'][data-page-direction='back']::view-transition-new(root) {
 	animation:
-		nav-x-from-left 300ms cubic-bezier(0.05, 0.7, 0.1, 1) both,
-		nav-fade-in 210ms linear 90ms both;
+		nav-x-from-left var(--radan-ui-page-material-duration) var(--radan-ui-page-material-ease-in) both,
+		nav-fade-in var(--radan-ui-page-fade-in) linear var(--radan-ui-page-fade-out) both;
 }
 
-/* A section change (both styles): a short cross-fade. */
-html[data-page-direction='fade']::view-transition-old(root) {
-	animation: nav-fade-out 150ms linear both;
+/* Top-level page change, Material 3 fade through: the outgoing page fades out (90 ms), the incoming one fades in and
+   scales 0.92 -> 1 (210 ms, emphasized decelerate) once it is gone. iOS has none: its tab switches are instant. */
+@keyframes nav-scale-in {
+	from {
+		scale: 0.92;
+	}
 }
-html[data-page-direction='fade']::view-transition-new(root) {
-	animation: nav-fade-in 150ms linear both;
+html[data-page-transition='material'][data-page-direction='fade']::view-transition-old(root) {
+	animation: nav-fade-out var(--radan-ui-page-fade-out) linear both;
+}
+html[data-page-transition='material'][data-page-direction='fade']::view-transition-new(root) {
+	animation:
+		nav-fade-in var(--radan-ui-page-fade-in) var(--radan-ui-page-material-ease-in) var(--radan-ui-page-fade-out) both,
+		nav-scale-in var(--radan-ui-page-fade-in) var(--radan-ui-page-material-ease-in) var(--radan-ui-page-fade-out) both;
 }

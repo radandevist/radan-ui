@@ -100,6 +100,21 @@ describe('platform imports (decision 6)', () => {
 		expect(imports(source)).toEqual([from]);
 	});
 
+	// The core and the load guard are router-free (spec §4.2): only a router adapter folder may import `@tanstack/*`.
+	test.each(names.filter((name) => name === 'page-transition' || name === 'load-guard'))(
+		'%s imports no @tanstack/* package',
+		(name) => {
+			const problems = files(name)
+				.filter((file) => /\.tsx?$/.test(file))
+				.flatMap((file) =>
+					imports(read(name, file))
+						.filter((from) => from.startsWith('@tanstack/'))
+						.map((from) => `${name}/${file} imports ${from}`),
+				);
+			expect(problems).toEqual([]);
+		},
+	);
+
 	const native = /^(react-native|nativewind|@rn-primitives\/)/;
 	const web = /^(@base-ui\/|react-dom)/;
 	// `*.web.tsx` may use Base UI; `*.native.tsx` the native libraries; every other file (contract, variants) neither.

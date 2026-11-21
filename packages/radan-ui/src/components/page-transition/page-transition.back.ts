@@ -1,14 +1,13 @@
-import { clearBackToParent, clearMarks, markAppTraversal, markBackToParent } from './page-transition.core';
+import { markAppTraversal, markBackToParent } from './page-transition.marks';
 
 /** What `goBack` needs of the app's router. */
 export type BackNavigation = {
 	/** Whether the app itself has an earlier entry (an app-owned index, never `history.length`, which counts other sites). */
 	canGoBack: boolean;
 	/** Goes back one history entry. */
-	back: () => Promise<void> | void;
+	back: () => void;
 	/**
-	 * Replaces the current entry with the screen's parent (no new entry): the arrow never leaves the app. It must
-	 * resolve only after the router's commit, where the page transition hook has run (TanStack's `navigate` does).
+	 * Replaces the current entry with the screen's parent (no new entry): the arrow never leaves the app.
 	 */
 	toParent: () => Promise<void> | void;
 };
@@ -16,25 +15,17 @@ export type BackNavigation = {
 /**
  * Where the arrow goes: back the way the browser does when the app has history (the screen behind keeps its scroll and
  * its filters), else to the parent, replacing the entry (a deep link, a reload). Marks the navigation so the page
- * transition knows its direction.
+ * transition knows its direction. Synchronous, ShopKartOS's: a back returns nothing, the parent navigation's promise is
+ * handed back as it is, and a mark is cleared only by the next transition (no rollback when the navigation fails).
  */
-export const goBack = async ({ canGoBack, back, toParent }: BackNavigation): Promise<void> => {
-	try {
-		if (canGoBack) {
-			markAppTraversal();
-			await back();
-			return;
-		}
-		markBackToParent();
-		await toParent();
-		// Settled: the transition hook has run if there was one. Only this navigation's mark goes: a second back armed
-		// meanwhile keeps its own.
-		clearBackToParent();
-	} catch (error) {
-		// The navigation never happened: its marks must not reach the next one.
-		clearMarks();
-		throw error;
+export const goBack = ({ canGoBack, back, toParent }: BackNavigation): Promise<void> | void => {
+	if (canGoBack) {
+		markAppTraversal();
+		back();
+		return undefined;
 	}
+	markBackToParent();
+	return toParent();
 };
 
 /**

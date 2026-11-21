@@ -15,8 +15,42 @@ import {
 	writeStyle,
 } from './page-transition.core';
 
-const at = (path: string, index: number | undefined, overlay = false): Place => ({ path, index, overlay });
+const at = (path: string, index: number | undefined, overlay = false, screen?: string): Place => ({
+	path,
+	index,
+	overlay,
+	screen,
+});
 const ENV: Environment = { style: 'ios', fromMd: false, reducedMotion: false, supported: true };
+
+// Ported verbatim from shopkart-os apps/web/tests/page-transitions.test.ts (`a declared screen param`).
+describe('a declared screen param (Settings sections below md)', () => {
+	it('pushes from the index into a section and goes back out of it', () => {
+		expect(directionOf(at('/settings', 1), at('/settings', 2, false, 'section=freight'))).toBe('push');
+		expect(directionOf(at('/settings', 2, false, 'section=freight'), at('/settings', 1), { traversal: true })).toBe(
+			'back',
+		);
+		expect(directionOf(at('/settings', 1, false, 'section=freight'), at('/settings', 1), { toParent: true })).toBe(
+			'back',
+		);
+	});
+	it('pushes from a section to another one, and goes back to the earlier one', () => {
+		expect(directionOf(at('/settings', 2, false, 'section=ai'), at('/settings', 3, false, 'section=usages'))).toBe(
+			'push',
+		);
+		expect(
+			directionOf(at('/settings', 3, false, 'section=usages'), at('/settings', 2, false, 'section=ai'), {
+				traversal: true,
+			}),
+		).toBe('back');
+	});
+	it('has none when the section is replaced in place or does not change', () => {
+		expect(directionOf(at('/settings', 1), at('/settings', 1, false, 'section=ai'))).toBeUndefined();
+		expect(
+			directionOf(at('/settings', 2, false, 'section=ai'), at('/settings', 3, false, 'section=ai')),
+		).toBeUndefined();
+	});
+});
 
 describe('directionOf', () => {
 	it('has none on a first load (reload, direct link)', () => {
@@ -31,8 +65,10 @@ describe('directionOf', () => {
 		expect(directionOf(at('/pickups/P-4', 2), at('/forwarders', 3))).toBe('fade');
 		expect(directionOf(at('/', 2), at('/pickups', 1), { traversal: true })).toBe('fade');
 	});
-	it('goes back to the parent even when only the search changed (same path)', () => {
-		expect(directionOf(at('/pickups', 1), at('/pickups', 1), { toParent: true })).toBe('back');
+	// ShopKartOS's order (spec §12.1): the same-place check comes before `toParent`, so the arrow onto an identical place is none
+	// (radan-ui 0.7 answered 'back' here). The only observable difference between the two orders.
+	it('has none for the arrow onto an identical place (same path, same screen, same overlay)', () => {
+		expect(directionOf(at('/pickups', 1), at('/pickups', 1), { toParent: true })).toBeUndefined();
 	});
 	it('goes back to the parent with the arrow when there is no earlier entry', () => {
 		expect(directionOf(at('/pickups/P-4', 0), at('/pickups', 1), { toParent: true })).toBe('back');
@@ -69,6 +105,13 @@ describe('transitionFor', () => {
 	});
 	it('has none without a direction', () => {
 		expect(transitionFor(undefined, ENV)).toBeUndefined();
+	});
+	// Ported from shopkart-os apps/web/tests/motion-single-source.test.ts (`fades through on Material only`), verbatim.
+	it('fades through on Material only: iOS tab switches are instant, none is nothing', () => {
+		expect(transitionFor('fade', { ...ENV, style: 'material' })).toBe('fade');
+		expect(transitionFor('fade', { ...ENV, style: 'ios' })).toBeUndefined();
+		expect(transitionFor('fade', { ...ENV, style: 'none' })).toBeUndefined();
+		expect(transitionFor('push', { ...ENV, style: 'ios' })).toBe('push');
 	});
 });
 
@@ -199,7 +242,8 @@ describe('guardViewTransitions', () => {
 });
 
 describe('guardViewTransitions fallback', () => {
-	it('returns a settled ViewTransition-shaped object when startViewTransition throws', async () => {
+	// ShopKartOS's fallback (spec §3, §11): two settled fields; the fuller ViewTransition object is an S2 item.
+	it('returns exactly the two settled fields the router reads when startViewTransition throws', async () => {
 		const doc: Parameters<typeof guardViewTransitions>[0] = {
 			documentElement: { dataset: {} },
 			startViewTransition: () => {
@@ -208,11 +252,9 @@ describe('guardViewTransitions fallback', () => {
 		};
 		guardViewTransitions(doc);
 		const transition = doc.startViewTransition(() => {});
-		await expect(transition.ready).resolves.toBeUndefined();
+		expect(Object.keys(transition).sort()).toEqual(['finished', 'updateCallbackDone']);
 		await expect(transition.finished).resolves.toBeUndefined();
 		await expect(transition.updateCallbackDone).resolves.toBeUndefined();
-		expect(() => transition.skipTransition?.()).not.toThrow();
-		expect(transition.types?.size).toBe(0);
 	});
 });
 
@@ -252,9 +294,14 @@ describe('beginPageTransition on a phone', () => {
 	});
 
 	it('takes the app’s own notion of a top-level section', () => {
-		phone('ios');
-		const deep = (path: string) => path.startsWith('/app/') && path.split('/').length <= 3;
+		phone('material'); // iOS has no fade (spec §5.1-3)
+		const deep = ({ path }: Pick<Place, 'path'>) => path.startsWith('/app/') && path.split('/').length <= 3;
 		expect(beginPageTransition(place('/app/a', 1), place('/app/b', 2), deep)).toBe('fade');
+	});
+
+	it('treats a screen of the same path as another screen (default top level: no screen)', () => {
+		phone('ios');
+		expect(beginPageTransition(place('/settings', 1), at('/settings', 2, false, 'section=ai'))).toBe('push');
 	});
 
 	it('leaves the attributes of a running transition alone when a later navigation gets none', () => {

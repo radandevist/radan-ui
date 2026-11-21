@@ -3,6 +3,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { goBack } from './page-transition.back';
 import type { Place } from './page-transition.contract';
 import { beginPageTransition, installPageTransitions } from './page-transition.core';
+import { resetMarksForTests } from './page-transition.marks';
 
 // Browsers without the Navigation API: popstate is the traversal event (its own file: the install is module state).
 const place = (path: string, index: number): Place => ({ path, index, overlay: false });
@@ -22,36 +23,30 @@ beforeAll(() => {
 });
 afterEach(() => {
 	vi.useRealTimers();
-	// Nothing may be left pending: a lone swipe must still be left to Safari.
-	swipe();
-	if (begin() !== undefined) {
-		throw new Error('a mark leaked out of the test');
-	}
+	resetMarksForTests();
 });
 
 describe('on popstate', () => {
-	it('keeps the confirmed mark of the arrow through a slow load', async () => {
-		vi.useFakeTimers();
-		await goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
+	it('leaves a lone swipe to Safari', () => {
 		swipe();
-		vi.advanceTimersByTime(10_000);
+		expect(begin()).toBeUndefined();
+	});
+
+	it('keeps the mark of the arrow through a slow load (no expiry)', () => {
+		vi.useFakeTimers();
+		goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
+		swipe();
+		vi.advanceTimersByTime(20_000);
 		expect(begin()).toBe('back');
 	});
 
-	it('does not carry a confirmed mark over to a later swipe (arrow, popstate, 1.6 s, popstate)', async () => {
+	// ShopKartOS as it is (the S2 hardening drops a mark a second traversal cannot own).
+	it('lends the mark to a later swipe (arrow, popstate, 1.6 s, popstate)', () => {
 		vi.useFakeTimers();
-		await goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
+		goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
 		swipe();
 		vi.advanceTimersByTime(1600);
 		swipe();
-		expect(begin()).toBeUndefined();
-	});
-
-	it('lets a confirmed mark go after the backstop', async () => {
-		vi.useFakeTimers();
-		await goBack({ canGoBack: true, back: () => {}, toParent: () => {} });
-		swipe();
-		vi.advanceTimersByTime(20_000);
-		expect(begin()).toBeUndefined();
+		expect(begin()).toBe('back');
 	});
 });

@@ -15,7 +15,8 @@ element changing shape morphs, and both respect reduced motion.
   240ms); reuse them, never invent a curve or duration of your own.
 - **Entrances play once on mount** (`rise`, `pop`, `fade`), cascaded with `--i` (~45ms apart); never on re-render.
 - **A route change is a page transition**, not an element appearing: use the view-transition path where supported,
-  and never with reduced motion.
+  and never with reduced motion. How a surface moves (iPhone, Material, none) is read from `html[data-motion]`, which
+  `@radandevist/radan-ui/page-transition` owns; nothing else writes it.
 - **`prefers-reduced-motion` is respected inside the primitives** — entrances become plain fades, morphs don't move.
   Callers don't re-implement it.
 - Reuse the existing motion utilities before writing a new keyframe or transition.

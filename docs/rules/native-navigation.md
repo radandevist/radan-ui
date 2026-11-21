@@ -54,9 +54,11 @@ Native (Expo) uses the platform's own stack navigator and its defaults; nothing 
   **Implementation**.
 - **Push: the incoming screen enters with its real top bar.** The bar's title comes from the route or from cached data,
   never a skeleton; the body may show its own skeleton while its data loads, as a native screen does.
-- **Fade**: a short cross-fade of the whole viewport, for any switch between two top-level sections, by the menu or by
-  Back/Forward, as switching sections is in a native app's menu or tabs (on iOS, only when the app runs the traversal
-  itself).
+- **Fade**: for any switch between two top-level sections, by the menu or by Back/Forward, as switching sections is in
+  a native app's menu or tabs. **iPhone: none, the switch is instant** (as tabs are on iOS). **Material: the M3 fade
+  through** (the old screen fades out, then the new one fades in and scales up). A change of **screen inside one page**
+  (a search param such as `?section=` that opens a screen of its own below `md`) is a screen change, not a change inside
+  the page: index to section a push, section to index a back, section to section a push, replaced in place none.
 
 ## Styles
 
@@ -68,7 +70,11 @@ Two styles. Initial values below; the shared module's tokens are the source of t
 - **Android (Material 3 shared axis X)**: push = the outgoing screen moves 0 → −30 px and fades out, the incoming one
   moves 30 px → 0 and fades in; back = mirrored. 300 ms; incoming `cubic-bezier(0.05, 0.7, 0.1, 1)`, outgoing
   `cubic-bezier(0.3, 0, 0.8, 0.15)`.
-- **Fade** (both styles): 150 ms opacity.
+- **Fade** (Material only; iPhone has none): fade through, the outgoing screen fades out in 90 ms, the incoming one
+  fades in and scales 0.92 → 1 in 210 ms (`cubic-bezier(0.05, 0.7, 0.1, 1)`), after the first.
+- The durations and curves are tokens on `:root` in `page-transition.css` (`--radan-ui-page-ios-duration`,
+  `-ios-ease`, `-material-duration`, `-material-ease-in`, `-material-ease-out`, `-fade-out`, `-fade-in`); their defaults
+  are the values above and the only supported way to change them.
 
 ## Setting and precedence
 
@@ -78,12 +84,19 @@ Two styles. Initial values below; the shared module's tokens are the source of t
 - `auto` = the platform's own: iOS and iPadOS → `ios` (an iPad asking for the desktop site reports a Mac user agent:
   a Mac user agent with `navigator.maxTouchPoints > 1` is iPadOS); Android → `material`; anything else → `ios`.
 - **Precedence**: the OS's reduced-motion setting forces `none`; otherwise the stored setting; `auto` resolves by
-  platform.
+  platform. The result is `<html data-motion>` (`ios | material | none`): the only attribute any surface reads to decide
+  how it moves. The library writes it (`MotionScript` in the head, before the first paint; `writeStyle`; the `storage`
+  and reduced-motion listeners of `installPageTransitions`), nobody else does. The per-style duration tokens apply below
+  `md` only; `none` and reduced motion apply at every width, and `none` means 1 ms, never 0, wherever something waits
+  for `transitionend`.
 
 ## Implementation
 
-- The library ships it: `@radandevist/radan-ui/page-transition` (direction marking, style storage, back arrow with its tap
-  guard) and `@radandevist/radan-ui/page-transition.css`; the router adapter stays in the app (README).
+- The library ships it: `@radandevist/radan-ui/page-transition` (direction marking, style storage, `data-motion`,
+  `MotionScript`, back arrow with its tap guard) and `@radandevist/radan-ui/page-transition.css`. The core is
+  router-free; until the router adapter ships, the app wires it (README). The marks are ShopKartOS's: a history
+  traversal (popstate), a traversal the app starts itself (the arrow, the sheet's close) and the arrow's fallback to the
+  parent are read once by the next transition; nothing expires them and `goBack` is synchronous.
 
 - The browser View Transitions API (same-document), driven by the router. The style is `data-page-transition` and
   the direction `data-page-direction` (`push`, `back`, `fade`) on `<html>`, set before the transition starts, so it
@@ -99,6 +112,7 @@ Two styles. Initial values below; the shared module's tokens are the source of t
   and never hand-roll a page slide. The module ships with an acceptance test per case: push, back by arrow, back by
   history (outside iOS), none on an iOS traversal the app did not start, back to parent, fade between sections, none
   on reload, none from `md`, none with reduced motion, none without the API, the style override, an overlay screen,
-  and back revealing real content. Until it ships, this rule is enforced by review.
+  and back revealing real content. The direction, style, marks, guard and `data-motion` cases are enforced by the
+  tests of the module (`src/components/page-transition/*.test.ts`); the router-bound ones by the adapter's tests once it ships.
 
 Related: [mobile-native.md](./mobile-native.md), [motion.md](./motion.md), [skeletons.md](./skeletons.md).
