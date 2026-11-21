@@ -2,5 +2,9 @@
 	"page-transition-tanstack-router": {
 		"reason": "Exports no component: a router adapter (functions and hooks). Web by construction, since it imports the web-only core; a native bundle importing it is an error, not a missing feature",
 		"issue": "https://github.com/radandevist/radan-ui/issues/80"
+	},
+	"load-guard": {
+		"reason": "Exports no component: fetch and router watchers for the never-infinite-skeleton guarantee. Web by construction (window, document); a native bundle importing it is an error, not a missing feature",
+		"issue": "https://github.com/radandevist/radan-ui/issues/80"
 	}
 }

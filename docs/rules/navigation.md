@@ -66,6 +66,8 @@ signal by hand (no `AbortSignal.any`: Safari < 17.4, old WebViews), keeps a call
 
 **Why.** After the fix of lesson 4 there was still no net at all: a server that stopped answering meant a skeleton for good ([#320](https://github.com/radandevist/shopkart-os/pull/320)). The nets recognise one transport only, hence the injectable `isLoaderCall`.
 
+**Status.** Shipped as `@radandevist/radan-ui/load-guard` (ShopKartOS's behaviour as it is; hardening is later and separate).
+
 **Enforced by.** `load-guard` tests (limits, once-only, visibility/online, hung call, caller's own abort kept, opt-out header, mutations untouched);
 `nav-stress` at rest. The error screen that renders `load_timeout` is the app's (or the error block's).
 
