@@ -19,7 +19,7 @@ permissions:
 jobs:
   nav-stress:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -35,6 +35,8 @@ jobs:
       - run: pnpm --filter catalog exec playwright install --with-deps chromium
       - run: pnpm catalog:build
       - run: pnpm --filter catalog qa:nav-stress
+      # Taps that do not wait for their load: the next one interrupts it.
+      - run: pnpm --filter catalog qa:nav-stress --fire
       - run: pnpm --filter catalog qa:walk --check
       - uses: actions/upload-artifact@v4
         if: failure()

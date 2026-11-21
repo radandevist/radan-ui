@@ -26,11 +26,11 @@ try {
 }
 ```
 
-Knobs: `seeds` (default `[1, 2, 3]`: a seed replays the same taps, not the timings), `rounds` (25), `ignoreSelector` (a skeleton the app keeps on purpose, e.g. `[data-restore-skeleton]`), `ua` (`'android'` default, or `'ios'`), `delayMs` (`'rand'`, 0 to 900 ms per request, or a number: a fixed delay makes the run replay exactly), `screenshotDir`. Everything else (390 px touch, CPU 4x, 40 ms gap, 4 s rest) is a constant until a third app asks.
+Knobs: `seeds` (default `[1, 2, 3]`: a seed replays the same taps, not the timings), `rounds` (25), `ignoreSelector` (a skeleton the app keeps on purpose, e.g. `[data-restore-skeleton]`), `ua` (`'android'` default, or `'ios'`), `taps` (`'awaited'` by default, ShopKartOS's behaviour: a tap waits for its page's load; `'fire'`: it does not, so the next tap interrupts a load in flight), `delayMs` (`'rand'`, 0 to 900 ms per request, or a number: a fixed delay makes the run replay exactly), `screenshotDir`. Everything else (390 px touch, CPU 4x, 40 ms gap, 4 s rest) is a constant until a third app asks.
 
-**Exit codes** (your script maps them): 0 clean, 1 a stuck page (each `stuck` entry has the round, one line per problem and a screenshot), **2 the run could not be made**. `QaSetupError` is thrown when the page exposes no `window.__TSR_ROUTER__` (a run that taps nothing passes for nothing) and when the page transitions adapter reports `shape-mismatch` on `window.__radanUiPageTransitions` (the router's private state moved: lesson 7). `no-pending-component` is legitimate (a route family without skeleton yet): it is returned as `earlyOffer`, not failed. A demo or app whose root `beforeLoad` is slow and whose leaves have a `pendingComponent` reports `ok`: the canary that the early skeleton really ran.
+**Exit codes** (your script maps them): 0 clean, 1 a stuck page (each `stuck` entry has the round, one line per problem and a screenshot), **2 the run could not be made**. `QaSetupError` is thrown when the page exposes no `window.__TSR_ROUTER__` (a run that taps nothing passes for nothing) and when the page transitions adapter reports `shape-mismatch` on `window.__radanUiPageTransitions` (the router's private state moved: lesson 7). `no-pending-component` is legitimate (a route family without skeleton yet): it is returned as `earlyOffer`, not failed by `runNavStress`; an app whose setup guarantees the early skeleton (the catalog demo does) asserts `earlyOffer === 'ok'` in its own script, as `apps/catalog/scripts/nav-stress.ts` does. A demo or app whose root `beforeLoad` is slow and whose leaves have a `pendingComponent` reports `ok`: the canary that the early skeleton really ran.
 
-Run it against the **built** app, never in CI as the only full check: a full run (3 seeds x 25 rounds) is about ten minutes and its timings are not replayable, so a required check on it would be flaky. radan-ui runs a short fixed smoke (`seeds: [1], rounds: 5, delayMs: 300`) on every PR and the full run nightly (`.github/workflows/nav-stress-nightly.yml`).
+Run it against the **built** app, never in CI as the only full check: a full run (3 seeds x 25 rounds) is about ten minutes and its timings are not replayable, so a required check on it would be flaky. radan-ui runs a short fixed smoke (`seeds: [1], rounds: 5, delayMs: 300, taps: 'fire'`) on every PR and the full run nightly, awaited then fire (`.github/workflows/nav-stress-nightly.yml`).
 
 ## `runTransitionWalk`
 
@@ -66,3 +66,7 @@ pnpm --filter catalog qa:walk --check
 ```
 
 Set `CHROME_PATH` to use an already installed Chromium instead of Playwright's own.
+
+## What the end-to-end run does not prove
+
+`nav-stress` asserts the resting state of a headless Chromium on small pages. It does **not** reproduce the browser holding a view transition's update callback past the commit (1.6 s measured on a phone, #320), which is how the stale skeleton happened: in this repo's demo, reverting the stale-offer check (`staleOffer` always false, and also the commit counter) left the smoke and the full run at 0 stuck, in both tap modes. That rule is proved by the adapter's unit and contract tests (reverting `staleOffer` alone fails 3 of them, both nets 5) and, per lesson 15, by a replay on a real phone before any change to the swap or the early offer.

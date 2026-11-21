@@ -18,6 +18,11 @@ export type NavStressConfig = AppConfig & {
 	ua?: Ua;
 	/** `'rand'` (0-900 ms per request, the default) or a fixed delay: the CI smoke uses 300. */
 	delayMs?: 'rand' | number;
+	/**
+	 * `'awaited'` (default, ShopKartOS's behaviour): a tap waits for `navigate` to resolve, i.e. for its page's load, so taps never overlap a load.
+	 * `'fire'`: a tap does not wait, so the next one interrupts a load in flight (the interrupted-navigation bugs, #318, need it).
+	 */
+	taps?: 'awaited' | 'fire';
 	/** Where failing rounds' screenshots go. Default: a fresh temp directory. */
 	screenshotDir?: string;
 };
@@ -26,7 +31,7 @@ export type NavStressRun = {
 	seed: number;
 	rounds: number;
 	stuck: { round: number; problems: string[]; shot: string }[];
-	/** The adapter's published early-offer state (`window.__radanUiPageTransitions`), undefined when the app has no adapter. `no-pending-component` is reported, not failed. */
+	/** The adapter's published early-offer state (`window.__radanUiPageTransitions`), undefined when the app has no adapter. `no-pending-component` is reported, not failed: an app that guarantees the early skeleton asserts `'ok'` itself. */
 	earlyOffer?: string;
 };
 
@@ -57,11 +62,21 @@ const stressOne = async (config: NavStressConfig, seed: number, out: string): Pr
 		for (let round = 0; round < rounds; round++) {
 			const taps = 2 + Math.floor(next() * 5);
 			for (let i = 0; i < taps; i++) {
-				if (next() < 0.2) {
+				// Never back out of the app (the first entry): a run on a blank page asserts nothing, and the adapter's state would be gone.
+				const canGoBack = await page.evaluate(() => !!window.__TSR_ROUTER__?.history.canGoBack());
+				if (next() < 0.2 && canGoBack) {
 					await page.goBack({ timeout: 3000 }).catch(() => undefined);
 				} else {
 					const to = config.routes[Math.floor(next() * config.routes.length)] ?? '/';
-					await page.evaluate((t) => window.__TSR_ROUTER__?.navigate({ to: t }), to).catch(() => undefined);
+					await page
+						.evaluate(
+							([target, fire]) => {
+								const navigation = window.__TSR_ROUTER__?.navigate({ to: target });
+								return fire ? undefined : navigation;
+							},
+							[to, config.taps === 'fire'] as const,
+						)
+						.catch(() => undefined);
 				}
 				await page.waitForTimeout(Math.floor(next() * GAP_MS * 3));
 			}
