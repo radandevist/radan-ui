@@ -16,6 +16,9 @@ holds the rule in full.
   included: push / back / fade / none; on back the leaving screen animates out over the previous one, already shown
   with its content; back arrow in the top bar; iPhone or Material 3 style by platform (user-overridable).
   [`native-navigation.md`](./native-navigation.md)
+- **Navigation lessons: one transition per navigation, never a stuck skeleton** — every lesson learned the hard way on
+  the mobile web (shared system only, header follows the shown page, stale swaps dropped, never-infinite loading), each
+  with the bug that taught it and the test that enforces it. [`navigation.md`](./navigation.md)
 - **Forms in a drawer, never a modal** — right drawer from `md`, bottom sheet below, sticky footer; modals only for
   confirmations. [`forms-in-drawer.md`](./forms-in-drawer.md)
 - **One appear/disappear animation** — everything that appears or disappears goes through `Collapse`; one element
