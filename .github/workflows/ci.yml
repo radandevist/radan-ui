@@ -59,7 +59,13 @@ jobs:
   # nav-stress is path-filtered in nav-stress-pr.yml so the ~4 min smoke stays off this critical path.
   native:
     # The real React Native typecheck and the native component tests (jest-expo) run in the npm-based Expo fixture.
+    # verify and test each get their own runner: on 4 vCPU they contend for CPU when run in one job.
     runs-on: ubuntu-latest
+    name: native (${{ matrix.task }})
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [verify, test]
     env:
       NODE_VERSION: '24'
     steps:
@@ -81,7 +87,7 @@ jobs:
           path: apps/expo-consumer/node_modules
           key: expo-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('apps/expo-consumer/package-lock.json') }}
       - run: pnpm install --frozen-lockfile
-      - run: bash scripts/spike-native.sh
+      - run: bash scripts/spike-native.sh ${{ matrix.task }}
         env:
           EXPO_MODULES_CACHED: ${{ steps.expo-modules.outputs.cache-hit }}
   install-matrix:
