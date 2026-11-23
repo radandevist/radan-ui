@@ -5,6 +5,11 @@ on:
     branches: [main]
 permissions:
   contents: read
+# A new push to a PR cancels its superseded run; each main push gets a run-unique group, so a main run (running or
+# pending) is never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -28,7 +33,6 @@ jobs:
       - run: pnpm check
       - run: pnpm audit --audit-level high
   visual:
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -53,46 +57,41 @@ jobs:
             apps/catalog/playwright-report
             apps/catalog/test-results
           retention-days: 7
-  nav-stress:
-    # The short fixed smoke (1 seed x 5 rounds, 300 ms loaders) and the transition walk against the catalog's real-router demo.
-    # The full run is slow and timing-flaky as a required check: it is nav-stress-nightly.yml (nightly, on adapter/core PRs, on demand).
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
-        with: { node-version: 24, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - id: pw
-        run: echo "version=$(pnpm --filter catalog exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - run: pnpm --filter catalog exec playwright install --with-deps chromium
-      - run: pnpm catalog:build
-      - run: pnpm --filter catalog qa:nav-stress --smoke
-      - run: pnpm --filter catalog qa:walk --check
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: nav-stress-shots
-          path: /tmp/nav-stress-*
-          retention-days: 7
+  # nav-stress is path-filtered in nav-stress-pr.yml so the ~4 min smoke stays off this critical path.
   native:
     # The real React Native typecheck and the native component tests (jest-expo) run in the npm-based Expo fixture.
-    needs: check
+    # verify and test each get their own runner: on 4 vCPU they contend for CPU when run in one job.
     runs-on: ubuntu-latest
+    name: native (${{ matrix.task }})
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [verify, test]
+    env:
+      NODE_VERSION: '24'
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
-        with: { node-version: 24, cache: pnpm }
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: pnpm }
+      # setup-node caches pnpm above; the Expo fixture uses npm, cached on its own lockfile.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-expo-${{ hashFiles('apps/expo-consumer/package-lock.json') }}
+          restore-keys: npm-expo-
+      # Exact hit only: a partial tree is not an install, and npm ci still runs on a miss. A hit skips those ~19 s;
+      # the script drops any cached @radandevist/radan-ui before installing the fresh tarball.
+      - id: expo-modules
+        uses: actions/cache@v4
+        with:
+          path: apps/expo-consumer/node_modules
+          key: expo-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('apps/expo-consumer/package-lock.json', 'apps/expo-consumer/package.json') }}
       - run: pnpm install --frozen-lockfile
-      - run: bash scripts/spike-native.sh
+      - run: bash scripts/spike-native.sh ${{ matrix.task }}
+        env:
+          EXPO_MODULES_CACHED: ${{ steps.expo-modules.outputs.cache-hit }}
   install-matrix:
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
