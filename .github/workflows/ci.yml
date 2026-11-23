@@ -5,9 +5,10 @@ on:
     branches: [main]
 permissions:
   contents: read
-# A new push to a PR cancels its superseded run; a push to main is never cancelled.
+# A new push to a PR cancels its superseded run; each main push gets a run-unique group, so a main run (running or
+# pending) is never cancelled.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   check:
@@ -85,7 +86,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: apps/expo-consumer/node_modules
-          key: expo-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('apps/expo-consumer/package-lock.json') }}
+          key: expo-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('apps/expo-consumer/package-lock.json', 'apps/expo-consumer/package.json') }}
       - run: pnpm install --frozen-lockfile
       - run: bash scripts/spike-native.sh ${{ matrix.task }}
         env:

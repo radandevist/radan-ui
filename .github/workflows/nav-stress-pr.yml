@@ -1,22 +1,50 @@
 name: Nav stress (PR)
 # The short fixed smoke (1 seed x 5 rounds, 300 ms loaders) and the transition walk against the catalog's real-router demo.
 # Path-filtered so a PR that does not touch navigation does not pay ~4 min; the full run stays in nav-stress-nightly.yml.
+# Anchors are not supported in workflows: keep the two paths lists identical.
 on:
   pull_request:
     paths:
+      - '.github/workflows/nav-stress-pr.yml'
       - 'packages/radan-ui/src/components/page-transition*/**'
       - 'packages/radan-ui/src/components/load-guard/**'
       - 'packages/radan-ui/src/components/phone-top-bar/**'
+      - 'packages/radan-ui/src/components/bone*/**'
       - 'packages/radan-ui/src/qa/**'
+      - 'packages/radan-ui/src/lib/cn.ts'
       - 'apps/catalog/router-demo.html'
       - 'apps/catalog/router-demo/**'
       - 'apps/catalog/scripts/**'
       - 'apps/catalog/vite.config.ts'
       - 'apps/catalog/package.json'
+      - 'apps/catalog/app.css'
+      - 'apps/catalog/public/**'
+      - 'pnpm-lock.yaml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/nav-stress-pr.yml'
+      - 'packages/radan-ui/src/components/page-transition*/**'
+      - 'packages/radan-ui/src/components/load-guard/**'
+      - 'packages/radan-ui/src/components/phone-top-bar/**'
+      - 'packages/radan-ui/src/components/bone*/**'
+      - 'packages/radan-ui/src/qa/**'
+      - 'packages/radan-ui/src/lib/cn.ts'
+      - 'apps/catalog/router-demo.html'
+      - 'apps/catalog/router-demo/**'
+      - 'apps/catalog/scripts/**'
+      - 'apps/catalog/vite.config.ts'
+      - 'apps/catalog/package.json'
+      - 'apps/catalog/app.css'
+      - 'apps/catalog/public/**'
       - 'pnpm-lock.yaml'
   workflow_dispatch:
 permissions:
   contents: read
+# Superseded PR runs cancel; each main push gets a run-unique group, so main is never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   nav-stress:
     runs-on: ubuntu-latest

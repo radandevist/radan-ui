@@ -193,9 +193,9 @@ replayed on the phone** at merge.
 
 `nav-stress` asserts the **resting** state only: a change to a *direction* passes it. The transition walk (startViewTransition count + direction + style per navigation kind, old vs new build byte-identical) is the companion check for any refactor that must not change behaviour.
 
-**Status.** Shipped: `runNavStress` and `runTransitionWalk`, how-to in [`../guides/nav-stress.md`](../guides/nav-stress.md); radan-ui runs them against its own real-router demo (`ci.yml` smoke on every PR, `nav-stress-nightly.yml` full, also on adapter/core PRs).
+**Status.** Shipped: `runNavStress` and `runTransitionWalk`, how-to in [`../guides/nav-stress.md`](../guides/nav-stress.md); radan-ui runs them against its own real-router demo (`nav-stress-pr.yml` smoke on PRs and main pushes touching its paths, `nav-stress-nightly.yml` full, also on adapter/core PRs).
 
-**Enforced by.** The tools themselves (a short smoke in CI on every PR, the full run nightly and on adapter/core PRs — a full run is slow and timing-flaky as a required check); the migration gates in the design spec.
+**Enforced by.** The tools themselves (a short smoke on PRs and main pushes touching the `nav-stress-pr.yml` paths, the full run nightly and on adapter/core PRs — a full run is slow and timing-flaky as a required check); the migration gates in the design spec.
 
 ## 16. A fix lands with the test that fails without it
 

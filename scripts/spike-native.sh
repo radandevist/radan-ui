@@ -20,11 +20,12 @@ cd "$root/packages/radan-ui"
 pnpm build
 tarball="$pack/$(pnpm pack --pack-destination "$pack" | tail -1 | xargs basename)"
 cd "$root/apps/expo-consumer"
-# npm ci is far faster on a cold cache and keeps the fixture on its lockfile (CI caches ~/.npm keyed on that file).
+# In CI, npm ci is far faster on a cold cache and keeps the fixture on its lockfile (CI caches ~/.npm keyed on that file).
 # CI also caches node_modules on the exact lockfile + Node version: on that hit the tree is already installed.
+# Locally, incremental npm install keeps the ~900 MB tree across runs instead of tearing it down every time.
 if [ "${EXPO_MODULES_CACHED:-}" = "true" ] && [ -f node_modules/.package-lock.json ]; then
 	echo "expo node_modules restored from cache, skipping npm ci"
-elif [ -f package-lock.json ]; then
+elif [ "${CI:-}" = "true" ] && [ -f package-lock.json ]; then
 	npm ci --no-audit --no-fund --loglevel=error
 else
 	npm install --no-audit --no-fund --loglevel=error
@@ -46,7 +47,8 @@ if [ "$task" = "all" ]; then
 	cat "$logs/verify.log" "$logs/jest.log"
 	exit "$status"
 elif [ "$task" = "verify" ]; then
-	exec npm run verify
+	# No exec: it skips the EXIT trap and leaks the temp dirs; set -e propagates the exit code.
+	npm run verify
 else
-	exec npm test
+	npm test
 fi
