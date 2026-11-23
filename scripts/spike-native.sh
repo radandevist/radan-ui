@@ -10,7 +10,12 @@ cd "$root/packages/radan-ui"
 pnpm build
 tarball="$pack/$(pnpm pack --pack-destination "$pack" | tail -1 | xargs basename)"
 cd "$root/apps/expo-consumer"
-npm install --no-audit --no-fund --loglevel=error
+# npm ci is far faster on a cold cache and keeps the fixture on its lockfile (CI caches ~/.npm keyed on that file).
+if [ -f package-lock.json ]; then
+	npm ci --no-audit --no-fund --loglevel=error
+else
+	npm install --no-audit --no-fund --loglevel=error
+fi
 npm install --no-save --no-audit --no-fund --loglevel=error "$tarball"
 npm run verify
 npm test
