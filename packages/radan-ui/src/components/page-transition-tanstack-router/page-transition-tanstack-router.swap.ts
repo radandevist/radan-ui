@@ -1,5 +1,5 @@
 import type { ReportEarlyOffer } from './page-transition-tanstack-router.contract';
-import { earlyOffer, type EarlyRouter } from './page-transition-tanstack-router.internals';
+import { earlyOffer, transitionLocations, type EarlyRouter } from './page-transition-tanstack-router.internals';
 import { staleOffer } from './page-transition-tanstack-router.offer';
 import { MD, type Matches, type SwapRouter, type SwapState } from './page-transition-tanstack-router.state';
 
@@ -45,6 +45,18 @@ export const animatePendingSwap = (router: SwapRouter, state: SwapState) => {
 		if (!state.toPending) {
 			state.commits++;
 		}
+		// Every path traverses here, so the one-transition guard runs even where the router never calls `types` (no
+		// view-transition types: Safari 18.0/18.1, Chrome 111–124). Only decide when the router will actually start one:
+		// `viewTransition: false` and a router created without `routerOptions` must stay unmarked.
+		if (state.decide && (router.shouldViewTransition ?? router.options.defaultViewTransition)) {
+			const { from, to } = transitionLocations(router);
+			const direction = state.decide(from, to);
+			if (direction === undefined) {
+				// An offer already played this navigation's transition (or none is wanted): a plain update, never a second one.
+				router.shouldViewTransition = undefined;
+				return args[0]();
+			}
+		}
 		return innerVt.apply(router, args);
 	};
 	const swap = (fn: () => void, expected: Matches, stale: () => boolean) => {
@@ -55,7 +67,7 @@ export const animatePendingSwap = (router: SwapRouter, state: SwapState) => {
 		let rendered = false;
 		state.toPending = true;
 		try {
-			// `types` runs synchronously inside this call, before the flag drops.
+			// The wrapper's decision runs synchronously inside this call, before the flag drops.
 			const done = router.startViewTransition(async () => {
 				rendered = !stale() && (await inner(fn, expected));
 			});

@@ -91,6 +91,23 @@ describe('the places the adapter hands to the core', () => {
 		vt.types({ fromLocation: loc('/pickups', 1), toLocation: loc('/forwarders', 2) });
 		expect(document.documentElement.dataset).toMatchObject({ pageTransition: 'material', pageDirection: 'fade' });
 	});
+
+	it('one transition whichever offer comes first: the second offer for the same navigation is a plain update', () => {
+		phone();
+		const state = createSwapState();
+		const vt = createViewTransition(state, {});
+		const to = loc('/forwarders', 2);
+		const change = { fromLocation: loc('/pickups', 1), toLocation: to };
+		// Reverse order: the router's own pending offer arrives before the 80 ms early offer, both for the same navigation.
+		state.toPending = true;
+		expect(vt.types(change)).toEqual(['fade']);
+		expect(vt.types(change)).toBe(false);
+		// The second offer never cleared the mark: the commit is still this navigation's plain update, and clears it.
+		expect(state.swappedFor).toBe(to);
+		state.toPending = false;
+		expect(vt.types(change)).toBe(false);
+		expect(state.swappedFor).toBeUndefined();
+	});
 });
 
 describe('the health of the early offer (the router internals contract)', () => {
