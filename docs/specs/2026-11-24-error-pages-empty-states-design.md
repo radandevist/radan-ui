@@ -36,8 +36,9 @@ Three facts shape it:
    non-shared dependencies are (a) the i18n string `error-screen.details` inside `ErrorState`, (b) the caller-supplied Tabler icon, and
    (c) `cn` from `~/lib/utils` (`empty-state.tsx:4`). The first two leave cleanly (label as a prop, icon as a prop); `cn` maps to radan-ui's
    `../../lib/cn` (§4.2).
-2. **The same pictogram already exists a second time.** PublyApp's `state-view.tsx` re-implements the exact ShopKartOS pictogram (two rings + a −6° tilted tile),
-   with the comment "Both are the ShopKart OS pictogram (owner decision 04/11)" — and it uses one component for empty and error, page and inline.
+2. **The same pictogram already exists a second time.** PublyApp's `state-view.tsx` re-implements the same ShopKartOS pictogram family (two rings + a
+   −6° tilted tile) with its own CSS geometry (tile 18 px empty / 20 px status vs the 14 px `rounded-control`; inner ring 45.5 px vs 46 px; its own
+   shadow token), with the comment "Both are the ShopKart OS pictogram (owner decision 04/11)" — and it uses one component for empty and error, page and inline.
    That is both proof the look is cross-app and the best prior art for the API (Title ref, `role`, `aria-live`). ShopKartOS itself redraws the tilted
    tile a third time in `EmptyVisit` (`next-visit-card.tsx:89-91`, one tile, no rings, inside its own card; §11.13).
 3. **One radan-ui HARD rule forbade the copied look; the owner decided on 24/11 to amend the rule, not the look.**
@@ -48,15 +49,15 @@ Three facts shape it:
 
 Consequence — the plan is:
 
+- **S0 (ShopKartOS)** — capture harness only: `state-captures.ts`, the dev/test `/state-capture` seam and the two scripts. No visual change; it
+  lands first because it writes the 39 app snapshots and the eight block fixtures that S1 and R1 compare against (§9.1, §10.2).
 - **R1 (radan-ui)** — one web-only subpath, `@radandevist/radan-ui/app-state`, holding two compound roots (`ErrorState`, `EmptyState`) that share one
   variants file and therefore one look. No i18n, no router, no fetch, no new icon dependency, no skeleton (a terminal state has no loading shape, §4.3).
-  A catalog page and unit tests. Minor release `0.15.0`.
-- **S0 (ShopKartOS)** — capture harness only: `state-captures.ts`, the dev/test `/state-capture` seam and the two scripts. No visual change; this is
-  the baseline that S1 is compared against (§9.1, §10.2).
+  A catalog page and unit + parity tests against S0's eight block fixtures. Minor release `0.15.0`.
 - **S1 (ShopKartOS)** — delete its two local components, compose the shared parts, keep every text, action, route and behaviour. Gates: `layout-check`
   186/186 and before/after captures of every state identical (§10.2).
 - **S2 (PublyApp)** — adopt the block for its page-scale error views behind its existing `StateView`/`AppErrorView` wrappers (§10.3); the inline-scale
-  surfaces (including every collection empty) and the page-scale auth status views stay local until a later minor.
+  surfaces (including every collection empty) and the four page-scale auth views (two confirmations, two error/status views) stay local until a later minor.
 
 **No TanStack Router adapter is needed** (§8): `errorComponent` / `notFoundComponent` accept any component, and the only router-bound line —
 `router.invalidate()` — belongs with the app's query reset and `reset()`, not in a peer dependency.
@@ -117,6 +118,9 @@ unless stated), **H** = home (primary, 403 only), **D** = "Technical details" di
 | --- | --- | --- | --- |
 | E1 | Root `errorComponent` (the locale read or the root itself failed) | `routes/__root.tsx:37-43,127` | Wrapped in a fresh `RootDocument`: the document is swapped, the shell is gone; `THEME_SCRIPT` / `MotionScript` re-apply (§6.5). |
 | E2 | Router `defaultErrorComponent` (any page's load failed) | `router.tsx:45` | Rendered inside the app shell, so the rail/top bar remain; the page title is published by `usePageTitle`. |
+
+E2 is the mount for E4–E8 and has no render of its own: the capture manifest keeps one E2 entry asserting the shell and the branch entries assert
+`data-kind` + heading (§9.1).
 
 **`ErrorCard` kinds (5 screens + 1 redirect).** The component is `error-card.tsx:98-208`; the classifier is `lib/error-kind.ts:18-33`.
 
@@ -386,8 +390,10 @@ caller's JSX, never a flag.
 </ErrorState>
 ```
 
-The block imposes no action order: the order above is ShopKartOS's current one, kept by S1. The 24/11 decision on `shopkart-os#327` changes the
-404's primary action to « Retour à l'accueil » in a separate app PR after S1 (§11.1).
+The block imposes no action order: the order above is ShopKartOS's current one, kept by S1. The 24/11 decision on `shopkart-os#327` applies to
+**every** `NotFoundState` (E9–E14), not just the root: retry leaves the 404s (it stays on real load errors), the home link becomes primary, and the
+contextual `back` link stays as the secondary outline action. For the root (E9, `back="/"`) the existing home link is promoted; for E10–E14 a primary
+home link is added before the list back link. It is a separate app PR after S1 (§11.1).
 
 Offline (E4) — the only `role="status"` and the only auto-retry:
 
@@ -527,7 +533,7 @@ re-application stays in ShopKartOS's `RootDocument` (`routes/__root.tsx:49-60`),
 
 ### 6.6 Tone map (literal)
 
-The four tones are not "six class pairs": each tone has a **halo** and a **tile** string, eight literal strings in `error-state.tsx:9-26`.
+The four tones each have a **halo** and a **tile** string: eight literal strings in `error-state.tsx:9-26`.
 `info`→`status-open`, `neutral`→`status-closed`, `warning`→`status-pending`, `danger`→`status-breached`; there is no `status-info` and no fifth tone.
 
 ```ts
@@ -593,7 +599,7 @@ a later minor; it is not part of this phase.
 | Layer | What | Where |
 | --- | --- | --- |
 | Unit | every part renders its element and class; default `role="alert"`, `role="status"`; `h1`/`h2` and `render`; tones apply the right status pair; 1.75 / 1.5 strokes; the exact `summary` and `pre` class strings and the chevron's full SVG attributes; `role`/`aria-live` on the inner div and `className` on the outer; the title `ref` reaches the heading; details toggle and label; empty `size` context reaches every part; `className` on the empty glyph replaces the muted tint; no extra wrapper | `app-state.web.test.tsx` (jsdom) |
-| DOM parity | render the **eight block compositions** with the exact ShopKartOS props and compare normalised `outerHTML` with the **eight block fixtures** written by `state:fixtures` from the S0 old components (`1eeb6f5` + harness, §9.1): the 4 error tones + `status`, the 2 empty sizes, the details block | same file, `app-state.web.test.tsx` (one file; no second `app-state.parity.test.tsx`) |
+| DOM parity | render the **eight block compositions** with the exact ShopKartOS props and compare normalised `outerHTML` with the **eight block fixtures** written by `state:fixtures` from the S0 old components (`1eeb6f5` + harness, §9.1; S0 lands before R1): the 4 error tones + `status`, the 2 empty sizes, the details block | same file, `app-state.web.test.tsx` (one file; no second `app-state.parity.test.tsx`) |
 | Package guards | `conformance`: `app-state` exempt from the two skeleton files, still requires contract/variants/web entry; `headless`-style validation of `no-skeleton.json`; **no `@tanstack/*`, `i18next`, `react-i18next` or `fetch` import under `app-state/`** | `tests/components.test.ts` (owner-approved edit) |
 | Catalog | `apps/catalog/pages/app-state.page.tsx`: 4 tones × error (one with details, one `status`), empty default/compact/with actions/success tint, compact inside `Card.Body`; fixed inline SVG icons (the catalog has no Tabler dependency); four baselines from CI | `app-state-light-phone.png`, etc. |
 | App S1 visual | 36 browser states × 2 widths × 2 themes = **144 PNGs**, plus 3 fixture-only states (E11, E14, A14) whose normalised HTML is the reference: 39 states in total (14 error + 25 collection-level empty; E3 is a redirect; the 14 inline empties A26–A39 are out of scope and not captured). Before/after on the same seed, masked for clocks/relative dates; the manifest is §9.1 | S0 harness `apps/web/scripts/state-captures.ts` (§10.2) |
@@ -606,7 +612,8 @@ with two actions, empty without actions, compact in a card, success tint. No clo
 
 ### 9.1 The 39 captured states, and the `server`/`unknown` seam
 
-`state-captures.ts` holds a typed manifest `CAPTURES` with one entry per state. A unit test asserts `CAPTURES.length === 39`, exactly 14 error
+`state-captures.ts` holds a typed manifest `CAPTURES` with one entry per captured state (E2/E7 are two assertions on the same default-error render,
+table below). A unit test asserts `CAPTURES.length === 39`, exactly 14 error
 entries, exactly 25 empty entries, and that every row A1–A25 of §3.2 appears once. The 14 inline empties A26–A39 are **not** in the manifest. The manifest is the state → URL/trigger table; the 25 empty
 entries point at the §3.2 rows (A19/A20 are separate states because the card layout differs, A24 lists its three mounts).
 
@@ -614,12 +621,12 @@ entries point at the §3.2 rows (A19/A20 are separate states because the card la
 `virtualRouteConfig` at `apps/web/src/routes.ts`, and `src/routes/` is not auto-discovered, so S0 must declare
 `route('/state-capture', 'state-capture.tsx')` in that manifest **and** add `/state-capture` to `NOT_PAGES` so `layout-routes.test.ts` stays green.
 In dev/test, `apps/web/src/routes/state-capture.tsx` throws from its component for `kind=not_found|forbidden|server|unknown`; `kind=root` makes the
-root `beforeLoad` throw before the shell. Messages: `capture_not_found` (ends `_not_found`), `forbidden`, `load_timeout` (a known `error.<code>`),
-`state_capture_unknown` (unknown); `details=1` attaches a stack. The not-found path is that component throw, **not** `notFound()`: `notFound()` here
-would render the root `notFoundComponent` (E9), not `ErrorCard`'s `not_found` branch (E5). Outside dev/test (`!import.meta.env.DEV`) the component
-**throws** `notFound()` — `notFound()` returns a `NotFoundError` object, never a `ReactNode` — so a direct hit on `/state-capture` renders the root 404
-(E9); the root hook stays inert and no product screen changes. S0 adds a route-render test for that branch with `DEV` stubbed false
-(`vi.stubEnv('DEV', false)` or equivalent), asserting the root 404 and no React-child crash. S0 also adds `state-captures.ts`
+root `beforeLoad` throw `state_capture_root` before the shell. Messages: `capture_not_found` (ends `_not_found`), `forbidden`, `load_timeout` (a known
+`error.<code>`), `state_capture_unknown` (unknown); `details=1` attaches a stack. The not-found path is that component throw, **not** `notFound()`:
+`notFound()` here would render the root `notFoundComponent` (E9), not `ErrorCard`'s `not_found` branch (E5). Outside dev/test
+(`!import.meta.env.DEV`) the component **throws** `notFound()` — `notFound()` returns a `NotFoundError` object, never a `ReactNode` — so a direct hit
+on `/state-capture` renders the root 404 (E9); the root hook stays inert and no product screen changes. S0 adds a route-render test for that branch with
+`DEV` stubbed false (`vi.stubEnv('DEV', false)` or equivalent), asserting the root 404 and no React-child crash. S0 also adds `state-captures.ts`
 and the `state:captures`/`state:fixtures` scripts; it keeps the old components, so it is the baseline harness.
 
 **Fixture harness for E11/E14.** A bare `renderToStaticMarkup` of `PickupPage`/`ForwarderPage` throws: both call `useParams`, `useSuspenseQuery(homeQuery())`,
@@ -631,40 +638,51 @@ router declaring `/pickups/$code` (component `PickupPage`, with the route's `val
 they are test/render-only additions and no product route changes.
 
 Every `CAPTURES` entry carries the expected signal for its URL or fixture, and `state-captures.ts` asserts it **before** taking the screenshot; a mismatch fails
-the run instead of silently photographing the same 404 thirty-six times. The signal is the `data-kind` value for the `ErrorCard` screens and the
-expected heading/line for the empty states. S0 gives the old `ErrorState` an invisible `data-kind` attribute on its inner role div (`ErrorCard`
-passes `kind`, `NotFoundState` does not); S1 keeps it through the block's normal `data-*` pass-through (§5.2). E5 therefore asserts
-`[data-kind="not_found"]` — the root `NotFoundState` (E9) carries no `data-kind` — and a missing `/state-capture` route fails the run.
+the run instead of silently photographing the same 404 thirty-six times. The signal is the `data-kind` value **and** the heading for the `ErrorCard` screens,
+the expected heading for the `NotFoundState` screens, and the expected heading/line for the empty states. S0 gives the old `ErrorState` an invisible
+`data-kind` attribute on its inner role div (`ErrorCard` passes `kind`, `NotFoundState` does not); S1 keeps it through the block's normal `data-*`
+pass-through (§5.2). E5 therefore asserts `[data-kind="not_found"]` — the root `NotFoundState` (E9) carries no `data-kind` — and E9–E14 assert their
+exact heading; a missing `/state-capture` route or a wrong heading fails the run. E2 is the router's `defaultErrorComponent` mount; E4–E8 are its
+branches. E2 and E7 share `/state-capture?kind=server&details=1`: the E2 entry asserts the app shell (rail/top bar) is present, the E7 entry asserts
+`[data-kind="server"]` and its heading — two assertions on the same render, not two renders.
 
-| # | State | Trigger |
-| --- | --- | --- |
-| E1 | root error, document swapped | `/state-capture?kind=root&details=1` |
-| E2 | default error inside the shell | `/state-capture?kind=server&details=1` |
-| E4 | offline (`role="status"`) | open `/pickups` online, `context.setOffline(true)`, then click `/forwarders` |
-| E5 | `ErrorCard` not_found | `/state-capture?kind=not_found` |
-| E6 | forbidden | `/state-capture?kind=forbidden` |
-| E7 | server | `/state-capture?kind=server&details=1` |
-| E8 | unknown | `/state-capture?kind=unknown&details=1` |
-| E9 | root `notFoundComponent` | `/__missing__` |
-| E10 | pickup loader `notFound()` | `/pickups/__missing__` |
-| E11 | pickup component guard | **fixture**, not a browser capture: `PickupPage` under the `skeleton-mirror` harness, `['home']` seeded without the pickup |
-| E12 | visit component guard | `/pickups/visit/1999-01-01` |
-| E13 | forwarder loader `notFound()` | `/forwarders/__missing__` |
-| E14 | forwarder component guard | **fixture**, not a browser capture: `ForwarderPage` under the `skeleton-mirror` harness, `['home']` seeded without the forwarder |
-| E15 | login refusal | `/login`, wrong password |
+| # | State | Trigger | Expected signal (asserted before capture) |
+| --- | --- | --- | --- |
+| E1 | root error, document swapped | `/state-capture?kind=root&details=1` | `[data-kind="unknown"]`; heading `page.data-error` ("Could not load the data") |
+| E2 | default error inside the shell | `/state-capture?kind=server&details=1` | app shell landmarks present; `[data-kind="server"]` |
+| E4 | offline (`role="status"`) | open `/pickups` online, `context.setOffline(true)`, then click `/forwarders` | `[role="status"][data-kind="offline"]`; heading `error-screen.offline-title` ("No connection") |
+| E5 | `ErrorCard` not_found | `/state-capture?kind=not_found` | `[data-kind="not_found"]`; heading `page.not-found` ("Page not found") |
+| E6 | forbidden | `/state-capture?kind=forbidden` | `[data-kind="forbidden"]`; heading `error-screen.forbidden-title` ("Access denied") |
+| E7 | server | `/state-capture?kind=server&details=1` | `[data-kind="server"]`; heading `error-screen.server-title` ("Something went wrong") |
+| E8 | unknown | `/state-capture?kind=unknown&details=1` | `[data-kind="unknown"]`; heading `page.data-error` ("Could not load the data") |
+| E9 | root `notFoundComponent` | `/__missing__` | no `[data-kind]`; heading `page.not-found` ("Page not found") |
+| E10 | pickup loader `notFound()` | `/pickups/__missing__` | no `[data-kind]`; heading `pickup.not-found` interpolated with `__missing__` ("Pickup __missing__ not found") |
+| E11 | pickup component guard | **fixture**, not a browser capture: `PickupPage` under the `skeleton-mirror` harness, `['home']` seeded without the pickup | no `[data-kind]`; heading same as E10 |
+| E12 | visit component guard | `/pickups/visit/1999-01-01` | no `[data-kind]`; heading `pickups.visit-not-found` ("This visit is no longer expected") |
+| E13 | forwarder loader `notFound()` | `/forwarders/__missing__` | no `[data-kind]`; heading `forwarder.not-found` ("Forwarder not found") |
+| E14 | forwarder component guard | **fixture**, not a browser capture: `ForwarderPage` under the `skeleton-mirror` harness, `['home']` seeded without the forwarder | no `[data-kind]`; heading same as E13 |
+| E15 | login refusal | `/login`, wrong password | `[role="alert"]` with the `login.error.message` line inside the login `Card`; no state pictogram |
 
 The 25 empty states use the same routes with a seed or filter that forces the state: `/` A6–A8; `/forwarders` A2–A3; `/forwarders/tracking` A1 and
 A13; `/pending-checks` A4–A5; `/pickups` A9–A10 and A19–A20; `/pickups/<code>` A11; `/notifications` A12; `/accuracy` A21–A23; `/admin`
 A15–A17; `/settings`, `/forwarders/<id>`, `/pickups/<code>` and the usage panel A18/A24; the item drawer A25; A14 is the `ItemsTable` fixture.
 That mapping plus the error table is the complete 39-entry manifest.
 
-`state-captures.ts --fixtures` writes **two sets**. (1) The 39 app-level normalised `outerHTML` snapshots (the E11/E14 component-guard renders and
-A14 included): these are the S1 `diff -r` reference. (2) The **eight block-only snapshots**, rendered by `react-dom/server` from the old
-`ErrorState`/`EmptyState` with exactly the props of the eight parity compositions (`en` locale for `error-screen.details`): these are the radan-ui
-parity fixtures. Run both sets in the S0 worktree (old components, `1eeb6f5` + harness) before S1, copy the 39 app snapshots to
-`packages/radan-ui/src/components/app-state/__fixtures__/shopkart/app/` and the eight block snapshots to `__fixtures__/shopkart/block/`, then run
-the script again after S1 and `diff -r` the 39 app snapshots (after S1 the old components are gone, so `--fixtures` writes the 39 app snapshots only).
-The parity test consumes the eight block fixtures, **not** the 39 app snapshots; neither set is hand-copied.
+**Snapshot normalisation and server.** Every app snapshot is the normalised `document.body.outerHTML`, taken after the same `settle` as `layout-check`,
+with one shared function applied to a **clone for serialisation**: remove every `<script>` and `<link>`, replace every `/assets/...` `src`/`href` with
+`assets/asset` (hash and extension dropped), and apply the same clock/relative-date masks as the screenshots. Capturing `<body>` rather than `<html>`
+makes E1 independent of the document swap's head and of CSS/JS hashes. The **36 browser states** run against the **Vite dev server**
+(`import.meta.env.DEV` true, the only mode where the seam is active), reusing `startServer`'s throwaway database, accounts and seed; `check:layout`
+stays on the built `.output` server. The 3 fixture-only states (E11/E14/A14) are rendered in the test harness, and the eight block snapshots are pure
+`react-dom/server` renders.
+
+`state-captures.ts --fixtures` writes **two sets**. (1) The 39 app-level normalised snapshots (the E11/E14 component-guard renders and A14 included):
+these are the S1 `diff -r` reference. (2) The **eight block-only snapshots**, rendered by `react-dom/server` from the old `ErrorState`/`EmptyState` with
+exactly the props of the eight parity compositions (rendered under `I18nextProvider` with `createI18n('en')`, for `error-screen.details`): these are the radan-ui parity fixtures. **S0 lands before
+R1**: run both sets in the S0 worktree (old components, `1eeb6f5` + harness), copy the 39 app snapshots to
+`packages/radan-ui/src/components/app-state/__fixtures__/shopkart/app/` and the eight block snapshots to `__fixtures__/shopkart/block/`; R1's parity test
+consumes the eight block fixtures. Then run the script again after S1 and `diff -r` the 39 app snapshots (after S1 the old components are gone, so
+`--fixtures` writes the 39 app snapshots only). The parity test consumes the eight block fixtures, **not** the 39 app snapshots; neither set is hand-copied.
 
 ---
 
@@ -672,13 +690,17 @@ The parity test consumes the eight block fixtures, **not** the 39 app snapshots;
 
 ### 10.1 radan-ui — R1, one PR
 
+**Prerequisite: S0 (§10.2) has landed** and its eight block fixtures are available; R1 must not start before it, because the parity test asserts against
+files S0 generates from the old components (`1eeb6f5` + harness). R1 itself has no ShopKartOS dependency at runtime.
+
 1. Extract the two components into `app-state/` with the class strings above; split `app-state.variants.ts` (tones + geometry) so no file nears 300 lines.
 2. Remove the i18n call: `ErrorState.Details` takes `label`; nothing else imports `react-i18next`.
 3. Remove the Tabler type: `StateIcon`; the chevron becomes the inline Tabler SVG of §6.3 (same attributes and `tabler-icon` classes, no icon package).
 4. `compact` → `size="default" | "compact"` with an internal context; the two empty sizes keep their exact classes.
 5. Add the `web-only.json` and `no-skeleton.json` entries in `src/components/`; add the `noSkeleton()` reader to `scripts/components.ts` and use it
    in the conformance check; update `tests/components.test.ts` (owner-approved shared file) with the exception and the no-router/no-i18n guard.
-6. Catalog page, unit + parity tests, changeset `minor`, size budget measured after the first build (set 10 % above).
+6. Catalog page, unit + parity tests (the parity test consumes S0's eight block fixtures, §9.1), changeset `minor`, size budget measured after the first
+   build (set 10 % above).
 7. Amend [`visual-consistency.md`](../rules/visual-consistency.md) (decided 24/11) and add a short `DESIGN.md` "State views" pointer in the same PR.
    The amendment replaces the whole state sentence: "at one visual scale: flat (no card, ring, shadow or icon disc)" becomes **one family, three
    documented scales — error 144 px (h1 20), empty 120 px (h2 18), compact 96 px (h2 16)** — with the two tinted rings and the tilted tile as the
@@ -690,10 +712,11 @@ The parity test consumes the eight block fixtures, **not** the 39 app snapshots;
 **S0 first — capture harness, separate PR, no visible change.** Add `apps/web/scripts/state-captures.ts`, the
 `route('/state-capture', 'state-capture.tsx')` line in `apps/web/src/routes.ts` (§9.1), the dev/test `/state-capture` seam, the invisible
 `data-kind` hook, the `state:captures`/`state:fixtures` scripts, and the `NOT_PAGES` entry. The old components stay; this is what makes the baseline
-capturable. No product screen changes.
+capturable. No product screen changes. S0 lands **before R1** (it has no radan-ui dependency and writes the eight fixtures R1 consumes).
 
-**Baseline first**, on `1eeb6f5` + S0: `pnpm check:layout` (must print 186/186), `pnpm test`, and the new `state:captures` run (36 browser states × 2
-widths × 2 themes = 144 PNGs) plus `state:fixtures` (39 app snapshots + 8 block fixtures); both stored with the PR.
+**Baseline first**, on `1eeb6f5` + S0: `pnpm check:layout` (must print 186/186, built app), `pnpm test`, and the new `state:captures` run against the
+Vite dev server (36 browser states × 2 widths × 2 themes = 144 PNGs; dev is required because the seam is `import.meta.env.DEV`-only) plus
+`state:fixtures` (39 app snapshots + 8 block fixtures); both stored with the PR.
 
 Steps, in order:
 
@@ -716,7 +739,7 @@ Allowed structural changes, each covered by the captures: import paths, `compact
 - (a) `pnpm check:layout` **186/186** after; the report's route/theme/viewport list is unchanged.
 - (b) the 36 before/after browser captures byte-identical, plus the 3 fixture-only states (E11/E14/A14) identical: **144 PNGs + 39 app HTML
   snapshots**; each capture first asserts its expected signal (§9.1), so E5 (`data-kind="not_found"`), E7 (`server`) and E8 (`unknown`) must be the
-  real screens or the gate fails; masks pinned in the script, not per run.
+  real screens, and E9–E14 must show their exact heading (no `data-kind`), or the gate fails; masks pinned in the script, not per run.
 - (c) `pnpm test` green, `tests/error-kind.test.ts` byte-identical.
 - (d) import gate: no `~/components/error-state` / `~/components/empty-state` import remains. Lookalike gate: this must print only
   `features/pickups/components/next-visit-card.tsx` (the documented exception §11.13), never a second copy:
@@ -732,8 +755,8 @@ If a capture differs, the diff is investigated, never masked away; a real differ
 | # | Need | Detail |
 | --- | --- | --- |
 | P0 | radan-ui bump `0.8.0` → `0.15.0` | separate PR, before anything else; it brings everything from 0.9 to 0.15 (tokens, Card/Button, the phase-1 blocks) |
-| P1 | Replace `StateView`'s markup with the block | keep `StateView`, `StateSurface`, `ErrorStateSurface`, `NoMatchStateSurface` as thin wrappers, so the 46 product render sites (37 inline: 28 direct `<StateSurface>` + 5 `<ErrorStateSurface>` + 4 `<NoMatchStateSurface>`; plus 9 direct `<StateView>`) do not move; the six test calls and the two occurrences inside the wrapper definitions are not counted. Map the page-scale error views (`AppErrorView`, and `ErrorKindState` when its `scale` is `page`) to `ErrorState`. The four page-scale auth status views (`email-sent-confirmation.tsx:30`, `invalid-link-view.tsx:40`, `precheck-unavailable-view.tsx:24`, `_reset-password-success.tsx:14`) are success/confirmation screens, not errors: they keep the local `StateView` markup in S2, because the block's default `role="alert"` and 60dvh wrapper would be wrong there. Every `scale="inline"` surface keeps the local markup too (§P2). **One wrapper only**: `AppErrorView` drops its own `min-h-[60dvh] py-10 px-4 max-w-lg` layout when the child is the block; the block root is the 60dvh/max-w-sm/py-10 wrapper. For `embedded={false}`, keep `<main>`/`data-testid` outside and do not re-apply `min-h-screen py-16`: the block root is the only height wrapper (P6 accepts the 60dvh result) |
-| P2 | Deferred surfaces: inline-scale (37 product render sites today — 28 direct `<StateSurface>`, 5 `<ErrorStateSurface>`, 4 `<NoMatchStateSurface>`; the six test calls and the two wrapper-definition occurrences excluded — plus the 3 inline tenant-picker `<StateView>`, and the inline `ErrorKindState`) and the four page-scale auth status views | **not in S2**: keep the local markup in P1 and migrate in a later minor. They are not expressible by the two roots as scoped: `StateView` inline renders a `div` title with 24 px horizontal padding and a 15 rem min-height, no 60dvh, while `EmptyState` is `py-12` / `px-4` with an `h2` and `ErrorState` is 144 px / `h1` / 60dvh. A later migration composes `EmptyState` with `EmptyState.Title render={<div/>}` and an explicit root geometry override, never `ErrorState` for an empty. §11.12, §14.6 |
+| P1 | Map the page-scale error views to the block; leave `StateView`'s own markup intact | keep `StateView`, `StateSurface`, `ErrorStateSurface`, `NoMatchStateSurface` as thin wrappers, so the other **44** product render sites (37 inline: 28 direct `<StateSurface>` + 5 `<ErrorStateSurface>` + 4 `<NoMatchStateSurface>`; plus 7 of the 9 direct `<StateView>` — the 4 auth views and the 3 tenant-picker) do not move; the six test calls and the two occurrences inside the wrapper definitions are not counted. Map the page-scale error views (`AppErrorView`, and `ErrorKindState` when its `scale` is `page` — the other 2 direct `<StateView>` sites) to `ErrorState`. The four page-scale auth views split in two: `EmailSentConfirmation` (`email-sent-confirmation.tsx:30`) and `ResetPasswordSuccess` (`_reset-password-success.tsx:14`) are success/confirmation screens; `InvalidLinkView` (`invalid-link-view.tsx:40`, `warning`) and `PrecheckUnavailableView` (`precheck-unavailable-view.tsx:24`, `danger`, retry) are error/status screens. All four keep the local `StateView` markup in S2 (the two successes would get the block's default `role="alert"`/60dvh; the two errors are deferred with the auth views). The later migration maps the two errors to `ErrorState` page scale with no `min-h-screen`, **never** to `EmptyState`; the two successes, if unified, compose `EmptyState` with the success tint (`text-status-success`), never `ErrorState`. Every `scale="inline"` surface keeps the local markup too (§P2). **One wrapper only**: `AppErrorView` drops its own `min-h-[60dvh] py-10 px-4 max-w-lg` layout when the child is the block; the block root is the 60dvh/max-w-sm/py-10 wrapper. For `embedded={false}`, keep `<main>`/`data-testid` outside and do not re-apply `min-h-screen py-16`: the block root is the only height wrapper (P6 accepts the 60dvh result) |
+| P2 | Deferred surfaces: inline-scale (37 product render sites today — 28 direct `<StateSurface>`, 5 `<ErrorStateSurface>`, 4 `<NoMatchStateSurface>`; the six test calls and the two wrapper-definition occurrences excluded — plus the 3 inline tenant-picker `<StateView>`, and the inline `ErrorKindState`) and the four page-scale auth views (two confirmations, two error/status views) | **not in S2**: keep the local markup in P1 and migrate in a later minor. They are not expressible by the two roots as scoped: `StateView` inline renders a `div` title with 24 px horizontal padding and a 15 rem min-height, no 60dvh, while `EmptyState` is `py-12` / `px-4` with an `h2` and `ErrorState` is 144 px / `h1` / 60dvh. A later migration composes `EmptyState` with `EmptyState.Title render={<div/>}` and an explicit root geometry override, never `ErrorState` for an empty; the two auth error/status views are the exception and migrate to `ErrorState` (page, no `min-h-screen`). §11.12, §14.6 |
 | P3 | Keep the focus behaviour | `Title` ref + `tabIndex={-1}`; the focus call stays in `AppErrorView` |
 | P4 | Keep `aria-live` | pass it as a block prop; `role`/`aria-live` land on the inner role div (§5.2), not on the outer layout div |
 | P5 | `primary` tone | map to `info` in the wrapper; adding a fifth tone is a separate, token-backed minor |
@@ -748,9 +771,10 @@ Gates for S2: PublyApp's own test suite, its visual/proof captures before/after,
 The owner asked to be corrected where "ShopKartOS as it is today" is the wrong reference. None of these is changed by S1.
 
 1. **`radandevist/shopkart-os#327` — "Try again" is the primary action on a 404.** `NotFoundState` (`error-card.tsx:83-88`) puts `RetryButton` (default variant) before the
-   back link, although a missing page is not a transient failure. **Decided 24/11:** on the 404 the primary button becomes « Retour à l'accueil »
-   (`error-screen.back-home`, today the outline back link); « Réessayer » stays on real load errors. This is a small separate ShopKartOS PR
-   **after S1**. S1 keeps the current order and labels, and the block imposes no action order, so nothing in radan-ui changes.
+   back link, although a missing page is not a transient failure. **Decided 24/11:** on **every** 404 (`NotFoundState`, E9–E14) the primary button becomes « Retour à
+   l'accueil »; the contextual list back link (`back`) stays as the secondary outline action; « Réessayer » leaves the 404s and stays on real load errors
+   (E4/E7/E8). For E9 the existing outline home link is promoted; E10–E14 gain a primary home link. This is a small separate ShopKartOS PR **after S1**.
+   S1 keeps the current order and labels (including the retry button), and the block imposes no action order, so nothing in radan-ui changes.
 2. **`visual-consistency.md` forbade the copied look; decided 24/11 to amend it.** Its HARD sentence ("flat (no card, ring, shadow or icon disc)")
    and "at one visual scale" contradicted the two rings and the raised tile. *Decided 24/11: the rule is amended to describe the current ShopKartOS
    rendering, which becomes the shared look — one family, three documented scales (error 144, empty 120, compact 96); do not flatten the block.*
@@ -777,11 +801,12 @@ The owner asked to be corrected where "ShopKartOS as it is today" is the wrong r
 11. **Two code paths to the same 404.** Each entity route both throws `notFound()` in the loader and re-checks the entity in the component
     (E10/E11, E13/E14). Harmless, but the gate must cover both: E10/E13 are browser captures, E11/E14 are the two component-guard HTML fixtures
     (§9.1). *Recommendation: keep; the component guard covers a cached `homeQuery`.*
-12. **PublyApp's adoption is not pixel-neutral by construction.** Its `StateView` uses SVG circles and its own CSS (same geometry, different DOM), a
-    `min-h-screen` page scale, a `primary` tone absent from the four, and 37 inline render sites the two roots cannot express. *Recommendation:
-    accept the visible `60dvh` change on the page-scale error views (the block is the reference), map `primary` → `info`, and migrate the
-    inline-scale surfaces (empty and status alike) and the page-scale auth status views in a later minor; do not add a `scale`/`presentation` flag to
-    force it now.*
+12. **PublyApp's adoption is not pixel-neutral by construction.** Its `StateView` uses SVG circles and its own CSS (same family, own geometry:
+    tile radii 18/20 px vs the 14 px `rounded-control`, inner ring 45.5 vs 46 px, its own shadow token; different DOM), a `min-h-screen` page scale,
+    a `primary` tone absent from the four, and 37 inline render sites the two roots cannot express. *Recommendation: accept the visible `60dvh`
+    change on the page-scale error views (the block is the reference), map `primary` → `info`, and migrate the inline-scale surfaces (empty and
+    status alike) and the four page-scale auth views (two confirmations, two error/status views) in a later minor; do not add a
+    `scale`/`presentation` flag to force it now.*
 13. **The Next visit card redraws the tilted tile.** `next-visit-card.tsx:89-91` has its own 56 px `-rotate-6` tile with `shadow-raised-control`,
     no rings, inside a framed section; it renders twice (aside/feed). It is the third copy of the tile aspect. S1 keeps it: composing
     `EmptyState.Pictogram` would add the two rings and change the look. It is the one documented lookalike exception in the S1 gate; a later design
@@ -808,12 +833,15 @@ The owner asked to be corrected where "ShopKartOS as it is today" is the wrong r
 
 ## 13. Rollout summary
 
-**radan-ui:** R1 `app-state` (two roots, catalog, tests, guards, rule amendment) → release `0.15.0`.
-**ShopKartOS:** S0 capture harness (no visual change) → baseline → S1 (delete the two local components, compose the block, 186/186 + 36 captures +
-3 fixture-only states identical) → then the 24/11 `#327` PR (404 primary « Retour à l'accueil ») and the action-size follow-ups as separate PRs.
-**PublyApp:** P0 bump → P1 wrappers + page-scale error views (`ErrorState`) → P2 inline-scale surfaces and the page-scale auth status views in a separate minor (no `scale` flag).
+**ShopKartOS:** S0 capture harness + baseline + `state:fixtures` (no visual change) → **radan-ui:** R1 `app-state` (two roots, catalog, tests,
+guards, rule amendment; consumes the eight block fixtures) → release `0.15.0` → **ShopKartOS:** S1 (delete the two local components, compose the block,
+186/186 + 36 captures + 3 fixture-only states identical) → then the 24/11 `#327` PR (404 primary « Retour à l'accueil ») and the action-size follow-ups
+as separate PRs.
+**PublyApp:** P0 bump → P1 wrappers + page-scale error views (`ErrorState`) → P2 inline-scale surfaces and the four page-scale auth views (two
+confirmations, two error/status views) in a separate minor (no `scale` flag).
 
-Bump order everywhere: radan-ui first, apps second. Each radan-ui PR carries its changeset, its catalog captures (CI baselines) and `Refs #92`.
+Bump order everywhere: radan-ui first, apps second. S0 is the one exception to the app order: it carries no radan-ui dependency and must land before R1
+to produce the fixtures R1 asserts against. Each radan-ui PR carries its changeset, its catalog captures (CI baselines) and `Refs #92`.
 
 ## 14. Decisions recorded, open questions
 
@@ -824,11 +852,14 @@ Bump order everywhere: radan-ui first, apps second. Each radan-ui PR carries its
    documented border+ring exception. No further approval.
 3. **No TanStack Router adapter in phase 2** (§8). The router-bound 20 lines stay app-side; extract only if S2 proves them identical.
 4. **No skeleton for a terminal state**; `no-skeleton.json` exception, same shape as `headless.json`, read by `scripts/components.ts`.
-5. **`shopkart-os#327` — Radan's decision of 24/11 (decided).** On the 404 the primary button becomes « Retour à l'accueil »; « Réessayer » stays on
-   real load errors. It is a small separate ShopKartOS PR after S1; the block imposes no action order.
+5. **`shopkart-os#327` — Radan's decision of 24/11 (decided).** On every 404 (`NotFoundState`, E9–E14) the primary button becomes « Retour à
+   l'accueil »; the contextual list back link stays as the secondary outline action; « Réessayer » stays on real load errors only. It is a small
+   separate ShopKartOS PR after S1; the block imposes no action order.
 6. **PublyApp S2 scope**: the page-scale error views (`AppErrorView`, `ErrorKindState` at `scale="page"`) behind the existing wrappers; the
-   inline-scale surfaces — including every collection empty, which `StateSurface` renders at `scale="inline"` — the four page-scale auth status
-   views, and the `primary` tone are follow-ups (no `scale`/`presentation` flag added now, §10.3 P2).
+   inline-scale surfaces — including every collection empty, which `StateSurface` renders at `scale="inline"` — the four page-scale auth views (two
+   confirmations, two error/status views), and the `primary` tone are follow-ups (no `scale`/`presentation` flag added now, §10.3 P2). The later
+   migration sends the two auth error/status views to `ErrorState` (page, no `min-h-screen`) and the two confirmations to `EmptyState` with the
+   success tint.
 7. **`compact` becomes `size`**; no boolean props in the public API.
 
 Resolved in this spec: PublyApp's `min-h-screen` full-page errors accept the block's `60dvh` (the block is the reference, P6), and the eight
