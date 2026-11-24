@@ -9,7 +9,10 @@ import type { Loc } from './page-transition-tanstack-router.place';
 export type SwapState = {
 	/** Raised by the swap around its call into `startViewTransition`, so `types` knows the skeleton is the one asking. */
 	toPending: boolean;
-	/** The location the skeleton's swap already played the transition for: the commit that follows is a plain update. */
+	/**
+	 * The location the skeleton's swap already played the transition for: the router's own pending offer and the commit
+	 * that follow, for the same location object, are plain updates.
+	 */
 	swappedFor: Loc | undefined;
 	/**
 	 * What a skeleton waiting its turn must not outlive: a commit's `startTransition` AND a commit's view transition

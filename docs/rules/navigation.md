@@ -13,14 +13,18 @@ PR links point at the ShopKartOS repository where the bug was found and fixed.
 ## 1. One navigation, one transition
 
 **Rule.** A navigation plays at most **one** view transition. The skeleton's swap and the commit that follows are the same transition; a second one is
-never started while the first is in flight.
+never started while the first is in flight. An offer already presented for the same navigation never restarts it: the router's own pending offer (after
+the early 80 ms offer when the root `beforeLoad` is slow, possibly while the early transition's update callback is still deferred) is a plain update, like
+the commit.
 
 **Why.** The router draws a slow page's skeleton outside any view transition, then commits inside one: two animations, and the second consumed flags (back
 arrow, swipe-back) the first had already used, so the **wrong direction** played ([#315](https://github.com/radandevist/shopkart-os/pull/315)). It came back one level down: a skeleton waiting its turn started a second transition while the commit's was
-still in flight ([#321](https://github.com/radandevist/shopkart-os/pull/321)).
+still in flight ([#321](https://github.com/radandevist/shopkart-os/pull/321)). The early offer had the same hole: with a slow root `beforeLoad` it started
+the transition, then the router's pending offer started a second one for the same navigation ([radan-ui#89](https://github.com/radandevist/radan-ui/issues/89)).
 
 **Enforced by.** `pending-swap` tests "plays exactly one transition for a slow page" and "starts no second view transition while the commit one is in flight"
-(ported to the adapter's tests); the contract test counts `startViewTransition` calls on the real router; `nav-stress` ("a view transition never finished").
+(ported to the adapter's tests); the contract test counts `startViewTransition` calls on the real router, including the slow root `beforeLoad` with a
+deliberately deferred early callback; `nav-stress` ("a view transition never finished").
 
 ## 2. The header follows the page on screen, never `location`
 

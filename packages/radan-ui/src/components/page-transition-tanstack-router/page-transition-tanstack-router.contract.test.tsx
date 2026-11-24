@@ -123,6 +123,39 @@ describe('the adapter on the real router', () => {
 		dispose();
 	});
 
+	it('plays one view transition when the early offer already showed the skeleton (slow root beforeLoad)', async () => {
+		// The browser holds the early transition's update callback (1.6 s measured on a phone): the router's own pending
+		// offer arrives while the skeleton is not yet in the stores. It is still the SAME navigation.
+		const realStart = document.startViewTransition;
+		let calls = 0;
+		document.startViewTransition = ((arg) => {
+			calls++;
+			const update = arg instanceof Function ? arg : arg?.update;
+			const done = new Promise<void>((resolve) =>
+				setTimeout(() => void Promise.resolve(update?.()).then(resolve), 200),
+			);
+			return {
+				updateCallbackDone: done,
+				finished: done,
+				ready: done,
+				skipTransition: () => {},
+				types: new Set<string>(),
+			};
+		}) satisfies typeof document.startViewTransition;
+		try {
+			const { router, transitions, dispose } = build({ rootDelay: 120 });
+			await router.load();
+			void router.navigate({ to: '/slow' });
+			await sleep(900);
+			expect(transitions.health().earlyOffer).toBe('ok');
+			expect(calls).toBe(1);
+			expect(router.state.status).toBe('idle');
+			dispose();
+		} finally {
+			document.startViewTransition = realStart;
+		}
+	});
+
 	it('leaves navigate({ viewTransition: false }) unspent by the swap: no view transition at all', async () => {
 		const { router, dispose } = build();
 		await router.load();
