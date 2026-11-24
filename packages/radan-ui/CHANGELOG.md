@@ -1,5 +1,11 @@
 # @radandevist/radan-ui
 
+## 0.14.1
+
+### Patch Changes
+
+- [#90](https://github.com/radandevist/radan-ui/pull/90) [`1347fd1`](https://github.com/radandevist/radan-ui/commit/1347fd1d709e3f12dbc8a2518fdd93c282b2490c) Thanks [@radandevist](https://github.com/radandevist)! - Fix: one view transition per navigation when the early skeleton is already shown. With a slow root `beforeLoad`, the 80 ms early offer starts the navigation's transition; the router's own pending offer, arriving while that transition's update callback is still deferred, started a second `document.startViewTransition` for the same navigation. Once that swap has already played the navigation's transition, the router's pending offer and the commit after it are now plain updates (when no early offer played it, the router's pending offer is that transition). The guard now sits in the adapter's `router.startViewTransition` wrapper, which every path traverses, so it also holds on browsers without view-transition `types` (Safari 18.0/18.1, Chrome 111–124), where the router never calls `types`; `types` now only hands the decision back. Visible change on those browsers: below `md` the configured page animation (push/back/fade) now plays there too instead of the browser's default cross-fade, and from `md`, with style `none` or reduced motion, nothing plays (as on other browsers); not yet checked on a real old Safari/Chrome. Covered by the real-router contract test with a deferred callback and the same test with `CSS.supports: false`; the stale-offer, immediate-skeleton, exit-before-back-page, load-guard and online/visibility rules are unchanged.
+
 ## 0.14.0
 
 ### Minor Changes
