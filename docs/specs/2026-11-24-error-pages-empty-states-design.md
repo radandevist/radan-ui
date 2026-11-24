@@ -102,8 +102,8 @@ Consequence — the plan is:
 Counting rule used below: a **page-level** occurrence is a distinct screen the user can land on (a mount point or a `ErrorCard` branch) or a distinct
 collection-level empty state. A state mounted in several equivalent places counts once and its mounts are listed in Source; a different layout
 variant (the next-visit card's aside and feed placements) counts separately. Adjacent inline surfaces are listed separately and are **out of the
-block's scope**. That gives **23 error occurrences (15 page-level + 8 inline)** and **38 empty occurrences (25 collection-level + 13 inline)**,
-plus six inline placeholders that are not states.
+block's scope**. That gives **23 error occurrences (15 page-level + 8 inline)** and **39 empty occurrences (25 collection-level + 14 inline)**,
+plus nine `InlineEdit` fields carrying ten `empty`/`placeholder` props that are not states (§3.2).
 
 Legend: **P** = page scale (`min-h-[60dvh]`, centred), **I** = inline (no min-height), **C** = compact. **R** = retry (primary), **B** = back (outline
 unless stated), **H** = home (primary, 403 only), **D** = "Technical details" disclosure. All actions are `Button` from radan-ui; all strings are
@@ -201,7 +201,7 @@ button (44→36) — not a library primitive.
 | A24 | Change log, empty (forwarder history tab, pickup history tab, usage panel) | none | `history.empty` | none | — | `ChangesList.Skeleton` | plain line; the three mounts share it | none | `changes-list.tsx:66-68`; `forwarder-page.tsx:75`, `pickup-page.tsx:92`, `usage-panel.tsx:108` |
 | A25 | Item drawer, History tab | none | `history.empty` | none | — | `ChangesList.Skeleton` | plain line in the drawer | none | `item-history.tsx:63-65` |
 
-**Inline empty surfaces (13, out of the block).**
+**Inline empty surfaces (14, out of the block).**
 
 | # | Site | What is shown |
 | --- | --- | --- |
@@ -218,20 +218,21 @@ button (44→36) — not a library primitive.
 | A36 | `.../estimation-sheet/captures.tsx:110` | `estimation.captures-title` + choose-images dropzone |
 | A37 | `.../estimation-sheet/competitor-block.tsx:143-146` | `estimation.calc-empty` dashed note when the sheet has no item |
 | A38 | `.../estimation-sheet/calculations.tsx:226-230` | `estimation.calc-empty` dashed note in the calculation block |
+| A39 | `features/pickups/components/pickup-codes.tsx:32,62` | `pickups.codes-title-none` / `pickups.codes-none`: the Next visit card's Codes section when pending items still have no code (inline, inside the A19/A20 card) |
 
-**Not states (6).** `InlineEdit` `empty`/`placeholder` props: `drawer/tracking-number.tsx:44-45`, `drawer/item-drawer-body.tsx:130,146`,
-`drawer/purchase-rows.tsx:98,111`, `drawer/estimation-section.tsx:214`. They are field placeholders, not empty regions.
+**Not states (9 `InlineEdit` fields, 10 props).** `empty`/`placeholder` props: `drawer/tracking-number.tsx:44-45`, `drawer/item-drawer-body.tsx:130,146`,
+`drawer/purchase-rows.tsx:75,98,111`, `drawer/estimation-section.tsx:135,177,214`. They are field placeholders, not empty regions.
 
 ### 3.3 The numbers
 
 | | Page/collection level | Inline | Total |
 | --- | --- | --- | --- |
 | Errors | **15** (2 mounts + 6 `ErrorCard` kinds + 6 `NotFoundState` + 1 login) | 8 | 23 |
-| Empty states | **25** (12 `EmptyState`/`FilterEmptyState` render sites + 13 ad-hoc) | 13 | 38 |
+| Empty states | **25** (12 `EmptyState`/`FilterEmptyState` render sites + 13 ad-hoc) | 14 | 39 |
 
 The block is composed by all **5 `ErrorCard` screens** and the **6 `NotFoundState` call sites** — **11 error surfaces** — and it replaces the **12
 `EmptyState`/`FilterEmptyState` render sites**. The 13 ad-hoc collection-level occurrences (A5 and A14–A25) stay app-side in S1 (§11.6, §11.13).
-The login error (E15) and the 13 inline surfaces also stay app-side.
+The login error (E15) and the 14 inline surfaces also stay app-side.
 
 ---
 
@@ -247,7 +248,7 @@ The login error (E15) and the 13 inline surfaces also stay app-side.
 | Empty pictogram: 120 / 96 px, two card rings, 56 / 44 px tile, same tilt | `empty-state.tsx:26-38` | `EmptyState.Pictogram` |
 | Empty type scale and spacing: 18 / 16 px title, 14 / 13.5 px text, `max-w-[380px]` | `empty-state.tsx:39-49` | `EmptyState` + `.Title` / `.Text` / `.Actions` |
 | Empty sizes: default / compact | `compact` boolean | `size="default" \| "compact"` on the root, read by the parts through context |
-| Disclosure geometry and chevron | `error-state.tsx:75-85` | `ErrorState.Details` (inline MIT Tabler `chevron-down` path, no icon dependency) |
+| Disclosure geometry and chevron | `error-state.tsx:75-85` | `ErrorState.Details` (the inline MIT Tabler `chevron-down` SVG, markup verbatim in §6.3 — no icon dependency) |
 
 ### 4.2 App-specific — stays in the app
 
@@ -462,7 +463,7 @@ its two divs (the 60dvh centring, then the `role` block) and the `EmptyState` ro
 | `ErrorState.Description` | `p` | `mt-2 text-sm text-pretty text-muted-foreground` |
 | `ErrorState.Actions` | `div` | `mt-6 flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-center` |
 | `ErrorState.Details` | `details` | `group mt-8 w-full text-left text-xs text-muted-foreground`; summary `flex min-h-11 cursor-pointer list-none items-center justify-center gap-1 select-none [&::-webkit-details-marker]:hidden`; `pre` `max-h-48 overflow-auto rounded-[10px] border bg-card p-3 font-mono text-[11px] leading-4 whitespace-pre-wrap break-all` |
-| chevron (inside that summary) | `svg` `aria-hidden`, viewBox 24, stroke 2 | `size-3.5 transition-transform group-open:rotate-180`; path `M6 9l6 6l6 -6` |
+| chevron (inside that summary) | `svg` `aria-hidden="true"`, `xmlns`, width/height 24, `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`, `strokeWidth={2}`, round caps and joins | `tabler-icon tabler-icon-chevron-down size-3.5 transition-transform group-open:rotate-180` (full markup in §6.3); one path `M6 9l6 6l6 -6` |
 | `EmptyState` root | `div` | `flex flex-col items-center px-4 text-center` + `py-12` / `py-8` |
 | `EmptyState.Pictogram` box | `div` `aria-hidden` | `relative` + `size-[120px]` / `size-24` |
 | rings | `span` ×2 | `absolute inset-0 rounded-full border bg-card opacity-45` / `absolute rounded-full border bg-card opacity-90` + `inset-3.5` / `inset-3` |
@@ -472,8 +473,8 @@ its two divs (the 60dvh centring, then the `role` block) and the `EmptyState` ro
 | `EmptyState.Text` | `p` | `mt-1.5 max-w-[380px] text-pretty text-muted-foreground` + `text-sm leading-normal` / `text-[13.5px] leading-normal` |
 | `EmptyState.Actions` | `div` | `mt-5 flex flex-wrap justify-center gap-2` |
 
-The strings above are asserted literally by the unit test (the `summary`, chevron and `pre` class strings included) and the two strokes are asserted
-separately (1.75 error, 1.5 empty). A part is not an extra wrapper: copying the table must reproduce the current DOM.
+The strings above are asserted literally by the unit test (the `summary` and `pre` class strings, and the chevron's full attribute set and class string)
+and the two strokes are asserted separately (1.75 error, 1.5 empty). A part is not an extra wrapper: copying the table must reproduce the current DOM.
 
 Two spellings are kept as they are, not normalised in S1: `shadow-raised-control` (error tile) and `shadow-[var(--radan-ui-effect-raised-control)]`
 (empty tile) are the same computed shadow; `rounded-[10px]` in the `<pre>` is not the 14 px `rounded-control` (`calc(0.625rem × 1.4)`, see
@@ -488,8 +489,29 @@ shell switches at `md`; error buttons never shrink) are recorded, not changed (�
 ### 6.3 The disclosure
 
 `ErrorState.Details` is composed only when there is a raw detail; the label is the caller's string; the content is the caller's `<pre>` body. The
-chevron is an inline MIT Tabler `chevron-down` path (`M6 9l6 6l6 -6`, 24 viewBox, stroke 2) — no icon package, no new peer. Its classes are the
-source's, verbatim: `aria-hidden` plus `size-3.5 transition-transform group-open:rotate-180` (`error-state.tsx:79`). No `motion-reduce:` utility is
+chevron is the inline MIT Tabler `chevron-down` SVG, copied with the attributes and classes `IconChevronDown` renders today — no icon package, no new
+peer (radan-ui has no Tabler dependency, so the markup is inlined, not imported):
+
+```tsx
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	width="24"
+	height="24"
+	viewBox="0 0 24 24"
+	fill="none"
+	stroke="currentColor"
+	strokeWidth={2}
+	strokeLinecap="round"
+	strokeLinejoin="round"
+	className="tabler-icon tabler-icon-chevron-down size-3.5 transition-transform group-open:rotate-180"
+	aria-hidden="true"
+>
+	<path d="M6 9l6 6l6 -6" />
+</svg>
+```
+
+The `tabler-icon`/`tabler-icon-chevron-down` marker classes are part of the source DOM and stay; the unit test asserts them with the rest of the
+attribute set, and the parity fixture compares them. No `motion-reduce:` utility is
 added: it is not in the source, it would change the extracted DOM (and the parity fixtures), and reduced motion is already handled by the app's global
 `html[data-motion='none'] *` rule (ShopKartOS) / the caller's own motion policy (PublyApp).
 
@@ -570,11 +592,11 @@ a later minor; it is not part of this phase.
 
 | Layer | What | Where |
 | --- | --- | --- |
-| Unit | every part renders its element and class; default `role="alert"`, `role="status"`; `h1`/`h2` and `render`; tones apply the right status pair; 1.75 / 1.5 strokes; the exact `summary`, chevron and `pre` class strings; `role`/`aria-live` on the inner div and `className` on the outer; the title `ref` reaches the heading; details toggle and label; empty `size` context reaches every part; `className` on the empty glyph replaces the muted tint; no extra wrapper | `app-state.web.test.tsx` (jsdom) |
+| Unit | every part renders its element and class; default `role="alert"`, `role="status"`; `h1`/`h2` and `render`; tones apply the right status pair; 1.75 / 1.5 strokes; the exact `summary` and `pre` class strings and the chevron's full SVG attributes; `role`/`aria-live` on the inner div and `className` on the outer; the title `ref` reaches the heading; details toggle and label; empty `size` context reaches every part; `className` on the empty glyph replaces the muted tint; no extra wrapper | `app-state.web.test.tsx` (jsdom) |
 | DOM parity | render the **eight block compositions** with the exact ShopKartOS props and compare normalised `outerHTML` with the **eight block fixtures** written by `state:fixtures` from the S0 old components (`1eeb6f5` + harness, §9.1): the 4 error tones + `status`, the 2 empty sizes, the details block | same file, `app-state.web.test.tsx` (one file; no second `app-state.parity.test.tsx`) |
 | Package guards | `conformance`: `app-state` exempt from the two skeleton files, still requires contract/variants/web entry; `headless`-style validation of `no-skeleton.json`; **no `@tanstack/*`, `i18next`, `react-i18next` or `fetch` import under `app-state/`** | `tests/components.test.ts` (owner-approved edit) |
 | Catalog | `apps/catalog/pages/app-state.page.tsx`: 4 tones × error (one with details, one `status`), empty default/compact/with actions/success tint, compact inside `Card.Body`; fixed inline SVG icons (the catalog has no Tabler dependency); four baselines from CI | `app-state-light-phone.png`, etc. |
-| App S1 visual | 36 browser states × 2 widths × 2 themes = **144 PNGs**, plus 3 fixture-only states (E11, E14, A14) whose normalised HTML is the reference: 39 states in total (14 error + 25 empty; E3 is a redirect). Before/after on the same seed, masked for clocks/relative dates; the manifest is §9.1 | S0 harness `apps/web/scripts/state-captures.ts` (§10.2) |
+| App S1 visual | 36 browser states × 2 widths × 2 themes = **144 PNGs**, plus 3 fixture-only states (E11, E14, A14) whose normalised HTML is the reference: 39 states in total (14 error + 25 collection-level empty; E3 is a redirect; the 14 inline empties A26–A39 are out of scope and not captured). Before/after on the same seed, masked for clocks/relative dates; the manifest is §9.1 | S0 harness `apps/web/scripts/state-captures.ts` (§10.2) |
 | App S1 layout | `pnpm check:layout` = **186/186** before and after: `layoutRoutes` returns 31 entries (28 owner + 3 estimator) × 3 viewports × 2 themes | `apps/web/scripts/layout-check*` |
 | App S1 unit | `tests/error-kind.test.ts` unchanged; the app's retry/back wiring covered by the captures | `apps/web/tests` |
 | Real app | the seam of §9.1 makes `server`, `unknown`, `forbidden`, `not_found` and the root error reachable in dev/test; the offline state is forced with `context.setOffline(true)` | manual/CI |
@@ -585,7 +607,7 @@ with two actions, empty without actions, compact in a card, success tint. No clo
 ### 9.1 The 39 captured states, and the `server`/`unknown` seam
 
 `state-captures.ts` holds a typed manifest `CAPTURES` with one entry per state. A unit test asserts `CAPTURES.length === 39`, exactly 14 error
-entries, exactly 25 empty entries, and that every row A1–A25 of §3.2 appears once. The manifest is the state → URL/trigger table; the 25 empty
+entries, exactly 25 empty entries, and that every row A1–A25 of §3.2 appears once. The 14 inline empties A26–A39 are **not** in the manifest. The manifest is the state → URL/trigger table; the 25 empty
 entries point at the §3.2 rows (A19/A20 are separate states because the card layout differs, A24 lists its three mounts).
 
 **Seam and harness (S0, separate PR before S1, no visible change).** The route tree is explicit: `apps/web/vite.config.ts:25` points
@@ -595,8 +617,18 @@ In dev/test, `apps/web/src/routes/state-capture.tsx` throws from its component f
 root `beforeLoad` throw before the shell. Messages: `capture_not_found` (ends `_not_found`), `forbidden`, `load_timeout` (a known `error.<code>`),
 `state_capture_unknown` (unknown); `details=1` attaches a stack. The not-found path is that component throw, **not** `notFound()`: `notFound()` here
 would render the root `notFoundComponent` (E9), not `ErrorCard`'s `not_found` branch (E5). Outside dev/test (`!import.meta.env.DEV`) the component
-returns `notFound()` and the root hook is inert, so the seam has no production behaviour. S0 also adds `state-captures.ts` and the
-`state:captures`/`state:fixtures` scripts; it keeps the old components, so it is the baseline harness.
+**throws** `notFound()` — `notFound()` returns a `NotFoundError` object, never a `ReactNode` — so a direct hit on `/state-capture` renders the root 404
+(E9); the root hook stays inert and no product screen changes. S0 adds a route-render test for that branch with `DEV` stubbed false
+(`vi.stubEnv('DEV', false)` or equivalent), asserting the root 404 and no React-child crash. S0 also adds `state-captures.ts`
+and the `state:captures`/`state:fixtures` scripts; it keeps the old components, so it is the baseline harness.
+
+**Fixture harness for E11/E14.** A bare `renderToStaticMarkup` of `PickupPage`/`ForwarderPage` throws: both call `useParams`, `useSuspenseQuery(homeQuery())`,
+`useTranslation` (and `PickupPage` also `useSearch`/`useNavigate`). Reuse the harness already in `apps/web/tests/skeleton-mirror.test.tsx`: a memory
+router declaring `/pickups/$code` (component `PickupPage`, with the route's `validateSearch` for `tab`/`item`) and `/forwarders/$id` (component
+`ForwarderPage`), root context `{ queryClient, me }`, `client.setQueryData(['home'], cachedHome([]))` so the entity is absent, `I18nextProvider` with
+`createI18n('en')`, then `renderToStaticMarkup`. The test routes deliberately carry no loader and no `notFoundComponent`, so the component guard
+(`if (!pickup)` / `if (!forwarder)`) is the branch under test. The two component-guard snapshots are produced there and handed to `state:fixtures`;
+they are test/render-only additions and no product route changes.
 
 Every `CAPTURES` entry carries the expected signal for its URL or fixture, and `state-captures.ts` asserts it **before** taking the screenshot; a mismatch fails
 the run instead of silently photographing the same 404 thirty-six times. The signal is the `data-kind` value for the `ErrorCard` screens and the
@@ -615,10 +647,10 @@ passes `kind`, `NotFoundState` does not); S1 keeps it through the block's normal
 | E8 | unknown | `/state-capture?kind=unknown&details=1` |
 | E9 | root `notFoundComponent` | `/__missing__` |
 | E10 | pickup loader `notFound()` | `/pickups/__missing__` |
-| E11 | pickup component guard | **fixture**, not a browser capture: render `PickupPage` with a missing entity |
+| E11 | pickup component guard | **fixture**, not a browser capture: `PickupPage` under the `skeleton-mirror` harness, `['home']` seeded without the pickup |
 | E12 | visit component guard | `/pickups/visit/1999-01-01` |
 | E13 | forwarder loader `notFound()` | `/forwarders/__missing__` |
-| E14 | forwarder component guard | **fixture**, not a browser capture: render `ForwarderPage` with a missing entity |
+| E14 | forwarder component guard | **fixture**, not a browser capture: `ForwarderPage` under the `skeleton-mirror` harness, `['home']` seeded without the forwarder |
 | E15 | login refusal | `/login`, wrong password |
 
 The 25 empty states use the same routes with a seed or filter that forces the state: `/` A6–A8; `/forwarders` A2–A3; `/forwarders/tracking` A1 and
@@ -642,7 +674,7 @@ The parity test consumes the eight block fixtures, **not** the 39 app snapshots;
 
 1. Extract the two components into `app-state/` with the class strings above; split `app-state.variants.ts` (tones + geometry) so no file nears 300 lines.
 2. Remove the i18n call: `ErrorState.Details` takes `label`; nothing else imports `react-i18next`.
-3. Remove the Tabler type: `StateIcon`; the chevron becomes an inline SVG.
+3. Remove the Tabler type: `StateIcon`; the chevron becomes the inline Tabler SVG of §6.3 (same attributes and `tabler-icon` classes, no icon package).
 4. `compact` → `size="default" | "compact"` with an internal context; the two empty sizes keep their exact classes.
 5. Add the `web-only.json` and `no-skeleton.json` entries in `src/components/`; add the `noSkeleton()` reader to `scripts/components.ts` and use it
    in the conformance check; update `tests/components.test.ts` (owner-approved shared file) with the exception and the no-router/no-i18n guard.
@@ -700,8 +732,8 @@ If a capture differs, the diff is investigated, never masked away; a real differ
 | # | Need | Detail |
 | --- | --- | --- |
 | P0 | radan-ui bump `0.8.0` → `0.15.0` | separate PR, before anything else; it brings everything from 0.9 to 0.15 (tokens, Card/Button, the phase-1 blocks) |
-| P1 | Replace `StateView`'s markup with the block | keep `StateView`, `StateSurface`, `ErrorStateSurface`, `NoMatchStateSurface` as thin wrappers, so the 46 render sites (37 inline + 9 direct `<StateView>`) do not move; map the page-scale error views (`AppErrorView`, and `ErrorKindState` when its `scale` is `page`) to `ErrorState`. The four page-scale auth status views (`email-sent-confirmation.tsx:30`, `invalid-link-view.tsx:40`, `precheck-unavailable-view.tsx:24`, `_reset-password-success.tsx:14`) are success/confirmation screens, not errors: they keep the local `StateView` markup in S2, because the block's default `role="alert"` and 60dvh wrapper would be wrong there. Every `scale="inline"` surface keeps the local markup too (§P2). **One wrapper only**: `AppErrorView` drops its own `min-h-[60dvh] py-10 px-4 max-w-lg` layout when the child is the block; the block root is the 60dvh/max-w-sm/py-10 wrapper. For `embedded={false}`, pass `className="min-h-screen py-16"` to the block root (Tailwind merge replaces the defaults) and keep `<main>`/`data-testid` outside |
-| P2 | Deferred surfaces: inline-scale (37 `StateSurface` call sites today, empty and status mixed, the direct inline `<StateView>` ones, and the inline `ErrorKindState` ones) and the four page-scale auth status views | **not in S2**: keep the local markup in P1 and migrate in a later minor. They are not expressible by the two roots as scoped: `StateView` inline renders a `div` title with 24 px horizontal padding and a 15 rem min-height, no 60dvh, while `EmptyState` is `py-12` / `px-4` with an `h2` and `ErrorState` is 144 px / `h1` / 60dvh. A later migration composes `EmptyState` with `EmptyState.Title render={<div/>}` and an explicit root geometry override, never `ErrorState` for an empty. §11.12, §14.6 |
+| P1 | Replace `StateView`'s markup with the block | keep `StateView`, `StateSurface`, `ErrorStateSurface`, `NoMatchStateSurface` as thin wrappers, so the 46 product render sites (37 inline: 28 direct `<StateSurface>` + 5 `<ErrorStateSurface>` + 4 `<NoMatchStateSurface>`; plus 9 direct `<StateView>`) do not move; the six test calls and the two occurrences inside the wrapper definitions are not counted. Map the page-scale error views (`AppErrorView`, and `ErrorKindState` when its `scale` is `page`) to `ErrorState`. The four page-scale auth status views (`email-sent-confirmation.tsx:30`, `invalid-link-view.tsx:40`, `precheck-unavailable-view.tsx:24`, `_reset-password-success.tsx:14`) are success/confirmation screens, not errors: they keep the local `StateView` markup in S2, because the block's default `role="alert"` and 60dvh wrapper would be wrong there. Every `scale="inline"` surface keeps the local markup too (§P2). **One wrapper only**: `AppErrorView` drops its own `min-h-[60dvh] py-10 px-4 max-w-lg` layout when the child is the block; the block root is the 60dvh/max-w-sm/py-10 wrapper. For `embedded={false}`, keep `<main>`/`data-testid` outside and do not re-apply `min-h-screen py-16`: the block root is the only height wrapper (P6 accepts the 60dvh result) |
+| P2 | Deferred surfaces: inline-scale (37 product render sites today — 28 direct `<StateSurface>`, 5 `<ErrorStateSurface>`, 4 `<NoMatchStateSurface>`; the six test calls and the two wrapper-definition occurrences excluded — plus the 3 inline tenant-picker `<StateView>`, and the inline `ErrorKindState`) and the four page-scale auth status views | **not in S2**: keep the local markup in P1 and migrate in a later minor. They are not expressible by the two roots as scoped: `StateView` inline renders a `div` title with 24 px horizontal padding and a 15 rem min-height, no 60dvh, while `EmptyState` is `py-12` / `px-4` with an `h2` and `ErrorState` is 144 px / `h1` / 60dvh. A later migration composes `EmptyState` with `EmptyState.Title render={<div/>}` and an explicit root geometry override, never `ErrorState` for an empty. §11.12, §14.6 |
 | P3 | Keep the focus behaviour | `Title` ref + `tabIndex={-1}`; the focus call stays in `AppErrorView` |
 | P4 | Keep `aria-live` | pass it as a block prop; `role`/`aria-live` land on the inner role div (§5.2), not on the outer layout div |
 | P5 | `primary` tone | map to `info` in the wrapper; adding a fifth tone is a separate, token-backed minor |
@@ -746,7 +778,7 @@ The owner asked to be corrected where "ShopKartOS as it is today" is the wrong r
     (E10/E11, E13/E14). Harmless, but the gate must cover both: E10/E13 are browser captures, E11/E14 are the two component-guard HTML fixtures
     (§9.1). *Recommendation: keep; the component guard covers a cached `homeQuery`.*
 12. **PublyApp's adoption is not pixel-neutral by construction.** Its `StateView` uses SVG circles and its own CSS (same geometry, different DOM), a
-    `min-h-screen` page scale, a `primary` tone absent from the four, and 37 inline-scale call sites the two roots cannot express. *Recommendation:
+    `min-h-screen` page scale, a `primary` tone absent from the four, and 37 inline render sites the two roots cannot express. *Recommendation:
     accept the visible `60dvh` change on the page-scale error views (the block is the reference), map `primary` → `info`, and migrate the
     inline-scale surfaces (empty and status alike) and the page-scale auth status views in a later minor; do not add a `scale`/`presentation` flag to
     force it now.*
@@ -767,8 +799,8 @@ The owner asked to be corrected where "ShopKartOS as it is today" is the wrong r
 | The rule amendment is forgotten and `main` contradicts itself | medium / medium | the rule + `DESIGN.md` change land in R1, same PR; decided 24/11, not an approval gate |
 | Unifying the 13 ad-hoc collection empties later changes the look | low / low | explicitly out of S1/S2; the success tint already exists (A1), so no new tone |
 | PublyApp's inline error surfaces have no shared home | medium / medium | compose the parts inside the local container, or keep the local markup; a `scale` prop is a documented follow-up, not a silent fork |
-| The full-page `min-h-screen` → `60dvh` change for PublyApp is rejected late | medium / medium | raised before P1; P6 names the eight `embedded={false}` call sites and asks for before/after captures |
-| PublyApp's `AppErrorView` keeps its own 60dvh wrapper and doubles the height | medium / medium | P1 makes the block the only wrapper; `embedded={false}` only overrides `min-h-screen py-16`; before/after P6 |
+| The full-page `min-h-screen` → `60dvh` change for PublyApp surprises users | low / medium | accepted in this spec (P6); the eight `embedded={false}` call sites and their before/after captures are named |
+| PublyApp's `AppErrorView` keeps its own 60dvh wrapper and doubles the height | medium / medium | P1 makes the block the only wrapper; `embedded={false}` keeps only the `<main>` landmark, with no second height or padding; before/after P6 |
 | The stack kept in the disclosure leaks internals | low / medium | §11.7, app-side gate, independent of the block |
 | Docs ship in the npm tarball (`docs/` is copied by `prepack`) | certain / negligible | same as the other specs |
 
@@ -787,17 +819,18 @@ Bump order everywhere: radan-ui first, apps second. Each radan-ui PR carries its
 
 1. **Owner decision 24/11, binding: copy ShopKartOS verbatim.** One `app-state` block, two compound roots, one shared look; no redesign. The 13
    ad-hoc collection empties are explicit exceptions (§3.2, §4.2, §11.6, §11.13), not a licence to restyle them.
-2. **The rule yields, not the block — decided 24/11.** `visual-consistency.md` is amended in R1 to describe the current ShopKartOS rendering: one
-   family, three documented scales (error 144, empty 120, compact 96), two tinted rings and a tilted tile; the tile is the one documented
-   border+ring exception. No further approval.
+2. **The rule yields, not the block — Radan's decision of 24/11 (decided).** `visual-consistency.md` is amended in R1 to describe the current
+   ShopKartOS rendering: one family, three documented scales (error 144, empty 120, compact 96), two tinted rings and a tilted tile; the tile is the one
+   documented border+ring exception. No further approval.
 3. **No TanStack Router adapter in phase 2** (§8). The router-bound 20 lines stay app-side; extract only if S2 proves them identical.
 4. **No skeleton for a terminal state**; `no-skeleton.json` exception, same shape as `headless.json`, read by `scripts/components.ts`.
-5. **`shopkart-os#327` is decided (24/11), not fixed by S1.** On the 404 the primary button becomes « Retour à l'accueil »; « Réessayer » stays on
+5. **`shopkart-os#327` — Radan's decision of 24/11 (decided).** On the 404 the primary button becomes « Retour à l'accueil »; « Réessayer » stays on
    real load errors. It is a small separate ShopKartOS PR after S1; the block imposes no action order.
 6. **PublyApp S2 scope**: the page-scale error views (`AppErrorView`, `ErrorKindState` at `scale="page"`) behind the existing wrappers; the
    inline-scale surfaces — including every collection empty, which `StateSurface` renders at `scale="inline"` — the four page-scale auth status
    views, and the `primary` tone are follow-ups (no `scale`/`presentation` flag added now, §10.3 P2).
 7. **`compact` becomes `size`**; no boolean props in the public API.
 
-Open, for the captain: whether PublyApp's `min-h-screen` full-page errors accept the block's `60dvh` (recommended), or take the one documented
-exception; and whether the 13 ad-hoc collection empties are unified in a later phase (they are not in this one).
+Resolved in this spec: PublyApp's `min-h-screen` full-page errors accept the block's `60dvh` (the block is the reference, P6), and the eight
+`embedded={false}` sites are a visible S2 change covered by before/after captures. Still open, for the captain: whether the 13 ad-hoc collection empties
+are unified in a later phase (they are not in this one).
