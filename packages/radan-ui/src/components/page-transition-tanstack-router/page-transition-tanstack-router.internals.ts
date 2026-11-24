@@ -13,6 +13,16 @@ type LoadingMatches = NonNullable<AnyRouter['_tx']>[3];
 const pinned: LoadingMatches extends Matches ? true : never = true;
 void pinned;
 
+/**
+ * The from/to pair the router hands to `defaultViewTransition.types` (`latestLocation` and `stores.resolvedLocation`).
+ * The `startViewTransition` wrapper needs the same pair where the router never calls `types`; `stores` is private, so the
+ * read lives in this file, with the other private reads.
+ */
+export const transitionLocations = (router: SwapRouter) => ({
+	from: router.stores.resolvedLocation.get(),
+	to: router.latestLocation,
+});
+
 const isMatch = (value: unknown): value is { id: string; routeId: string; status: string } =>
 	typeof value === 'object' &&
 	value !== null &&

@@ -243,7 +243,8 @@ export const getRouter = () => {
 
 - `routerOptions` is `{ defaultViewTransition, defaultPendingMs: 0, defaultPendingMinMs: 300 }`: the three travel together
   (read when `createRouter` runs, never at module load). `install` adds one transition per navigation (the skeleton's swap
-  is the navigation's transition; the router's own pending offer and the commit after it are plain updates), the skeleton
+  is the navigation's transition; the router's own pending offer and the commit after it are plain updates **once that swap
+  has already played it** — otherwise the router's pending offer plays the navigation's transition), the skeleton
   from the click below `md`, and the
   rule that a deferred skeleton is never painted once its page committed or a newer navigation took over. State is per
   router. Options: `isTopLevel` (default `defaultIsTopLevel`), `screenParams` (search params that make one pathname

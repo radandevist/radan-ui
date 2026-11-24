@@ -21,6 +21,7 @@ describe('the pending skeleton swap', () => {
 	const fakeRouter = (log: string[], to = loc('/forwarders', 2)) => {
 		const state = createSwapState();
 		pageViewTransition = createViewTransition(state, {});
+		const from = loc('/pickups', 1);
 		const router: Router = {
 			// SAFETY: the wrap reads only `state.status` and `state.location.href`.
 			state: {
@@ -28,15 +29,16 @@ describe('the pending skeleton swap', () => {
 				location: { href: '/forwarders' },
 				matches: [] as Router['state']['matches'],
 			} as Router['state'],
+			latestLocation: to,
+			stores: { resolvedLocation: { get: () => from } },
+			options: { defaultViewTransition: pageViewTransition },
 			startTransition: async (fn: () => void) => {
 				log.push('render');
 				fn();
 				return true;
 			},
 			startViewTransition: async (fn: () => Promise<void>) => {
-				log.push(
-					`vt:${JSON.stringify(pageViewTransition.types({ fromLocation: loc('/pickups', 1), toLocation: to }))}`,
-				);
+				log.push(`vt:${JSON.stringify(pageViewTransition.types({ fromLocation: from, toLocation: to }))}`);
 				await fn();
 			},
 		};

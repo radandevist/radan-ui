@@ -24,7 +24,8 @@ the transition, then the router's pending offer started a second one for the sam
 
 **Enforced by.** `pending-swap` tests "plays exactly one transition for a slow page" and "starts no second view transition while the commit one is in flight"
 (ported to the adapter's tests); the contract test counts `startViewTransition` calls on the real router, including the slow root `beforeLoad` with a
-deliberately deferred early callback; `nav-stress` ("a view transition never finished").
+deliberately deferred early callback, once with `CSS.supports: false` (no view-transition types: the router never calls `types` there) and the reverse
+offer order; `nav-stress` ("a view transition never finished").
 
 ## 2. The header follows the page on screen, never `location`
 

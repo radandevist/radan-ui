@@ -113,26 +113,22 @@ describe('the adapter on the real router', () => {
 		await router.navigate({ to: '/slow' });
 		await sleep(50);
 		expect(started).toHaveLength(1);
-		// The swap's `types` and the commit's got the SAME `toLocation`: the first animated, the second was a plain update.
-		const forSlow = types.mock.calls.flatMap(([info], index) =>
-			info.toLocation.pathname === '/slow' ? [{ at: info.toLocation, result: types.mock.results[index]?.value }] : [],
-		);
-		expect(forSlow).toHaveLength(2);
-		expect(forSlow[1]?.at).toBe(forSlow[0]?.at);
-		expect(forSlow.map((call) => call.result)).toEqual([['fade'], false]);
+		// The swap's decision returned the direction. The commit for the SAME location object is a plain update the
+		// `startViewTransition` wrapper decides before `types`, so `types` runs once: only for the transition that started.
+		expect(types.mock.calls.map(([info]) => info.toLocation.pathname)).toEqual(['/slow']);
+		expect(types.mock.results[0]?.value).toEqual(['fade']);
 		dispose();
 	});
 
-	it('plays one view transition when the early offer already showed the skeleton (slow root beforeLoad)', async () => {
-		// The browser holds the early transition's update callback (1.6 s measured on a phone): the router's own pending
-		// offer arrives while the skeleton is not yet in the stores. It is still the SAME navigation.
+	/** A document stub that holds each transition's update callback (`deferMs`), as the browser does; counts the starts. */
+	const deferredTransitions = (deferMs = 200) => {
 		const realStart = document.startViewTransition;
 		let calls = 0;
 		document.startViewTransition = ((arg) => {
 			calls++;
 			const update = arg instanceof Function ? arg : arg?.update;
 			const done = new Promise<void>((resolve) =>
-				setTimeout(() => void Promise.resolve(update?.()).then(resolve), 200),
+				setTimeout(() => void Promise.resolve(update?.()).then(resolve), deferMs),
 			);
 			return {
 				updateCallbackDone: done,
@@ -142,17 +138,48 @@ describe('the adapter on the real router', () => {
 				types: new Set<string>(),
 			};
 		}) satisfies typeof document.startViewTransition;
+		return {
+			count: () => calls,
+			restore: () => void (document.startViewTransition = realStart),
+		};
+	};
+
+	it('plays one view transition when the early offer already showed the skeleton (slow root beforeLoad)', async () => {
+		// The browser holds the early transition's update callback (1.6 s measured on a phone): the router's own pending
+		// offer arrives while the skeleton is not yet in the stores. It is still the SAME navigation.
+		const deferred = deferredTransitions();
 		try {
 			const { router, transitions, dispose } = build({ rootDelay: 120 });
 			await router.load();
 			void router.navigate({ to: '/slow' });
 			await sleep(900);
 			expect(transitions.health().earlyOffer).toBe('ok');
-			expect(calls).toBe(1);
+			expect(deferred.count()).toBe(1);
 			expect(router.state.status).toBe('idle');
 			dispose();
 		} finally {
-			document.startViewTransition = realStart;
+			deferred.restore();
+		}
+	});
+
+	it('plays one view transition where the browser has no view-transition types (Safari 18.0/18.1, Chrome 111–124)', async () => {
+		// There the router never calls `types` (it still calls `document.startViewTransition`): the guard must live in the
+		// `startViewTransition` wrapper, not in `types`, or the early offer and the router's pending offer each animate.
+		const css = window.CSS;
+		Object.defineProperty(window, 'CSS', { configurable: true, value: { supports: () => false } });
+		const deferred = deferredTransitions();
+		try {
+			const { router, transitions, dispose } = build({ rootDelay: 120 });
+			await router.load();
+			void router.navigate({ to: '/slow' });
+			await sleep(900);
+			expect(transitions.health().earlyOffer).toBe('ok');
+			expect(deferred.count()).toBe(1);
+			expect(router.state.status).toBe('idle');
+			dispose();
+		} finally {
+			deferred.restore();
+			Object.defineProperty(window, 'CSS', { configurable: true, value: css });
 		}
 	});
 
