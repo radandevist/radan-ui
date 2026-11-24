@@ -624,9 +624,13 @@ In dev/test, `apps/web/src/routes/state-capture.tsx` throws from its component f
 root `beforeLoad` throw `state_capture_root` before the shell. Messages: `capture_not_found` (ends `_not_found`), `forbidden`, `load_timeout` (a known
 `error.<code>`), `state_capture_unknown` (unknown); `details=1` attaches a stack. The not-found path is that component throw, **not** `notFound()`:
 `notFound()` here would render the root `notFoundComponent` (E9), not `ErrorCard`'s `not_found` branch (E5). Outside dev/test
-(`!import.meta.env.DEV`) the component **throws** `notFound()` — `notFound()` returns a `NotFoundError` object, never a `ReactNode` — so a direct hit
-on `/state-capture` renders the root 404 (E9); the root hook stays inert and no product screen changes. S0 adds a route-render test for that branch with
-`DEV` stubbed false (`vi.stubEnv('DEV', false)` or equivalent), asserting the root 404 and no React-child crash. S0 also adds `state-captures.ts`
+(`!import.meta.env.DEV`) the component **returns `<NotFoundState />`** directly (the app's root 404 view). It must not throw `notFound()`
+there: the route has no `notFoundComponent`, so the root `CatchNotFound` rejects an error whose `routeId` is `/state-capture` and the generic
+« Something went wrong! » boundary would render instead of the 404. A direct hit on `/state-capture` in production therefore shows the same
+404 as E9; the root hook stays inert and no product screen changes. S0 adds a route-render test for that branch with `DEV` stubbed false
+(`vi.stubEnv('DEV', false)` or equivalent), asserting the `page.not-found` heading and no React-child crash. `/state-capture` declares its own
+`validateSearch` (`kind: z.enum(['root','not_found','forbidden','server','unknown'])`, `details: z.literal(1).optional()`): the root
+`validateSearch` (`z.object({ notifications, filter })`) strips unknown keys, so without it every kind would fall into `state_capture_unknown`. S0 also adds `state-captures.ts`
 and the `state:captures`/`state:fixtures` scripts; it keeps the old components, so it is the baseline harness.
 
 **Fixture harness for E11/E14.** A bare `renderToStaticMarkup` of `PickupPage`/`ForwarderPage` throws: both call `useParams`, `useSuspenseQuery(homeQuery())`,
