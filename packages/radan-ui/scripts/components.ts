@@ -15,6 +15,9 @@ export const webOnly = (): WebOnly => JSON.parse(readFileSync(join(componentsDir
 /** Folders that export no component (a router adapter): exempt from the component conformance and the native requirement. Same shape as web-only.json. */
 export const headless = (): WebOnly => JSON.parse(readFileSync(join(componentsDir, 'headless.json'), 'utf8'));
 
+/** Components that ship no skeleton on purpose (a terminal state never loads): same shape, exempt from the skeleton files only. */
+export const noSkeleton = (): WebOnly => JSON.parse(readFileSync(join(componentsDir, 'no-skeleton.json'), 'utf8'));
+
 export const listComponents = () =>
 	readdirSync(componentsDir, { withFileTypes: true })
 		.filter((entry) => entry.isDirectory())

@@ -19,10 +19,14 @@ colours, radii or copy of a component.
   carries a label).
 - **Destructive actions live in a dedicated section** of a detail view, never in its header; list row actions and
   bulk menus are exempt.
-- **Empty and error states come from the shared primitives**, at one visual scale: flat (no card, ring, shadow or
-  icon disc), the cause in plain words, and the next action offered. Never a bare "something went wrong", never
-  fabricated data — a field the contract doesn't provide is omitted. Loading states are **skeletons**: they mirror
-  their component's surface — see [skeletons.md](./skeletons.md).
+- **Empty and error states come from one shared family** (`@radandevist/radan-ui/app-state`, the look ShopKartOS
+  ships — decided 24/11), at three documented scales: **error 144 px (`h1` 20), empty 120 px (`h2` 18), compact
+  96 px (`h2` 16)** — two tinted rings around a tilted tile, never re-flattened, never re-drawn per page. The tile's
+  1px `border` **and** its raised-control ring together are the one documented border+ring exception to the shadow
+  rule (see [DESIGN.md](../DESIGN.md#11-state-views)). The copy stays honest: the cause in plain words, and the next
+  action offered; never a bare "something went wrong", never fabricated data — a field the contract doesn't provide
+  is omitted. Loading states are **skeletons**: they mirror their component's surface — see
+  [skeletons.md](./skeletons.md).
 - **Layout constants are shared too**: the theme defines no z-index or container-width tokens — use Tailwind's
   `z-*` / `max-w-*` scales consistently, never an arbitrary `z-[…]`; take the lowest scale step that works. Don't
   invent a shared tier or a third container width the theme doesn't provide.

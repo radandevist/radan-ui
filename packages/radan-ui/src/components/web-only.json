@@ -14,5 +14,9 @@
 	"phone-top-bar": {
 		"reason": "Native has its own stack header; the bar mirrors ShopKartOS's phone header, a web shell piece",
 		"issue": "https://github.com/radandevist/radan-ui/issues/80"
+	},
+	"app-state": {
+		"reason": "Native has no such screens yet (ShopKartOS's app shows an ActivityIndicator); the block is web-only",
+		"issue": "https://github.com/radandevist/radan-ui/issues/92"
 	}
 }
