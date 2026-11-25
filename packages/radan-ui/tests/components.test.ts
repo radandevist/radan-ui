@@ -38,6 +38,8 @@ const code = (source: string) => source.replaceAll(/\/\*[\s\S]*?\*\//g, '').repl
 // `from 'x'`, side-effect `import 'x'`, and `require('x')` / `import('x')`.
 const imports = (source: string) =>
 	[...code(source).matchAll(/(?:\bfrom|\bimport|\brequire)\s*\(?\s*['"]([^'"]+)['"]/g)].map((match) => match[1]!);
+// `fetch(`, `window.fetch(`, `globalThis.fetch(` and `self.fetch(` all call the network; a method on another object is app-side.
+const callsFetch = /(?:(?<!\.)\bfetch|(?:window|globalThis|self)\.fetch)\s*\(/;
 
 // The bone family (`bone`, `bone-line`, …) is the one skeleton library: a bone has no skeleton of its own, its catalog
 // page and its tests are the `bone` ones.
@@ -174,10 +176,21 @@ describe('platform imports (decision 6)', () => {
 					...imports(source)
 						.filter((from) => from.startsWith('@tanstack/') || /^(i18next|react-i18next)$/.test(from))
 						.map((from) => `app-state/${file} imports ${from}`),
-					...(/(?<!\.)\bfetch\s*\(/.test(source) ? [`app-state/${file} calls fetch`] : []),
+					...(callsFetch.test(source) ? [`app-state/${file} calls fetch`] : []),
 				];
 			});
 		expect(problems).toEqual([]);
+	});
+
+	test.each(['fetch(url)', 'window.fetch(url)', 'globalThis.fetch(url)', 'self.fetch(url)'])(
+		'the fetch guard catches %s',
+		(source) => {
+			expect(callsFetch.test(source)).toBe(true);
+		},
+	);
+
+	test.each(['refetch()', 'cache.fetch(url)'])('the fetch guard ignores %s', (source) => {
+		expect(callsFetch.test(source)).toBe(false);
 	});
 
 	// The router's private shape (`_tx`, `stores`) is read in ONE file of the adapter, with runtime shape checks (spec §7.1).

@@ -21,7 +21,9 @@ colours, radii or copy of a component.
   bulk menus are exempt.
 - **Empty and error states come from one shared family** (`@radandevist/radan-ui/app-state`, the look ShopKartOS
   ships — decided 24/11), at three documented scales: **error 144 px (`h1` 20), empty 120 px (`h2` 18), compact
-  96 px (`h2` 16)** — two tinted rings around a tilted tile, never re-flattened, never re-drawn per page. The tile's
+  96 px (`h2` 16)** — two tinted rings around a tilted tile, never re-flattened, never re-drawn per page, except the
+  documented app-side exceptions: the 13 ad-hoc collection empties (A5, A14–A25) and the « Next visit » card
+  ([spec](../specs/2026-11-24-error-pages-empty-states-design.md)). The tile's
   1px `border` **and** its raised-control ring together are the one documented border+ring exception to the shadow
   rule (see [DESIGN.md](../DESIGN.md#11-state-views)). The copy stays honest: the cause in plain words, and the next
   action offered; never a bare "something went wrong", never fabricated data — a field the contract doesn't provide

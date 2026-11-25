@@ -192,6 +192,22 @@ const normalise = (html: string) => {
 	return holder.innerHTML;
 };
 
+// The exact eight ShopKartOS compositions: a missing key silently shrinks the parity suite, so it is locked here.
+const compositionNames = [
+	'error-info',
+	'error-neutral',
+	'error-warning',
+	'error-danger',
+	'error-status',
+	'error-details',
+	'empty-default',
+	'empty-compact',
+] as const;
+
+test('the parity fixtures cover exactly the eight block compositions', () => {
+	expect(Object.keys(compositions).sort()).toEqual([...compositionNames].sort());
+});
+
 test.each(Object.entries(compositions))('parity: %s renders the ShopKartOS block fixture', (name, element) => {
 	expect(normalise(renderToStaticMarkup(element))).toBe(normalise(fixture(name)));
 });

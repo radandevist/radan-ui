@@ -66,7 +66,7 @@ const AppStatePage = () => (
 		<Section title="Error — not found (neutral)">
 			<ErrorState>
 				<ErrorState.Pictogram icon={ZoomQuestion} tone="neutral" />
-				<ErrorState.Title>Page not found</ErrorState.Title>
+				<ErrorState.Title render={<h2 />}>Page not found</ErrorState.Title>
 				<ErrorState.Description>The link may be wrong, or it no longer exists in this space.</ErrorState.Description>
 				<ErrorActions />
 			</ErrorState>
@@ -74,7 +74,7 @@ const AppStatePage = () => (
 		<Section title="Error — forbidden (warning, home only)">
 			<ErrorState>
 				<ErrorState.Pictogram icon={Lock} tone="warning" />
-				<ErrorState.Title>Access denied</ErrorState.Title>
+				<ErrorState.Title render={<h2 />}>Access denied</ErrorState.Title>
 				<ErrorState.Description>
 					Your account does not have access to this page. Ask an owner of the space if you need it.
 				</ErrorState.Description>
@@ -86,7 +86,7 @@ const AppStatePage = () => (
 		<Section title="Error — offline (status, with details)">
 			<ErrorState role="status">
 				<ErrorState.Pictogram icon={WifiOff} tone="info" />
-				<ErrorState.Title>No connection</ErrorState.Title>
+				<ErrorState.Title render={<h2 />}>No connection</ErrorState.Title>
 				<ErrorState.Description>
 					Check your Wi-Fi or mobile data. The page reloads by itself as soon as the network is back.
 				</ErrorState.Description>
@@ -99,7 +99,7 @@ const AppStatePage = () => (
 		<Section title="Error — server (danger, with details)">
 			<ErrorState>
 				<ErrorState.Pictogram icon={ServerOff} tone="danger" />
-				<ErrorState.Title>Something went wrong</ErrorState.Title>
+				<ErrorState.Title render={<h2 />}>Something went wrong</ErrorState.Title>
 				<ErrorState.Description>Loading took too long: try again.</ErrorState.Description>
 				<ErrorActions />
 				<ErrorState.Details label="Technical details">
@@ -110,7 +110,7 @@ const AppStatePage = () => (
 		<Section title="Error — unknown (danger)">
 			<ErrorState>
 				<ErrorState.Pictogram icon={AlertTriangle} tone="danger" />
-				<ErrorState.Title>Could not load the data</ErrorState.Title>
+				<ErrorState.Title render={<h2 />}>Could not load the data</ErrorState.Title>
 				<ErrorState.Description>Something unexpected happened. Try again, then reload the page.</ErrorState.Description>
 				<ErrorActions />
 			</ErrorState>
@@ -118,7 +118,7 @@ const AppStatePage = () => (
 		<Section title="Empty — default, with two actions">
 			<EmptyState>
 				<EmptyState.Pictogram icon={TruckDelivery} />
-				<EmptyState.Title>No forwarders</EmptyState.Title>
+				<EmptyState.Title render={<h3 />}>No forwarders</EmptyState.Title>
 				<EmptyState.Text>
 					Add the forwarder who receives your parcels in China: its rates and delays drive the freight.
 				</EmptyState.Text>
@@ -133,7 +133,7 @@ const AppStatePage = () => (
 		<Section title="Empty — default, without actions">
 			<EmptyState>
 				<EmptyState.Pictogram icon={Search} />
-				<EmptyState.Title>No match</EmptyState.Title>
+				<EmptyState.Title render={<h3 />}>No match</EmptyState.Title>
 				<EmptyState.Text>No forwarder matches this filter. Clear it to see them all.</EmptyState.Text>
 			</EmptyState>
 		</Section>
@@ -142,7 +142,7 @@ const AppStatePage = () => (
 				<Card.Body className="p-0">
 					<EmptyState size="compact">
 						<EmptyState.Pictogram icon={Link} className="text-status-success" />
-						<EmptyState.Title>All attached</EmptyState.Title>
+						<EmptyState.Title render={<h3 />}>All attached</EmptyState.Title>
 						<EmptyState.Text>Every parcel on the tracking site matches an item.</EmptyState.Text>
 					</EmptyState>
 				</Card.Body>

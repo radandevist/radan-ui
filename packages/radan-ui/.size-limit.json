@@ -4,5 +4,5 @@
 	{ "path": "dist/web/page-transition-tanstack-router.js", "limit": "4.7 kB" },
 	{ "path": "dist/web/load-guard.js", "limit": "1.7 kB" },
 	{ "path": "dist/web/phone-top-bar.js", "limit": "2.8 kB" },
-	{ "path": "dist/web/app-state.js", "limit": "10.6 kB" }
+	{ "path": "dist/web/app-state.js", "limit": "2.8 kB" }
 ]
