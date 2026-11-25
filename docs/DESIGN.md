@@ -329,3 +329,13 @@ import type { CSSProperties } from 'react';
 Dark mode: an override that must differ in dark is re-declared under `.dark`. An override never touches another
 token's value (no overriding `card-radius` by changing `radius`), and it never hardcodes what a token exists to
 express.
+
+## 11. State views
+
+`@radandevist/radan-ui/app-state` is the one shared family for error and empty screens: `ErrorState` and `EmptyState`,
+compound components composed through `children`, with no i18n, router or fetch (ShopKartOS's look, kept verbatim by the
+owner's decision of 24/11 — see [visual-consistency.md](./rules/visual-consistency.md)). Three documented scales: error
+144 px (`h1` 20), empty 120 px (`h2` 18), compact 96 px (`h2` 16); the pictogram is two tinted rings around a −6° tilted
+tile. The tile's 1px `border` **and** its `shadow-raised-control` ring together are the one documented border+ring
+exception to §5. Tones: `info` / `neutral` / `warning` / `danger`, mapped to the `status-open` / `closed` / `pending` /
+`breached` triplets.

@@ -1,0 +1,6 @@
+{
+	"app-state": {
+		"reason": "A terminal state never loads: the loading shape belongs to the page or list that owns the request, and a pictogram skeleton would break skeletons.md",
+		"issue": "https://github.com/radandevist/radan-ui/issues/92"
+	}
+}

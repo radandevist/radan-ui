@@ -4,7 +4,16 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 import packageJson from '../package.json' with { type: 'json' };
-import { componentsDir, entries, entryFile, headless, listComponents, root, webOnly } from '../scripts/components';
+import {
+	componentsDir,
+	entries,
+	entryFile,
+	headless,
+	listComponents,
+	noSkeleton,
+	root,
+	webOnly,
+} from '../scripts/components';
 
 /**
  * The guards of the cross-platform spec (decisions 1, 3, 6, 8). They walk src/components/*, so a new component is
@@ -14,8 +23,11 @@ import { componentsDir, entries, entryFile, headless, listComponents, root, webO
 const names = listComponents();
 const webOnlyList = webOnly();
 const headlessList = headless();
+const noSkeletonList = noSkeleton();
 // A headless folder (a router adapter) exports no component: no contract, variants, skeleton, catalog page or native side.
 const isHeadless = (name: string) => name in headlessList;
+// A terminal state has no loading shape: its folder is exempt from the two skeleton files (no-skeleton.json).
+const isNoSkeleton = (name: string) => name in noSkeletonList;
 const componentNames = names.filter((name) => !isHeadless(name));
 const files = (name: string) => readdirSync(join(componentsDir, name));
 const read = (name: string, file: string) => readFileSync(join(componentsDir, name, file), 'utf8');
@@ -26,6 +38,8 @@ const code = (source: string) => source.replaceAll(/\/\*[\s\S]*?\*\//g, '').repl
 // `from 'x'`, side-effect `import 'x'`, and `require('x')` / `import('x')`.
 const imports = (source: string) =>
 	[...code(source).matchAll(/(?:\bfrom|\bimport|\brequire)\s*\(?\s*['"]([^'"]+)['"]/g)].map((match) => match[1]!);
+// `fetch(`, `window.fetch(`, `globalThis.fetch(` and `self.fetch(` all call the network; a method on another object is app-side.
+const callsFetch = /(?:(?<!\.)\bfetch|(?:window|globalThis|self)\.fetch)\s*\(/;
 
 // The bone family (`bone`, `bone-line`, …) is the one skeleton library: a bone has no skeleton of its own, its catalog
 // page and its tests are the `bone` ones.
@@ -39,9 +53,9 @@ const conformance = (name: string) => {
 		`${name}.contract.ts`,
 		`${name}.variants.ts`,
 		`${name}.web.tsx`,
-		...(isBone(name) ? [] : [`${name}.skeleton.web.tsx`]),
+		...(isBone(name) || isNoSkeleton(name) ? [] : [`${name}.skeleton.web.tsx`]),
 	];
-	const native = [`${name}.native.tsx`, ...(isBone(name) ? [] : [`${name}.skeleton.native.tsx`])];
+	const native = [`${name}.native.tsx`, ...(isBone(name) || isNoSkeleton(name) ? [] : [`${name}.skeleton.native.tsx`])];
 	const listed = webOnlyList[name];
 	if (!listed) {
 		return [...missing(web), ...missing(native).map((message) => `${message} (or list ${name} in web-only.json)`)];
@@ -77,6 +91,18 @@ describe('conformance (decision 8)', () => {
 			...(names.includes(name) && files(name).some((file) => /\.native\.tsx?$/.test(file))
 				? [`${name}: a headless folder has no native file`]
 				: []),
+		]);
+		expect(problems).toEqual([]);
+	});
+
+	test('no-skeleton.json lists only existing components, each with a reason, an issue, a web entry and a test', () => {
+		const problems = Object.entries(noSkeletonList).flatMap(([name, listed]) => [
+			...(names.includes(name) ? [] : [`${name}: no such folder`]),
+			...(listed.reason ? [] : [`${name}: no-skeleton.json needs a reason`]),
+			...(listed.issue.startsWith('https://github.com/') ? [] : [`${name}: no-skeleton.json needs an issue URL`]),
+			...(names.includes(name) && !files(name).includes(`${name}.web.tsx`) ? [`${name}: missing ${name}.web.tsx`] : []),
+			...(names.includes(name) && !files(name).some((file) => isTest(file)) ? [`${name}: no test beside it`] : []),
+			...(headlessList[name] ? [`${name}: listed in both no-skeleton.json and headless.json`] : []),
 		]);
 		expect(problems).toEqual([]);
 	});
@@ -139,6 +165,33 @@ describe('platform imports (decision 6)', () => {
 			expect(problems).toEqual([]);
 		},
 	);
+
+	// `app-state` is pure presentation: no router, no i18n, no fetch and no browser effect (spec §5.4, §6.5).
+	test('app-state imports no router or i18n and calls no fetch', () => {
+		const problems = files('app-state')
+			.filter((file) => /\.tsx?$/.test(file) && !isTest(file))
+			.flatMap((file) => {
+				const source = code(read('app-state', file));
+				return [
+					...imports(source)
+						.filter((from) => from.startsWith('@tanstack/') || /^(i18next|react-i18next)$/.test(from))
+						.map((from) => `app-state/${file} imports ${from}`),
+					...(callsFetch.test(source) ? [`app-state/${file} calls fetch`] : []),
+				];
+			});
+		expect(problems).toEqual([]);
+	});
+
+	test.each(['fetch(url)', 'window.fetch(url)', 'globalThis.fetch(url)', 'self.fetch(url)'])(
+		'the fetch guard catches %s',
+		(source) => {
+			expect(callsFetch.test(source)).toBe(true);
+		},
+	);
+
+	test.each(['refetch()', 'cache.fetch(url)'])('the fetch guard ignores %s', (source) => {
+		expect(callsFetch.test(source)).toBe(false);
+	});
 
 	// The router's private shape (`_tx`, `stores`) is read in ONE file of the adapter, with runtime shape checks (spec §7.1).
 	test("only the adapter's internals.ts reads the router's private `_tx` / `stores`", () => {
